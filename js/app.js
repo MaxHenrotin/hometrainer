@@ -90,7 +90,7 @@ function renderLive() {
   $("duration").textContent = duration(ride.time);
   $("avg").textContent = number(ride.averagePower);
   $("max").textContent = number(ride.maxPower);
-  $("kj").textContent = number(ride.energy / 1000);
+  $("kcal").textContent = number(ride.calories);
   fillCells("rolling", ROLLING_DURATIONS, (d) => ride.average(d));
   fillCells("records", RECORD_DURATIONS, (d) => ride.records.get(d) ?? null);
   $("status").textContent = status();
@@ -113,7 +113,7 @@ function renderSummary() {
   $("s-speed").textContent = number(summary.speed, 1);
   $("s-cadence").textContent = number(summary.cadence);
   $("s-max").textContent = number(summary.maxPower);
-  $("s-energy").textContent = number(summary.energy);
+  $("s-calories").textContent = number(summary.calories);
   $("status").textContent = "Séance terminée";
 
   // The curve starts at 5 s, so a shorter ride has nothing to draw

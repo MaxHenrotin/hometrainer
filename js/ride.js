@@ -1,8 +1,5 @@
 // Seconds without pedalling before the ride pauses itself
 const AUTO_PAUSE_DELAY = 3;
-// km/h lost between two readings that, with the power frozen, means the rider stopped pedalling.
-// Coasting loses 2 to 3 km/h a second, while pedalling rarely changes speed by more than 0.5.
-const COASTING_SPEED_DROP = 1;
 // Durations of the best efforts, shown live and in the summary
 export const RECORD_DURATIONS = [5, 15, 60, 300, 600, 1200, 3600];
 
@@ -23,24 +20,9 @@ export class Ride {
   samples = [];
   #last = null;
   #stoppedAt = null;
-  #history = [{ speed: 0, cadence: 0, power: 0 }, { speed: 0, cadence: 0, power: 0 }];  // last two readings as received
-  #frozenPower = null;  // the power the trainer keeps repeating while the rider coasts
+  #measuresCadence = false;  // some trainers don't measure cadence
 
   update(values, now = Date.now()) {
-    // After the rider stops pedalling, the Suito keeps sending the last power, frozen, until its
-    // flywheel has spun down, which takes about 10 seconds (the cadence drops to 0 a bit earlier).
-    // The same power on three readings in a row while the speed clearly drops at each one means
-    // nobody is pedalling. Asking for two drops keeps a noisy speed reading from faking it. From
-    // then on, power and cadence count as zero for as long as that frozen value keeps coming back,
-    // even once the flywheel slows down too gently to tell, and any new value means pedalling again.
-    const [before, previous] = this.#history;
-    const received = { ...previous, ...values };
-    const falling = (a, b) => a.power === b.power && a.speed < b.speed - COASTING_SPEED_DROP;
-    if (received.power !== this.#frozenPower) this.#frozenPower = null;
-    if (falling(received, previous) && falling(previous, before)) this.#frozenPower = received.power;
-    const coasting = this.#frozenPower !== null;
-    this.#history = [previous, received];
-
     if (this.state === "riding") {
       const dt = (now - this.#last) / 1000;
       this.time += dt;
@@ -49,9 +31,16 @@ export class Ride {
       this.revolutions += this.cadence * dt;
     }
     this.#last = now;
-    Object.assign(this, received, coasting ? { power: 0, cadence: 0 } : {});
+    Object.assign(this, values);
+    this.#measuresCadence ||= values.cadence !== undefined;
 
-    if (this.power > 0 || this.cadence > 0) {
+    // Pedalling means turning the cranks, and power alone can't tell: some trainers, like the Suito,
+    // keep sending the last power for a few seconds after the rider stops. So no cadence means no
+    // pedalling and no power. Trainers that don't measure cadence fall back on power.
+    const pedalling = this.#measuresCadence ? this.cadence > 0 : this.power > 0;
+    if (!pedalling) this.power = 0;
+
+    if (pedalling) {
       this.#stoppedAt = null;
       this.state = "riding";
       this.startedAt ??= new Date(now);
@@ -83,6 +72,12 @@ export class Ride {
     return this.state === "riding" ? this.samples.at(-1).power3s : this.power;
   }
 
+  // The work done in kJ is about the kcal the body burns: muscles turn roughly a quarter of the
+  // food energy into work, and 1 kcal is 4.184 kJ, so the two factors cancel out
+  get calories() {
+    return this.energy / 1000;
+  }
+
   get averagePower() {
     return this.time ? this.energy / this.time : 0;
   }
@@ -103,7 +98,7 @@ export class Ride {
       cadence: this.revolutions / this.time,
       power: this.averagePower,
       maxPower: this.maxPower,
-      energy: this.energy / 1000,
+      calories: this.calories,
       curve: [...this.records].map(([duration, power]) => ({ duration, power })),
     };
   }

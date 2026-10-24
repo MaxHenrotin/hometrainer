@@ -67,7 +67,7 @@ export async function fit(ride) {
     totalDistance: summary.distance * 1000,
     totalAscent: 0,
     totalDescent: 0,
-    totalCalories: Math.round(summary.energy),  // kJ of work ≈ kcal burnt
+    totalCalories: Math.round(summary.calories),
     avgSpeed: summary.speed / 3.6,
     avgPower: Math.round(summary.power),
     maxPower: summary.maxPower,
@@ -131,7 +131,7 @@ export async function recapImage(ride, weight) {
     ["Vitesse moyenne", number(summary.speed, 1), "km/h"],
     ["Cadence moyenne", number(summary.cadence), "rpm"],
     ["Puissance max", number(summary.maxPower), "W"],
-    ["Énergie", number(summary.energy), "kJ"],
+    ["Calories", number(summary.calories), "kcal"],
   ];
   stats.forEach(([label, value, unit], i) => {
     const x = left + (i % 3) * 320;
