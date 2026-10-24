@@ -14,10 +14,6 @@
 <header class="top">
   <h1>Hometrainer</h1>
   <div class="controls">
-    <div class="pill segmented live-only" role="group" aria-label="Durée affichée par le graphique">
-      <button type="button" data-chart="10min" aria-pressed="true">10 min</button>
-      <button type="button" data-chart="all" aria-pressed="false">Séance</button>
-    </div>
     <div class="pill live-only">
       <span id="autopause-label">Pause auto</span>
       <button type="button" id="autopause" class="switch" role="switch" aria-checked="true" aria-labelledby="autopause-label"><span></span></button>
@@ -34,17 +30,17 @@
       <div class="readings">
         <dl class="values">
           <div class="value">
-            <dt>Puissance</dt>
+            <dt class="sr-only">Puissance</dt>
             <dd class="now"><span id="power" class="big">0</span><span class="unit">W</span></dd>
             <dd class="average">moy. <span id="avg-power">0</span></dd>
           </div>
           <div class="value">
-            <dt>Cadence</dt>
+            <dt class="sr-only">Cadence</dt>
             <dd class="now"><span id="cadence">0</span><span class="unit">rpm</span></dd>
             <dd class="average">moy. <span id="avg-cadence">0</span></dd>
           </div>
           <div class="value">
-            <dt>Vitesse</dt>
+            <dt class="sr-only">Vitesse</dt>
             <dd class="now"><span id="speed">0,0</span><span class="unit">km/h</span></dd>
             <dd class="average">moy. <span id="avg-speed">0,0</span></dd>
           </div>
@@ -54,7 +50,11 @@
           <span id="wkg-box" class="wkg"><strong id="wkg"></strong> W/kg <span class="average">moy. <span id="avg-wkg"></span></span></span>
         </div>
       </div>
-      <section class="card chart" aria-label="Graphique de la puissance">
+      <section class="card chart with-switch" aria-label="Graphique de la puissance">
+        <div class="segmented" role="group" aria-label="Durée affichée par le graphique">
+          <button type="button" data-chart="10min" aria-pressed="true">10 min</button>
+          <button type="button" data-chart="all" aria-pressed="false">Séance</button>
+        </div>
         <canvas id="live-chart"></canvas>
         <p id="bubble" class="bubble" role="status"></p>
       </section>
@@ -62,11 +62,11 @@
 
     <aside class="column">
       <dl class="totals">
-        <div><dt>Distance</dt><dd><span id="distance">0,00</span><span class="unit">km</span></dd></div>
-        <div><dt>Durée</dt><dd id="duration">0:00:00</dd></div>
+        <div><dt class="sr-only">Distance</dt><dd><span id="distance">0,00</span><span class="unit">km</span></dd></div>
+        <div><dt class="sr-only">Durée</dt><dd id="duration">0:00:00</dd></div>
       </dl>
       <ol id="rolling" class="card durations" aria-label="Moyennes glissantes et records de la séance"></ol>
-      <button type="button" id="connect" class="button primary">Connecter le home-trainer</button>
+      <button type="button" id="connect" class="button accent">Connecter le home-trainer</button>
       <button type="button" id="stop" class="button primary hold" hidden><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg>Maintenir pour terminer</button>
     </aside>
   </section>

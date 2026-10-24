@@ -86,7 +86,7 @@ function lastBars() {
 
 function drawChart(canvas, { bars, slots }) {
   const { ctx, box } = fitCanvas(canvas);
-  drawBars(ctx, box, bars, Math.max(slots, 1), colorOf, color("track"));
+  drawBars(ctx, box, bars, Math.max(slots, 1), colorOf, { grid: color("track"), label: color("tertiary") });
 }
 
 function renderStatus(text, dot) {
@@ -97,7 +97,7 @@ function renderStatus(text, dot) {
 // What the bubble over the chart says, and how it's marked: info, pause or error
 function bubble() {
   if (message) return [message, "error"];
-  if (!trainer?.active) return ["Pédale quelques secondes pour réveiller le home-trainer, puis connecte-le.", "info"];
+  if (!trainer?.active) return ["Pédale pour réveiller le home-trainer, puis connecte-le", "info"];
   if (reconnecting) return ["Bluetooth déconnecté. Reconnexion…", "error"];
   if (ride.state === "waiting") return ["Pédale pour démarrer", "info"];
   if (ride.state === "paused") return ["En pause. Pédale pour reprendre", "pause"];
