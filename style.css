@@ -70,6 +70,18 @@ main { flex: 1; display: flex; flex-direction: column; justify-content: center; 
 .stats dd { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: clamp(36px, 5.5vw, 64px); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .stats small { font-size: 0.45em; font-weight: 500; color: var(--muted); margin-left: 4px; }
 
+.banner {
+  margin: 0 0 24px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--button-ink);
+  background: var(--blue);
+}
+.banner.bluetooth { background: var(--red); }
+.banner:empty { display: none; }
+
 /* Readings fade while the ride is paused, so a glance is enough to see it */
 body[data-state="paused"] #live output { opacity: 0.4; }
 

@@ -45,8 +45,10 @@ export class Ride {
   }
 
   // Used when the trainer disconnects, so the gap isn't counted as riding time
+  // and the last readings don't stay on screen as if they were current
   pause() {
     if (this.state === "riding") this.state = "paused";
+    this.speed = this.cadence = this.power = 0;
   }
 
   // The big number on screen: smoothed while riding, as received otherwise

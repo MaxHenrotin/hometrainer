@@ -35,7 +35,7 @@ If the Bluetooth connection drops, the ride pauses and the page keeps trying to 
 The summary shows moving time, distance, average speed, cadence and power, max power, energy, and your best efforts over 5 s, 15 s, 1 min, 5 min, 10 min and 20 min. You can download three files:
 
 - **Télécharger l'image**: a PNG recap of the ride, sized for sharing on a phone.
-- **Fichier pour Strava**: a `.tcx` file with power, cadence and speed. On strava.com, click **+**, then **Upload activity**, and pick the file. Pauses show up as gaps, so Strava gets the moving time right.
+- **Importer sur Strava**: downloads a `.tcx` file with power, cadence and speed, and opens Strava's upload page in a new tab, where you pick the file. Pauses show up as gaps, so Strava gets the moving time right.
 - **Données CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
 
 ```

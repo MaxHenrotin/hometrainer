@@ -5,10 +5,11 @@ import { Ride } from "./ride.js";
 import { Trainer } from "./trainer.js";
 
 const LIVE_WINDOW = 600;  // seconds of riding shown on the live chart
+const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
 const HINTS = {
   idle: "Pédale quelques secondes pour réveiller le home-trainer avant de te connecter.",
   riding: "La séance démarre au premier coup de pédale et se met en pause toute seule quand tu t'arrêtes.",
-  summary: "Pour Strava : sur strava.com, clique sur + puis « Importer une activité » et choisis le fichier .tcx.",
+  summary: "« Importer sur Strava » télécharge le fichier .tcx et ouvre la page d'import de Strava : il ne reste qu'à y choisir ce fichier.",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -30,8 +31,14 @@ function colors() {
 
 function status() {
   if (!trainer?.active) return "Pas connecté";
-  if (reconnecting) return "Connexion perdue, reconnexion…";
-  return { waiting: "Connecté. Pédale pour démarrer", riding: `Connecté à ${trainer.name}`, paused: "En pause. Pédale pour reprendre" }[ride.state];
+  return reconnecting ? "Déconnecté" : `Connecté à ${trainer.name}`;
+}
+
+// Why the clock isn't running, shown big above the power so it reads from the saddle
+function banner() {
+  if (!trainer?.active) return "";
+  if (reconnecting) return "Bluetooth déconnecté. En attente de reconnexion pour reprendre…";
+  return { waiting: "Pédale pour démarrer", riding: "", paused: "En pause. Pédale pour reprendre" }[ride.state];
 }
 
 function renderLive() {
@@ -42,6 +49,8 @@ function renderLive() {
   $("distance").textContent = number(ride.distance, 2);
   $("duration").textContent = duration(ride.time);
   $("status").textContent = status();
+  $("banner").textContent = banner();
+  $("banner").classList.toggle("bluetooth", reconnecting);
   document.body.dataset.state = reconnecting ? "paused" : ride.state;
 
   const { ctx, box } = fitCanvas($("live-chart"));
@@ -141,7 +150,10 @@ $("connect").addEventListener("click", connect);
 $("stop").addEventListener("click", finish);
 $("restart").addEventListener("click", reset);
 $("csv").addEventListener("click", () => download(csv(ride), fileName("csv")));
-$("tcx").addEventListener("click", () => download(tcx(ride), fileName("tcx")));
+$("tcx").addEventListener("click", () => {
+  download(tcx(ride), fileName("tcx"));
+  open(STRAVA_UPLOAD, "_blank", "noopener");
+});
 $("png").addEventListener("click", async () => download(await recapImage(ride, weight()), fileName("png")));
 
 weightInput.addEventListener("input", () => {
