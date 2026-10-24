@@ -18,14 +18,28 @@ export function csv(ride) {
   return new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
 }
 
-// Garmin TCX, which Strava imports with power and cadence. Pauses show up as gaps
-// in the timestamps, so Strava works out the moving time by itself.
+// Strava only works out moving time from GPS data, so without it every pause would count as
+// riding time. Like Zwift's virtual worlds, the ride gets a made-up route: a straight line heading
+// north along a meridian in the open South Atlantic. There are no roads there, so no Strava
+// segments, and no real location is revealed. The position stands still during pauses, which
+// Strava counts as stopped. At 48.2° S a degree of latitude is 111 195 m both on a sphere and on
+// the GPS ellipsoid, so the GPS distance matches the ridden distance whichever one Strava uses.
+const ROUTE = { lat: -48.2, lon: -30 };
+const METERS_PER_DEGREE = 111195;
+
+function routePosition(km) {
+  const lat = ROUTE.lat + km * 1000 / METERS_PER_DEGREE;
+  return `<Position><LatitudeDegrees>${lat.toFixed(7)}</LatitudeDegrees><LongitudeDegrees>${ROUTE.lon.toFixed(7)}</LongitudeDegrees></Position>`;
+}
+
+// Garmin TCX, which Strava imports with power and cadence
 export function tcx(ride) {
   const summary = ride.summary();
   const start = ride.startedAt.toISOString();
   const points = ride.samples.map((s) => `
         <Trackpoint>
           <Time>${new Date(s.timestamp).toISOString()}</Time>
+          ${routePosition(s.distance)}
           <DistanceMeters>${(s.distance * 1000).toFixed(1)}</DistanceMeters>
           <Cadence>${Math.min(254, Math.round(s.cadence))}</Cadence>
           <Extensions><ns3:TPX><ns3:Speed>${(s.speed / 3.6).toFixed(2)}</ns3:Speed><ns3:Watts>${Math.max(0, s.power)}</ns3:Watts></ns3:TPX></Extensions>

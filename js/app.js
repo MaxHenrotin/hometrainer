@@ -9,7 +9,7 @@ const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
 const HINTS = {
   idle: "Pédale quelques secondes pour réveiller le home-trainer avant de te connecter.",
   riding: "La séance démarre au premier coup de pédale et se met en pause toute seule quand tu t'arrêtes.",
-  summary: "« Importer sur Strava » télécharge le fichier .tcx et ouvre la page d'import de Strava : il ne reste qu'à y choisir ce fichier.",
+  summary: "« Importer sur Strava » télécharge le fichier .tcx et ouvre la page d'import de Strava : il ne reste qu'à y choisir ce fichier, puis à mettre le type d'activité sur « Vélo virtuel ».",
 };
 
 const $ = (id) => document.getElementById(id);
