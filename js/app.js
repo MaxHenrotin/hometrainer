@@ -204,8 +204,14 @@ function fileName(extension) {
 }
 
 $("connect").addEventListener("click", connect);
-$("stop").addEventListener("click", finish);
-$("restart").addEventListener("click", reset);
+// Both buttons throw away something that can't be brought back, so a stray click must not be enough.
+// A ride with nothing recorded yet has nothing to lose.
+$("stop").addEventListener("click", () => {
+  if (ride.time < 1 || confirm("Terminer la séance ? Tu ne pourras plus la reprendre.")) finish();
+});
+$("restart").addEventListener("click", () => {
+  if (confirm("Commencer une nouvelle séance ? Celle-ci disparaîtra de la page : télécharge d'abord les fichiers que tu veux garder.")) reset();
+});
 $("csv").addEventListener("click", () => download(csv(ride), fileName("csv")));
 $("strava").addEventListener("click", async () => {
   // The tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it
