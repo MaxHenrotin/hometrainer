@@ -1,5 +1,6 @@
 import { drawPowerCurve } from "./charts.js";
 import { duration, number } from "./format.js";
+import { ALTITUDE, routePosition } from "./route.js";
 
 // The recap image always uses the light theme, whatever the page looks like
 const LIGHT = { bg: "#f3f5f7", ink: "#14213d", muted: "#5b6475", line: "#d5dae2", red: "#d62828", blue: "#1d4ed8" };
@@ -18,51 +19,70 @@ export function csv(ride) {
   return new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
 }
 
-// Strava only works out moving time from GPS data, so without it every pause would count as
-// riding time. Like Zwift's virtual worlds, the ride gets a made-up route: a straight line heading
-// north along a meridian in the open South Atlantic. There are no roads there, so no Strava
-// segments, and no real location is revealed. The position stands still during pauses, which
-// Strava counts as stopped. At 48.2° S a degree of latitude is 111 195 m both on a sphere and on
-// the GPS ellipsoid, so the GPS distance matches the ridden distance whichever one Strava uses.
-const ROUTE = { lat: -48.2, lon: -30 };
-const METERS_PER_DEGREE = 111195;
+// Loaded only when someone exports to Strava, since the SDK weighs about 440 KB
+const FIT_SDK = "https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.218.0/+esm";
+const semicircles = (degrees) => Math.round(degrees * 2 ** 31 / 180);
 
-function routePosition(km) {
-  const lat = ROUTE.lat + km * 1000 / METERS_PER_DEGREE;
-  return `<Position><LatitudeDegrees>${lat.toFixed(7)}</LatitudeDegrees><LongitudeDegrees>${ROUTE.lon.toFixed(7)}</LongitudeDegrees></Position>`;
-}
-
-// Garmin TCX, which Strava imports with power and cadence
-export function tcx(ride) {
+// Garmin FIT, the format Zwift sends to Strava, following the virtual route. As a virtual ride,
+// Strava keeps the local time and the flat elevation written in the file, and never matches the
+// ride against real segments. Pauses become timer stops, and the position stands still during
+// them, which is how Strava tells moving time from elapsed time.
+export async function fit(ride) {
+  const { Encoder, Profile, Utils } = await import(FIT_SDK);
+  const { MesgNum } = Profile;
   const summary = ride.summary();
-  const start = ride.startedAt.toISOString();
-  const points = ride.samples.map((s) => `
-        <Trackpoint>
-          <Time>${new Date(s.timestamp).toISOString()}</Time>
-          ${routePosition(s.distance)}
-          <DistanceMeters>${(s.distance * 1000).toFixed(1)}</DistanceMeters>
-          <Cadence>${Math.min(254, Math.round(s.cadence))}</Cadence>
-          <Extensions><ns3:TPX><ns3:Speed>${(s.speed / 3.6).toFixed(2)}</ns3:Speed><ns3:Watts>${Math.max(0, s.power)}</ns3:Watts></ns3:TPX></Extensions>
-        </Trackpoint>`).join("");
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:ns3="http://www.garmin.com/xmlschemas/ActivityExtension/v2">
-  <Activities>
-    <Activity Sport="Biking">
-      <Id>${start}</Id>
-      <Lap StartTime="${start}">
-        <TotalTimeSeconds>${summary.time.toFixed(0)}</TotalTimeSeconds>
-        <DistanceMeters>${(summary.distance * 1000).toFixed(1)}</DistanceMeters>
-        <Calories>${Math.round(summary.energy)}</Calories>
-        <Intensity>Active</Intensity>
-        <TriggerMethod>Manual</TriggerMethod>
-        <Track>${points}
-        </Track>
-      </Lap>
-    </Activity>
-  </Activities>
-</TrainingCenterDatabase>
-`;
-  return new Blob([xml], { type: "application/vnd.garmin.tcx+xml" });
+  const { samples } = ride;
+  const first = new Date(samples[0].timestamp);
+  const last = new Date(samples.at(-1).timestamp);
+  const encoder = new Encoder();
+
+  encoder.onMesg(MesgNum.FILE_ID, { type: "activity", manufacturer: "development", product: 0, timeCreated: first });
+  encoder.onMesg(MesgNum.EVENT, { timestamp: first, event: "timer", eventType: "start" });
+  samples.forEach((s, i) => {
+    const previous = samples[i - 1];
+    // A pause shows up as more clock time than riding time between two samples
+    if (previous && (s.timestamp - previous.timestamp) / 1000 - (s.time - previous.time) > 1) {
+      encoder.onMesg(MesgNum.EVENT, { timestamp: new Date(previous.timestamp), event: "timer", eventType: "stopAll" });
+      encoder.onMesg(MesgNum.EVENT, { timestamp: new Date(s.timestamp), event: "timer", eventType: "start" });
+    }
+    const { lat, lon } = routePosition(s.distance);
+    encoder.onMesg(MesgNum.RECORD, {
+      timestamp: new Date(s.timestamp),
+      positionLat: semicircles(lat),
+      positionLong: semicircles(lon),
+      enhancedAltitude: ALTITUDE,
+      distance: s.distance * 1000,
+      enhancedSpeed: s.speed / 3.6,
+      power: Math.max(0, s.power),
+      cadence: Math.min(254, Math.round(s.cadence)),
+    });
+  });
+  encoder.onMesg(MesgNum.EVENT, { timestamp: last, event: "timer", eventType: "stopAll" });
+
+  const totals = {
+    timestamp: last,
+    startTime: first,
+    totalElapsedTime: (last - first) / 1000,
+    totalTimerTime: summary.time,
+    totalDistance: summary.distance * 1000,
+    totalAscent: 0,
+    totalDescent: 0,
+    totalCalories: Math.round(summary.energy),  // kJ of work ≈ kcal burnt
+    avgSpeed: summary.speed / 3.6,
+    avgPower: Math.round(summary.power),
+    maxPower: summary.maxPower,
+    avgCadence: Math.round(summary.cadence),
+    sport: "cycling",
+    subSport: "virtualActivity",
+  };
+  encoder.onMesg(MesgNum.LAP, { messageIndex: 0, event: "lap", eventType: "stop", ...totals });
+  encoder.onMesg(MesgNum.SESSION, { messageIndex: 0, event: "session", eventType: "stop", firstLapIndex: 0, numLaps: 1, ...totals });
+  // The computer's own clock, which Strava shows as the start time of a virtual ride
+  const localTimestamp = Utils.convertDateToDateTime(last) - last.getTimezoneOffset() * 60;
+  encoder.onMesg(MesgNum.ACTIVITY, {
+    timestamp: last, localTimestamp, totalTimerTime: summary.time, numSessions: 1, type: "manual", event: "activity", eventType: "stop",
+  });
+  return new Blob([encoder.close()], { type: "application/vnd.ant.fit" });
 }
 
 // A 1080×1350 picture (the portrait format of most social apps) with the key numbers and the power curve

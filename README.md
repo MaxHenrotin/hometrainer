@@ -37,9 +37,14 @@ If the Bluetooth connection drops, the ride pauses and the page keeps trying to 
 The summary shows moving time, distance, average speed, cadence and power, max power, energy, your best efforts over 5 s, 15 s, 1 min, 5 min, 10 min, 20 min and 1 h, and the time in each zone if you entered an FTP. You can download three files:
 
 - **Télécharger l'image**: a PNG recap of the ride, sized for sharing on a phone.
-- **Importer sur Strava**: downloads a `.tcx` file with power, cadence and speed, and opens Strava's upload page in a new tab, where you pick the file. Then set the activity type to **Virtual Ride** on Strava.
+- **Importer sur Strava**: downloads a `.fit` file with power, cadence and speed, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a **Virtual Ride**, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
 
-  Strava only works out moving time from GPS data. Without it, every pause would count as riding time, even with the pauses written in the file (I tried TCX and FIT). So, like Zwift with its virtual worlds, the file gives the ride a made-up route: a straight line heading north in the open South Atlantic, at 48.2° S, 30° W. The position stands still during pauses, which Strava counts as stopped. There are no roads out there to match a Strava segment, and no real location is revealed. Power, cadence, speed and distance stay exactly as measured. At that latitude the GPS distance matches the ridden distance on a sphere and on the GPS ellipsoid alike (0.01 % apart over 90 km), whichever one Strava uses. On Strava the map shows a short line in the ocean.
+  Getting the ride right on Strava took a few tries, because Strava fills in what an indoor file lacks on its own terms:
+  - It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route: a 100 km organic loop around Isla Incahuasi on the Salar de Uyuni in Bolivia. The position stands still during pauses, which Strava counts as stopped.
+  - For a regular ride, it takes the time zone and the elevation from the place on the map, so a ride in Bolivia would show up 6 hours early with made-up climbing. A virtual ride keeps the computer's local time and the flat elevation written in the file, and is never matched against real segments.
+  - The Salar is the flattest place on Earth, and every point of the loop was checked against SRTM elevation data to stay on the salt.
+
+  Strava uses the distance from the file, not the length of the route, so the made-up route never changes your kilometres. Power, cadence and speed stay exactly as measured.
 - **Données CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
 
 ```
@@ -51,7 +56,7 @@ time_s,speed_kmh,cadence_rpm,power_w,distance_km
 
 ## Running it yourself
 
-It's plain HTML, CSS and JavaScript modules, with no build step and no dependencies. Because of the modules, opening `index.html` straight from the file system doesn't work. Clone the repo and serve the folder instead:
+It's plain HTML, CSS and JavaScript modules, with no build step and nothing to install. Because of the modules, opening `index.html` straight from the file system doesn't work. Clone the repo and serve the folder instead:
 
 ```
 git clone https://github.com/MaxHenrotin/hometrainer.git
@@ -71,5 +76,6 @@ The code is split by job:
 - `js/ride.js` holds the ride logic: auto-pause, totals, 3-second power, rolling averages, best efforts
 - `js/zones.js` defines the seven power zones and adds up the time spent in each
 - `js/charts.js` draws the live chart and the best-efforts curve on a canvas
-- `js/exports.js` builds the CSV, the TCX and the recap image
+- `js/route.js` holds the virtual loop on the Salar de Uyuni
+- `js/exports.js` builds the CSV, the FIT file (with Garmin's FIT SDK, loaded from a CDN on demand) and the recap image
 - `js/app.js` wires all of it to the page

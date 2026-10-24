@@ -1,5 +1,5 @@
 import { drawPowerBars, drawPowerCurve, fitCanvas } from "./charts.js";
-import { csv, download, recapImage, tcx } from "./exports.js";
+import { csv, download, fit, recapImage } from "./exports.js";
 import { duration, durationLabel, number } from "./format.js";
 import { RECORD_DURATIONS, Ride } from "./ride.js";
 import { Trainer } from "./trainer.js";
@@ -11,7 +11,7 @@ const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
 const HINTS = {
   idle: "Pédale quelques secondes pour réveiller le home-trainer avant de te connecter.",
   riding: "La séance démarre au premier coup de pédale et se met en pause toute seule quand tu t'arrêtes.",
-  summary: "« Importer sur Strava » télécharge le fichier .tcx et ouvre la page d'import de Strava : il ne reste qu'à y choisir ce fichier, puis à mettre le type d'activité sur « Vélo virtuel ».",
+  summary: "« Importer sur Strava » télécharge le fichier .fit et ouvre la page d'import de Strava : il ne reste qu'à y choisir ce fichier.",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -138,7 +138,7 @@ function renderSummary() {
 const render = () => ($("summary").hidden ? renderLive() : renderSummary());
 
 function show(...ids) {
-  for (const id of ["connect", "stop", "png", "tcx", "csv", "restart"]) $(id).hidden = !ids.includes(id);
+  for (const id of ["connect", "stop", "png", "strava", "csv", "restart"]) $(id).hidden = !ids.includes(id);
 }
 
 async function keepScreenOn() {
@@ -180,7 +180,7 @@ function finish() {
   }
   $("live").hidden = true;
   $("summary").hidden = false;
-  show("png", "tcx", "csv", "restart");
+  show("png", "strava", "csv", "restart");
   $("hint").textContent = HINTS.summary;
   document.body.dataset.state = "";
   renderSummary();
@@ -207,9 +207,10 @@ $("connect").addEventListener("click", connect);
 $("stop").addEventListener("click", finish);
 $("restart").addEventListener("click", reset);
 $("csv").addEventListener("click", () => download(csv(ride), fileName("csv")));
-$("tcx").addEventListener("click", () => {
-  download(tcx(ride), fileName("tcx"));
+$("strava").addEventListener("click", async () => {
+  // The tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it
   open(STRAVA_UPLOAD, "_blank", "noopener");
+  download(await fit(ride), fileName("fit"));
 });
 $("png").addEventListener("click", async () => download(await recapImage(ride, weight()), fileName("png")));
 
