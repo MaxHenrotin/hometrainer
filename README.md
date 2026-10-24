@@ -23,7 +23,7 @@ The page relies on Web Bluetooth, and only Chromium-based browsers implement it.
 1. Close Zwift, the Elite app or anything else connected to the trainer. It only accepts one Bluetooth connection at a time.
 2. Pedal for a few seconds to wake the trainer up.
 3. Click **Connecter le home-trainer** and pick your trainer in the list.
-4. Start pedalling. The clock only starts with your first pedal stroke, and the ride pauses by itself when you stop pedalling for 3 seconds. It picks up again as soon as you pedal.
+4. Start pedalling. The clock only starts with your first pedal stroke, and the ride pauses by itself once the trainer has reported a cadence of 0 for a second. It picks up again as soon as you pedal. Some trainers take a while to notice you've stopped: the Suito keeps showing your last cadence for about 5 seconds, so its rides pause about 6 seconds after you stop.
 5. Click **Terminer la séance** when you're done.
 
 While you ride, the big number is your power averaged over 3 seconds, because the raw value jumps around too much to read. Under the main readings, a smaller section shows the session's average and max power and the calories burnt, your rolling average power over the last 15 s, 1, 2, 3, 5, 10, 20 and 45 min, and your best efforts so far. A chart shows the last 10 minutes.

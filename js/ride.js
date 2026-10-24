@@ -1,5 +1,5 @@
 // Seconds without pedalling before the ride pauses itself
-const AUTO_PAUSE_DELAY = 3;
+const AUTO_PAUSE_DELAY = 1;
 // Durations of the best efforts, shown live and in the summary
 export const RECORD_DURATIONS = [5, 15, 60, 300, 600, 1200, 3600];
 
