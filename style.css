@@ -1,0 +1,106 @@
+:root {
+  --bg: #f3f5f7;
+  --ink: #14213d;
+  --muted: #5b6475;
+  --line: #d5dae2;
+  --red: #d62828;
+  --blue: #1d4ed8;
+  --button-ink: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1a2e;
+    --ink: #eef1f6;
+    --muted: #9aa4b5;
+    --line: #2a3650;
+    --red: #ff5a52;
+    --blue: #6b8cff;
+    --button-ink: #0f1a2e;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Barlow", sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* Velodrome track markings: black measurement line, red sprinter line, blue stayers line */
+.track { height: 18px; background: linear-gradient(var(--ink) 0 4px, transparent 4px 7px, var(--red) 7px 11px, transparent 11px 14px, var(--blue) 14px 18px); }
+
+header, main, footer { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding-top: 24px; padding-bottom: 24px; }
+h1 { margin: 0 auto 0 0; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.01em; }
+#status { color: var(--muted); }
+
+.weight { color: var(--muted); }
+.weight input {
+  width: 4.5em;
+  margin: 0 4px;
+  padding: 4px 8px;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.weight input:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
+
+main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 32px; }
+
+.label, .stats dt { margin: 0; color: var(--muted); }
+
+.power { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 16px; font-family: "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; line-height: 0.9; }
+.power > output { font-weight: 700; font-size: clamp(120px, 24vw, 280px); color: var(--red); }
+.power > span { font-weight: 500; font-size: clamp(36px, 6vw, 72px); color: var(--muted); }
+.power .wkg { margin-left: 16px; font-size: clamp(24px, 3.5vw, 40px); }
+
+.stats { display: grid; margin: 32px 0 0; border-top: 4px solid var(--ink); }
+.stats.four { grid-template-columns: repeat(4, 1fr); }
+.stats.three { grid-template-columns: repeat(3, 1fr); }
+.stats div { padding: 16px 16px 0; border-left: 1px solid var(--line); }
+.stats.four div:nth-child(4n + 1), .stats.three div:nth-child(3n + 1) { padding-left: 0; border-left: 0; }
+.stats dd { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: clamp(36px, 5.5vw, 64px); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stats small { font-size: 0.45em; font-weight: 500; color: var(--muted); margin-left: 4px; }
+
+/* Readings fade while the ride is paused, so a glance is enough to see it */
+body[data-state="paused"] #live output { opacity: 0.4; }
+
+canvas { display: block; width: 100%; }
+.live-chart { height: 140px; margin-top: 32px; }
+.curve-label { margin-top: 32px; }
+.curve-chart { height: 220px; margin-top: 8px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
+button {
+  font: 600 18px "Barlow", sans-serif;
+  padding: 14px 28px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--button-ink);
+  cursor: pointer;
+}
+button.secondary { background: transparent; color: var(--ink); }
+button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+button:disabled { opacity: 0.5; cursor: wait; }
+
+#message { max-width: 60ch; margin: 24px 0 0; color: var(--red); }
+#message:empty { display: none; }
+
+footer { padding-bottom: 24px; color: var(--muted); font-size: 15px; }
+
+[hidden] { display: none !important; }
+
+@media (max-width: 640px) {
+  .stats.four, .stats.three { grid-template-columns: repeat(2, 1fr); }
+  .stats.four div:nth-child(n), .stats.three div:nth-child(n) { padding-left: 16px; border-left: 1px solid var(--line); }
+  .stats.four div:nth-child(2n + 1), .stats.three div:nth-child(2n + 1) { padding-left: 0; border-left: 0; }
+}

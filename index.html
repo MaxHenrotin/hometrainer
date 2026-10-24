@@ -7,275 +7,61 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #f3f5f7;
-    --ink: #14213d;
-    --muted: #5b6475;
-    --line: #d5dae2;
-    --red: #d62828;
-    --blue: #1d4ed8;
-    --button-ink: #ffffff;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0f1a2e;
-      --ink: #eef1f6;
-      --muted: #9aa4b5;
-      --line: #2a3650;
-      --red: #ff5a52;
-      --blue: #6b8cff;
-      --button-ink: #0f1a2e;
-    }
-  }
-
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: "Barlow", sans-serif;
-    font-size: 18px;
-    line-height: 1.5;
-  }
-
-  /* Velodrome track markings: black measurement line, red sprinter line, blue stayers line */
-  .track { height: 18px; background: linear-gradient(var(--ink) 0 4px, transparent 4px 7px, var(--red) 7px 11px, transparent 11px 14px, var(--blue) 14px 18px); }
-
-  header, main, footer { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 24px; padding-bottom: 24px; }
-  h1 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.01em; }
-  #status { color: var(--muted); }
-
-  main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 32px; }
-
-  .power { display: flex; align-items: baseline; gap: 16px; font-family: "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; line-height: 0.9; }
-  .power output { font-weight: 700; font-size: clamp(120px, 28vw, 320px); color: var(--red); }
-  .power span { font-weight: 500; font-size: clamp(36px, 6vw, 72px); color: var(--muted); }
-
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); margin: 32px 0 0; border-top: 4px solid var(--ink); }
-  .stats div { padding: 16px 16px 0 0; }
-  .stats div + div { padding-left: 16px; border-left: 1px solid var(--line); }
-  .label, .stats dt { margin: 0; color: var(--muted); }
-  .stats dd { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: clamp(36px, 5.5vw, 64px); font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .stats small { font-size: 0.45em; font-weight: 500; color: var(--muted); margin-left: 4px; }
-
-  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
-  button {
-    font: 600 18px "Barlow", sans-serif;
-    padding: 14px 28px;
-    border: 2px solid var(--ink);
-    border-radius: 999px;
-    background: var(--ink);
-    color: var(--button-ink);
-    cursor: pointer;
-  }
-  button.secondary { background: transparent; color: var(--ink); }
-  button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
-  button:disabled { opacity: 0.5; cursor: wait; }
-
-  #message { max-width: 60ch; margin: 24px 0 0; color: var(--red); }
-  #message:empty { display: none; }
-
-  footer { padding-bottom: 24px; color: var(--muted); font-size: 15px; }
-
-  [hidden] { display: none !important; }
-
-  @media (max-width: 640px) {
-    .stats { grid-template-columns: repeat(2, 1fr); }
-    .stats div:nth-child(3) { padding-left: 0; border-left: 0; }
-  }
-</style>
+<link rel="stylesheet" href="style.css">
+<script type="module" src="js/app.js"></script>
 </head>
 <body>
 <div class="track"></div>
 <header>
   <h1>Hometrainer</h1>
+  <label class="weight">Poids <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal"> kg</label>
   <span id="status">Pas connecté</span>
 </header>
 
 <main>
-  <p id="label-power" class="label">Puissance</p>
-  <div class="power">
-    <output id="power">0</output><span>W</span>
-  </div>
+  <section id="live">
+    <p class="label">Puissance (moyenne sur 3 s)</p>
+    <div class="power">
+      <output id="power">0</output><span>W</span><span class="wkg"><output id="wkg">?</output> W/kg</span>
+    </div>
+    <dl class="stats four">
+      <div><dt>Vitesse</dt><dd><output id="speed">0,0</output><small>km/h</small></dd></div>
+      <div><dt>Cadence</dt><dd><output id="cadence">0</output><small>rpm</small></dd></div>
+      <div><dt>Distance</dt><dd><output id="distance">0,00</output><small>km</small></dd></div>
+      <div><dt>Durée</dt><dd><output id="duration">0:00:00</output></dd></div>
+    </dl>
+    <canvas id="live-chart" class="live-chart" aria-label="Puissance des 10 dernières minutes"></canvas>
+  </section>
 
-  <dl class="stats">
-    <div><dt id="label-speed">Vitesse</dt><dd><output id="speed">0,0</output><small>km/h</small></dd></div>
-    <div><dt id="label-cadence">Cadence</dt><dd><output id="cadence">0</output><small>rpm</small></dd></div>
-    <div><dt>Distance</dt><dd><output id="distance">0,00</output><small>km</small></dd></div>
-    <div><dt>Durée</dt><dd><output id="duration">0:00:00</output></dd></div>
-  </dl>
+  <section id="summary" hidden>
+    <p class="label">Puissance moyenne</p>
+    <div class="power">
+      <output id="s-power"></output><span>W</span><span class="wkg"><output id="s-wkg"></output> W/kg</span>
+    </div>
+    <dl class="stats three">
+      <div><dt>Durée</dt><dd><output id="s-duration"></output></dd></div>
+      <div><dt>Distance</dt><dd><output id="s-distance"></output><small>km</small></dd></div>
+      <div><dt>Vitesse moyenne</dt><dd><output id="s-speed"></output><small>km/h</small></dd></div>
+      <div><dt>Cadence moyenne</dt><dd><output id="s-cadence"></output><small>rpm</small></dd></div>
+      <div><dt>Puissance max</dt><dd><output id="s-max"></output><small>W</small></dd></div>
+      <div><dt>Énergie</dt><dd><output id="s-energy"></output><small>kJ ≈ kcal</small></dd></div>
+    </dl>
+    <p id="curve-label" class="label curve-label">Meilleurs efforts</p>
+    <canvas id="curve-chart" class="curve-chart" aria-label="Meilleure puissance moyenne sur 5 s, 15 s, 1 min, 5 min, 10 min et 20 min"></canvas>
+  </section>
 
   <p id="message"></p>
 
   <div class="actions">
     <button id="connect">Connecter le home-trainer</button>
     <button id="stop" hidden>Terminer la séance</button>
-    <button id="download" hidden>Télécharger le CSV</button>
+    <button id="png" hidden>Télécharger l'image</button>
+    <button id="tcx" class="secondary" hidden>Fichier pour Strava</button>
+    <button id="csv" class="secondary" hidden>Données CSV</button>
     <button id="restart" class="secondary" hidden>Nouvelle séance</button>
   </div>
 </main>
 
-<footer>Pédale quelques secondes pour réveiller le home-trainer avant de te connecter.</footer>
-
-<script>
-const FTMS_SERVICE = 0x1826;
-const INDOOR_BIKE_DATA = 0x2ad2;
-
-const $ = (id) => document.getElementById(id);
-const number = (value, digits) => value.toLocaleString("fr", { minimumFractionDigits: digits, maximumFractionDigits: digits });
-
-let device, wakeLock, ride;
-
-// Decode speed, cadence and power from an FTMS Indoor Bike Data packet.
-// Each flag bit says whether a field is present; unused fields still have to be skipped.
-function parseIndoorBikeData(view) {
-  const flags = view.getUint16(0, true);
-  let offset = 2;
-  const values = {};
-  if (!(flags & 0x01)) { values.speed = view.getUint16(offset, true) / 100; offset += 2; }  // inverted bit: 0 means present
-  if (flags & 0x02) offset += 2;  // average speed
-  if (flags & 0x04) { values.cadence = view.getUint16(offset, true) / 2; offset += 2; }
-  if (flags & 0x08) offset += 2;  // average cadence
-  if (flags & 0x10) offset += 3;  // total distance, we compute our own from speed
-  if (flags & 0x20) offset += 2;  // resistance level
-  if (flags & 0x40) values.power = view.getInt16(offset, true);
-  return values;
-}
-
-function formatDuration(seconds) {
-  const s = Math.floor(seconds);
-  return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-}
-
-function newRide() {
-  const now = performance.now();
-  return { start: now, last: now, startedAt: new Date(), speed: 0, cadence: 0, power: 0, distance: 0, energy: 0, revolutions: 0, rows: [] };
-}
-
-function onData(event) {
-  const now = performance.now();
-  const dt = (now - ride.last) / 1000;
-  ride.distance += ride.speed * dt / 3600;
-  ride.energy += ride.power * dt;
-  ride.revolutions += ride.cadence * dt;  // rpm × seconds, divided by the duration later for the average
-  ride.last = now;
-
-  Object.assign(ride, parseIndoorBikeData(event.target.value));
-  const elapsed = (now - ride.start) / 1000;
-  ride.rows.push([elapsed.toFixed(1), ride.speed, ride.cadence, ride.power, ride.distance.toFixed(3)]);
-
-  $("power").textContent = ride.power;
-  $("speed").textContent = number(ride.speed, 1);
-  $("cadence").textContent = Math.round(ride.cadence);
-  $("distance").textContent = number(ride.distance, 2);
-  $("duration").textContent = formatDuration(elapsed);
-}
-
-async function keepScreenOn() {
-  try { wakeLock = await navigator.wakeLock.request("screen"); } catch { /* not critical: the ride still records */ }
-}
-
-async function connect() {
-  $("message").textContent = "";
-  try {
-    device = await navigator.bluetooth.requestDevice({ filters: [{ services: [FTMS_SERVICE] }] });
-  } catch (error) {
-    if (error.name !== "NotFoundError") $("message").textContent = `Connexion impossible : ${error.message}`;
-    return;  // NotFoundError means the person closed the device picker
-  }
-
-  $("connect").disabled = true;
-  $("status").textContent = `Connexion à ${device.name}…`;
-  try {
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService(FTMS_SERVICE);
-    const characteristic = await service.getCharacteristic(INDOOR_BIKE_DATA);
-    ride = newRide();
-    characteristic.addEventListener("characteristicvaluechanged", onData);
-    device.addEventListener("gattserverdisconnected", finish, { once: true });
-    await characteristic.startNotifications();
-  } catch (error) {
-    $("message").textContent = `Connexion impossible : ${error.message}. Vérifie que Zwift ou l'app Elite ne sont pas déjà connectés au home-trainer.`;
-    $("status").textContent = "Pas connecté";
-    $("connect").disabled = false;
-    return;
-  }
-
-  $("status").textContent = `Connecté à ${device.name}`;
-  $("connect").hidden = true;
-  $("connect").disabled = false;
-  $("stop").hidden = false;
-  keepScreenOn();
-}
-
-// Called by the stop button, or by the browser when the trainer disconnects on its own.
-function finish() {
-  device.removeEventListener("gattserverdisconnected", finish);
-  if (device.gatt.connected) device.gatt.disconnect();
-  wakeLock?.release();
-  wakeLock = null;
-
-  const elapsed = (ride.last - ride.start) / 1000;
-  $("status").textContent = "Séance terminée";
-  $("stop").hidden = true;
-  $("restart").hidden = false;
-  if (elapsed === 0) {
-    $("message").textContent = "Aucune donnée reçue. As-tu pédalé pendant la séance ?";
-    return;
-  }
-
-  // Swap the live readings for the ride averages
-  $("power").textContent = Math.round(ride.energy / elapsed);
-  $("speed").textContent = number(ride.distance / elapsed * 3600, 1);
-  $("cadence").textContent = Math.round(ride.revolutions / elapsed);
-  for (const id of ["label-power", "label-speed", "label-cadence"]) $(id).textContent += " moyenne";
-  $("download").hidden = false;
-}
-
-function downloadCsv() {
-  const lines = [["time_s", "speed_kmh", "cadence_rpm", "power_w", "distance_km"], ...ride.rows].map((row) => row.join(","));
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(new Blob([lines.join("\n") + "\n"], { type: "text/csv" }));
-  const d = ride.startedAt;
-  const pad = (n) => String(n).padStart(2, "0");
-  link.download = `hometrainer_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.csv`;
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
-
-function reset() {
-  $("power").textContent = $("cadence").textContent = "0";
-  $("speed").textContent = "0,0";
-  $("distance").textContent = "0,00";
-  $("duration").textContent = "0:00:00";
-  $("label-power").textContent = "Puissance";
-  $("label-speed").textContent = "Vitesse";
-  $("label-cadence").textContent = "Cadence";
-  $("message").textContent = "";
-  $("status").textContent = "Pas connecté";
-  $("download").hidden = $("restart").hidden = true;
-  $("connect").hidden = false;
-}
-
-// The browser drops the wake lock when the tab is hidden; take it back when the person returns.
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && wakeLock === null && !$("stop").hidden) keepScreenOn();
-});
-
-$("connect").addEventListener("click", connect);
-$("stop").addEventListener("click", finish);
-$("download").addEventListener("click", downloadCsv);
-$("restart").addEventListener("click", reset);
-
-if (!navigator.bluetooth) {
-  $("connect").disabled = true;
-  $("message").textContent = "Ce navigateur ne gère pas le Bluetooth. Ouvre cette page dans Google Chrome ou Microsoft Edge sur un ordinateur. Sous Linux, active d'abord l'option « Experimental Web Platform features » dans chrome://flags.";
-}
-</script>
+<footer id="hint"></footer>
 </body>
 </html>
