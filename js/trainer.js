@@ -4,7 +4,7 @@ const RECONNECT_DELAY = 2000;
 
 // Decode speed, cadence and power from an FTMS Indoor Bike Data packet.
 // Each flag bit says whether a field is present; unused fields still have to be skipped.
-export function parseIndoorBikeData(view) {
+function parseIndoorBikeData(view) {
   const flags = view.getUint16(0, true);
   let offset = 2;
   const values = {};
