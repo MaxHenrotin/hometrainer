@@ -1,144 +1,195 @@
-import { drawPowerBars, drawPowerCurve, fitCanvas } from "./charts.js";
+import { drawBars, fitCanvas } from "./charts.js";
 import { csv, download, fit, recapImage } from "./exports.js";
 import { duration, durationLabel, number } from "./format.js";
 import { RECORD_DURATIONS, Ride } from "./ride.js";
 import { Trainer } from "./trainer.js";
 import { ZONES, zoneIndex, zoneTimes } from "./zones.js";
 
-const LIVE_WINDOW = 600;  // seconds of riding shown on the live chart
-const ROLLING_DURATIONS = [15, 60, 120, 180, 300, 600, 1200, 2700];
 const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
-const HINTS = {
-  idle: "Pédale quelques secondes pour réveiller le home-trainer avant de te connecter.",
-  riding: "La séance démarre au premier coup de pédale et se met en pause toute seule quand tu t'arrêtes.",
-  summary: "« Importer sur Strava » télécharge le fichier .fit et ouvre la page d'import de Strava : il ne reste qu'à y choisir ce fichier.",
-};
+const HOLD_TIME = 2000;  // ms, the same as the ring animation in style.css
+const BUCKET = 5;        // seconds of riding behind each bar of the live chart
+const LIVE_BARS = 120;   // 10 minutes of 5-second bars
+const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than this
 
 const $ = (id) => document.getElementById(id);
+const css = getComputedStyle(document.documentElement);
+const color = (name) => css.getPropertyValue(`--${name}`).trim();
+const ZONE_COLORS = ZONES.map((_, i) => color(`z${i + 1}`));
+
 let trainer = null;
 let ride = new Ride();
 let reconnecting = false;
 let wakeLock = null;
+let message = "";  // an error to show in the bubble until the next connection attempt
 
-// Weight and FTP are optional, only remembered by this browser, and anything
-// that depends on them stays hidden while they're empty
+// Settings are remembered by this browser only, and nothing is remembered if storage is blocked
+const load = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* not remembered */ } };
+
+// Weight and FTP are optional, and what depends on them stays hidden while they're empty
 const settings = { weight: $("weight"), ftp: $("ftp") };
 for (const [name, input] of Object.entries(settings)) {
-  try { input.value = localStorage.getItem(name) ?? ""; } catch { /* storage blocked: the field just starts empty */ }
-  input.addEventListener("input", () => {
-    try { localStorage.setItem(name, input.value); } catch { /* the value just won't be remembered */ }
-    render();
-  });
+  input.value = load(name) ?? "";
+  input.addEventListener("input", () => { save(name, input.value); render(); });
 }
 const weight = () => Number(settings.weight.value) || null;
 const ftp = () => Number(settings.ftp.value) || null;
+const colorOf = (watts) => (ftp() ? ZONE_COLORS[zoneIndex(watts, ftp())] : color("accent"));
 
-function showWkg(id, power) {
-  $(`${id}-box`).hidden = !weight();
-  if (weight()) $(id).textContent = number(power / weight(), 1);
+let autoPause = load("autoPause") !== "off";
+function setAutoPause(on) {
+  autoPause = ride.autoPause = on;
+  $("autopause").setAttribute("aria-checked", on);
+  save("autoPause", on ? "on" : "off");
 }
 
-function colors() {
-  const style = getComputedStyle(document.documentElement);
-  const read = (name) => style.getPropertyValue(`--${name}`).trim();
-  return {
-    ...Object.fromEntries(["bg", "ink", "muted", "line", "red"].map((name) => [name, read(name)])),
-    zones: ZONES.map((_, i) => read(`z${i + 1}`)),
-  };
+let chartMode = load("chart") === "all" ? "all" : "10min";
+function setChartMode(mode) {
+  chartMode = mode;
+  for (const button of document.querySelectorAll("[data-chart]")) button.setAttribute("aria-pressed", button.dataset.chart === mode);
+  save("chart", mode);
+  render();
 }
 
-// One small cell per duration for the rolling averages and the records, filled on every update
-function buildCells(id, durations) {
-  $(id).innerHTML = durations.map((d) => `<div><dt>${durationLabel(d)}</dt><dd><output></output><small>W</small></dd></div>`).join("");
+// One row per duration: rolling average and session record live, best effort in the summary
+function buildRows(id) {
+  $(id).innerHTML = RECORD_DURATIONS.map((d) => `<li><span class="label">${durationLabel(d)}</span>`
+    + '<span class="bar"><span class="ghost"></span><span class="fill"></span></span><span class="watts"></span><span class="record"></span></li>').join("");
 }
 
-function fillCells(id, durations, value) {
-  $(id).querySelectorAll("output").forEach((output, i) => {
-    const watts = value(durations[i]);
-    output.textContent = watts === null ? "–" : number(watts);
+// `rows` holds, per duration, the watts to draw and the record behind them (null when there's none yet)
+function fillRows(id, rows) {
+  const top = Math.max(200, ...rows.flatMap((r) => [r.value ?? 0, r.record ?? 0])) * 1.05;
+  $(id).querySelectorAll("li").forEach((li, i) => {
+    const { value, record } = rows[i];
+    const [ghost, fill] = li.querySelectorAll(".bar span");
+    ghost.style.width = `${(record ?? 0) / top * 100}%`;
+    fill.style.width = `${(value ?? 0) / top * 100}%`;
+    fill.style.background = value === null ? "" : colorOf(value);
+    li.querySelector(".watts").textContent = value === null ? "–" : number(value);
+    li.querySelector(".record").textContent = record === null ? "" : number(record);
   });
 }
 
-function status() {
-  if (!trainer?.active) return "Pas connecté";
-  return reconnecting ? "Déconnecté" : `Connecté à ${trainer.name}`;
+// The whole ride, merged into at most MAX_BARS bars of a whole number of 5-second slices
+function rideBars() {
+  const size = Math.max(BUCKET, Math.ceil(ride.time / MAX_BARS / BUCKET) * BUCKET);
+  const bars = ride.powerBuckets(size);
+  return { bars, slots: bars.length };
 }
 
-// Why the clock isn't running, shown big above the power so it reads from the saddle
-function banner() {
-  if (!trainer?.active) return "";
-  if (reconnecting) return "Bluetooth déconnecté. En attente de reconnexion pour reprendre…";
-  return { waiting: "Pédale pour démarrer", riding: "", paused: "En pause. Pédale pour reprendre" }[ride.state];
+// The last 10 minutes fill up from the left, then scroll
+function lastBars() {
+  const first = Math.max(0, Math.floor(ride.time / BUCKET) - (LIVE_BARS - 1));
+  return { bars: ride.powerBuckets(BUCKET, first * BUCKET), slots: LIVE_BARS };
+}
+
+function drawChart(canvas, { bars, slots }) {
+  const { ctx, box } = fitCanvas(canvas);
+  drawBars(ctx, box, bars, Math.max(slots, 1), colorOf, color("track"));
+}
+
+function renderStatus(text, dot) {
+  $("status").textContent = text;
+  $("status-dot").className = `dot ${dot}`;
+}
+
+// What the bubble over the chart says, and how it's marked: info, pause or error
+function bubble() {
+  if (message) return [message, "error"];
+  if (!trainer?.active) return ["Pédale quelques secondes pour réveiller le home-trainer, puis connecte-le.", "info"];
+  if (reconnecting) return ["Bluetooth déconnecté. Reconnexion…", "error"];
+  if (ride.state === "waiting") return ["Pédale pour démarrer", "info"];
+  if (ride.state === "paused") return ["En pause. Pédale pour reprendre", "pause"];
+  return ["", ""];
+}
+
+function renderZone(watts) {
+  $("zone-box").hidden = !ftp();
+  if (!ftp()) return;
+  const zone = zoneIndex(watts, ftp());
+  $("zone-scale").querySelectorAll("span").forEach((span, i) => {
+    span.style.background = i <= zone ? ZONE_COLORS[i] : "";
+    span.classList.toggle("current", i === zone);
+  });
+  $("zone-name").textContent = `Z${zone + 1} ${ZONES[zone].name}`;
 }
 
 function renderLive() {
-  const palette = colors();
-  const colorOf = (power) => (ftp() ? palette.zones[zoneIndex(power, ftp())] : palette.red);
   const power = ride.displayPower;
   $("power").textContent = number(power);
-  $("power").style.color = ftp() ? colorOf(power) : "";
-  showWkg("wkg", power);
-  $("zone").hidden = !ftp();
-  if (ftp()) {
-    const zone = zoneIndex(power, ftp());
-    $("zone").textContent = `Z${zone + 1} ${ZONES[zone].name}`;
-    $("zone").style.color = palette.zones[zone];
-  }
-  $("speed").textContent = number(ride.speed, 1);
+  $("avg-power").textContent = number(ride.averagePower);
   $("cadence").textContent = number(ride.cadence);
+  $("avg-cadence").textContent = number(ride.averageCadence);
+  $("speed").textContent = number(ride.speed, 1);
+  $("avg-speed").textContent = number(ride.averageSpeed, 1);
   $("distance").textContent = number(ride.distance, 2);
   $("duration").textContent = duration(ride.time);
-  $("avg").textContent = number(ride.averagePower);
-  $("max").textContent = number(ride.maxPower);
-  $("kcal").textContent = number(ride.calories);
-  fillCells("rolling", ROLLING_DURATIONS, (d) => ride.average(d));
-  fillCells("records", RECORD_DURATIONS, (d) => ride.records.get(d) ?? null);
-  $("status").textContent = status();
-  $("banner").textContent = banner();
-  $("banner").classList.toggle("bluetooth", reconnecting);
-  $("banner").classList.toggle("paused", !reconnecting && ride.state === "paused");
+  renderZone(power);
+  $("wkg-box").hidden = !weight();
+  if (weight()) {
+    $("wkg").textContent = number(power / weight(), 1);
+    $("avg-wkg").textContent = number(ride.averagePower / weight(), 1);
+  }
+  fillRows("rolling", RECORD_DURATIONS.map((d) => ({ value: ride.average(d), record: ride.records.get(d) ?? null })));
+
+  if (!trainer?.active) renderStatus("Pas connecté", "");
+  else if (reconnecting) renderStatus("Déconnecté", "lost");
+  else renderStatus(trainer.name, "on");
+  const [text, kind] = bubble();
+  $("bubble").textContent = text;
+  $("bubble").className = `bubble ${kind}`;
   document.body.dataset.state = reconnecting ? "paused" : ride.state;
 
-  const { ctx, box } = fitCanvas($("live-chart"));
-  const from = Math.max(0, ride.time - LIVE_WINDOW);
-  drawPowerBars(ctx, box, ride.samples, palette, from, from + LIVE_WINDOW, colorOf);
+  drawChart($("live-chart"), chartMode === "all" ? rideBars() : lastBars());
 }
 
 function renderSummary() {
   const summary = ride.summary();
+  $("ride-date").textContent = ride.startedAt.toLocaleString("fr", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   $("s-power").textContent = number(summary.power);
-  showWkg("s-wkg", summary.power);
-  $("s-duration").textContent = duration(summary.time);
-  $("s-distance").textContent = number(summary.distance, 2);
-  $("s-speed").textContent = number(summary.speed, 1);
+  $("s-wkg-box").hidden = !weight();
+  if (weight()) $("s-wkg").textContent = number(summary.power / weight(), 1);
   $("s-cadence").textContent = number(summary.cadence);
-  $("s-max").textContent = number(summary.maxPower);
+  $("s-speed").textContent = number(summary.speed, 1);
+  $("s-distance").textContent = number(summary.distance, 2);
+  $("s-duration").textContent = duration(summary.time);
+  $("s-elapsed").textContent = duration(summary.elapsed);
   $("s-calories").textContent = number(summary.calories);
-  $("status").textContent = "Séance terminée";
-
-  // The curve starts at 5 s, so a shorter ride has nothing to draw
-  $("curve-chart").hidden = $("curve-label").hidden = !summary.curve.length;
-  if (summary.curve.length) {
-    const { ctx, box } = fitCanvas($("curve-chart"));
-    drawPowerCurve(ctx, box, summary.curve, colors());
-  }
+  fillRows("records", RECORD_DURATIONS.map((d) => ({ value: ride.records.get(d) ?? null, record: null })));
+  drawChart($("summary-chart"), rideBars());
 
   $("zones-box").hidden = !ftp();
   if (ftp()) {
     const times = zoneTimes(ride.samples, ftp());
     const total = times.reduce((a, b) => a + b, 0) || 1;
-    $("zones").innerHTML = ZONES.map((zone, i) => {
-      const share = times[i] / total * 100;
-      return `<li><span>Z${i + 1} ${zone.name}</span><span class="bar"><span style="width: ${share}%; background: var(--z${i + 1})"></span></span>`
-        + `<span>${duration(times[i])}</span><span class="share">${Math.round(share)} %</span></li>`;
-    }).join("");
+    $("zone-bar").innerHTML = times.map((t, i) => `<span style="flex: ${t / total}; background: ${ZONE_COLORS[i]}"></span>`).join("");
+    $("zone-legend").innerHTML = times.map((t, i) => `<li><i style="background: ${ZONE_COLORS[i]}"></i>Z${i + 1} <strong>${duration(t).replace(/^0:0?/, "")}</strong></li>`).join("");
   }
+  renderStatus("Séance terminée", "");
 }
 
 const render = () => ($("summary").hidden ? renderLive() : renderSummary());
 
-function show(...ids) {
-  for (const id of ["connect", "stop", "png", "strava", "csv", "restart"]) $(id).hidden = !ids.includes(id);
+// Hold-to-confirm: the action runs once the button has been held for HOLD_TIME while its ring fills.
+// It replaces confirmation dialogs for actions that can't be undone.
+function onHold(button, action) {
+  let timer = null;
+  const cancel = () => {
+    clearTimeout(timer);
+    timer = null;
+    button.classList.remove("holding");
+  };
+  const start = (event) => {
+    event.preventDefault();
+    if (timer) return;
+    button.classList.add("holding");
+    timer = setTimeout(() => { cancel(); action(); }, HOLD_TIME);
+  };
+  button.addEventListener("pointerdown", start);
+  for (const type of ["pointerup", "pointerleave", "pointercancel"]) button.addEventListener(type, cancel);
+  button.addEventListener("keydown", (event) => { if ((event.key === " " || event.key === "Enter") && !event.repeat) start(event); });
+  button.addEventListener("keyup", (event) => { if (event.key === " " || event.key === "Enter") cancel(); });
 }
 
 async function keepScreenOn() {
@@ -146,7 +197,7 @@ async function keepScreenOn() {
 }
 
 async function connect() {
-  $("message").textContent = "";
+  message = "";
   $("connect").disabled = true;
   trainer = new Trainer(
     (values) => { ride.update(values); renderLive(); },
@@ -157,14 +208,15 @@ async function connect() {
   } catch (error) {
     // NotFoundError means the person closed the device picker
     if (error.name !== "NotFoundError") {
-      $("message").textContent = `Connexion impossible : ${error.message}. Vérifie que Zwift ou l'app Elite ne sont pas déjà connectés au home-trainer.`;
+      message = `Connexion impossible : ${error.message}. Vérifie que Zwift ou l'app Elite ne sont pas déjà connectés au home-trainer.`;
     }
+    renderLive();
     return;
   } finally {
     $("connect").disabled = false;
   }
-  show("stop");
-  $("hint").textContent = HINTS.riding;
+  $("connect").hidden = true;
+  $("stop").hidden = false;
   renderLive();
   keepScreenOn();
 }
@@ -175,13 +227,13 @@ function finish() {
   wakeLock?.release();
   if (ride.time < 1) {
     reset();
-    $("message").textContent = "Aucune donnée enregistrée : la séance démarre au premier coup de pédale.";
+    message = "Aucune donnée enregistrée : la séance démarre au premier coup de pédale.";
+    renderLive();
     return;
   }
   $("live").hidden = true;
   $("summary").hidden = false;
-  show("png", "strava", "csv", "restart");
-  $("hint").textContent = HINTS.summary;
+  document.body.dataset.screen = "summary";
   document.body.dataset.state = "";
   renderSummary();
 }
@@ -189,11 +241,13 @@ function finish() {
 function reset() {
   trainer = null;
   ride = new Ride();
+  ride.autoPause = autoPause;
+  message = "";
   $("summary").hidden = true;
   $("live").hidden = false;
-  $("message").textContent = "";
-  $("hint").textContent = HINTS.idle;
-  show("connect");
+  document.body.dataset.screen = "live";
+  $("connect").hidden = false;
+  $("stop").hidden = true;
   renderLive();
 }
 
@@ -204,22 +258,17 @@ function fileName(extension) {
 }
 
 $("connect").addEventListener("click", connect);
-// Both buttons throw away something that can't be brought back, so a stray click must not be enough.
-// A ride with nothing recorded yet has nothing to lose.
-$("stop").addEventListener("click", () => {
-  if (ride.time < 1 || confirm("Terminer la séance ? Tu ne pourras plus la reprendre.")) finish();
-});
-$("restart").addEventListener("click", () => {
-  if (confirm("Commencer une nouvelle séance ? Celle-ci disparaîtra de la page : télécharge d'abord les fichiers que tu veux garder.")) reset();
-});
+onHold($("stop"), finish);
+onHold($("restart"), reset);
+$("autopause").addEventListener("click", () => setAutoPause(!autoPause));
+for (const button of document.querySelectorAll("[data-chart]")) button.addEventListener("click", () => setChartMode(button.dataset.chart));
 $("csv").addEventListener("click", () => download(csv(ride), fileName("csv")));
 $("strava").addEventListener("click", async () => {
   // The tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it
   open(STRAVA_UPLOAD, "_blank", "noopener");
   download(await fit(ride), fileName("fit"));
 });
-$("png").addEventListener("click", async () => download(await recapImage(ride, weight()), fileName("png")));
-
+$("png").addEventListener("click", async () => download(await recapImage(ride, weight(), colorOf), fileName("png")));
 addEventListener("resize", render);
 
 // Ask before closing the tab during a ride or on its summary, so a ride isn't lost before it's downloaded
@@ -232,10 +281,14 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && trainer?.active && (!wakeLock || wakeLock.released)) keepScreenOn();
 });
 
-buildCells("rolling", ROLLING_DURATIONS);
-buildCells("records", RECORD_DURATIONS);
+$("zone-scale").innerHTML = "<span></span>".repeat(ZONES.length);
+buildRows("rolling");
+buildRows("records");
+setAutoPause(autoPause);
+setChartMode(chartMode);
 reset();
 if (!navigator.bluetooth) {
   $("connect").disabled = true;
-  $("message").textContent = "Ce navigateur ne gère pas le Bluetooth. Ouvre cette page dans Google Chrome ou Microsoft Edge sur un ordinateur. Sous Linux, active d'abord l'option « Experimental Web Platform features » dans chrome://flags.";
+  message = "Ce navigateur ne gère pas le Bluetooth. Ouvre cette page dans Google Chrome ou Microsoft Edge sur un ordinateur. Sous Linux, active d'abord l'option « Experimental Web Platform features » dans chrome://flags.";
+  renderLive();
 }

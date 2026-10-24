@@ -1,9 +1,6 @@
-import { drawPowerCurve } from "./charts.js";
-import { duration, number } from "./format.js";
+import { duration, durationLabel, number } from "./format.js";
+import { RECORD_DURATIONS } from "./ride.js";
 import { ALTITUDE, routePosition } from "./route.js";
-
-// The recap image always uses the light theme, whatever the page looks like
-const LIGHT = { bg: "#f3f5f7", ink: "#14213d", muted: "#5b6475", line: "#d5dae2", red: "#d62828", blue: "#1d4ed8" };
 
 export function download(blob, name) {
   const link = document.createElement("a");
@@ -85,85 +82,79 @@ export async function fit(ride) {
   return new Blob([encoder.close()], { type: "application/vnd.ant.fit" });
 }
 
-// A 1080×1350 picture (the portrait format of most social apps) with the key numbers and the power curve
-export async function recapImage(ride, weight) {
-  await Promise.all(["700 100px 'Barlow Condensed'", "500 100px 'Barlow Condensed'", "400 30px Barlow", "600 30px Barlow"]
-    .map((font) => document.fonts.load(font)));
+// A 1080×1350 picture (the portrait format of most social apps) in the app's style:
+// average power, cadence and speed, the totals, and the best effort on each duration
+const PNG = { bg: "#F5F5F7", card: "#FFFFFF", ink: "#1D1D1F", secondary: "#6E6E73", tertiary: "#86868B", track: "#F2F2F5" };
+
+export async function recapImage(ride, weight, colorOf) {
+  await Promise.all(["600 100px Inter", "500 30px Inter", "400 30px Inter"].map((font) => document.fonts.load(font)));
   const summary = ride.summary();
   const canvas = Object.assign(document.createElement("canvas"), { width: 1080, height: 1350 });
   const ctx = canvas.getContext("2d");
   const left = 80;
   const right = 1000;
-
-  ctx.fillStyle = LIGHT.bg;
-  ctx.fillRect(0, 0, 1080, 1350);
-  for (const [color, y] of [[LIGHT.ink, 0], [LIGHT.red, 14], [LIGHT.blue, 28]]) {
+  const text = (value, x, y, font, color, align = "left") => {
+    ctx.font = `${font} Inter, sans-serif`;
     ctx.fillStyle = color;
-    ctx.fillRect(0, y, 1080, 8);
-  }
+    ctx.textAlign = align;
+    ctx.fillText(value, x, y);
+    return ctx.measureText(value).width;
+  };
+  // A number followed by its unit in smaller grey type
+  const reading = (value, unit, x, y, size) => {
+    ctx.letterSpacing = `${-size * 0.04}px`;
+    const width = text(value, x, y, `600 ${size}px`, PNG.ink);
+    ctx.letterSpacing = "0px";
+    if (unit) text(unit, x + width + size * 0.12, y, `500 ${Math.round(size * 0.32)}px`, PNG.tertiary);
+  };
+  const card = (y, height) => {
+    ctx.fillStyle = PNG.card;
+    ctx.beginPath();
+    ctx.roundRect(48, y, 984, height, 44);
+    ctx.fill();
+  };
 
-  ctx.fillStyle = LIGHT.ink;
-  ctx.font = "700 56px 'Barlow Condensed'";
-  ctx.fillText("Hometrainer", left, 140);
-  ctx.textAlign = "right";
-  ctx.fillStyle = LIGHT.muted;
-  ctx.font = "400 30px Barlow";
-  ctx.fillText(ride.startedAt.toLocaleDateString("fr", { weekday: "long", day: "numeric", month: "long", year: "numeric" }), right, 140);
-  ctx.textAlign = "left";
+  ctx.fillStyle = PNG.bg;
+  ctx.fillRect(0, 0, 1080, 1350);
+  text("Hometrainer", left, 100, "600 34px", PNG.ink);
+  text(ride.startedAt.toLocaleDateString("fr", { weekday: "long", day: "numeric", month: "long", year: "numeric" }), right, 100, "400 26px", PNG.secondary, "right");
 
-  ctx.fillText("Puissance moyenne", left, 240);
-  ctx.fillStyle = LIGHT.red;
-  ctx.font = "700 240px 'Barlow Condensed'";
-  ctx.letterSpacing = "10px";  // at this size the digits of the condensed face touch each other
-  const power = number(summary.power);
-  ctx.fillText(power, left - 8, 460);
-  const powerWidth = ctx.measureText(power).width;
-  ctx.letterSpacing = "0px";
-  ctx.fillStyle = LIGHT.muted;
-  ctx.font = "500 80px 'Barlow Condensed'";
-  ctx.fillText(weight ? `W   ${number(summary.power / weight, 1)} W/kg` : "W", left + powerWidth + 8, 460);
+  text("Puissance moyenne", left, 200, "400 26px", PNG.secondary);
+  reading(number(summary.power), "W", left - 6, 400, 210);
+  if (weight) text(`${number(summary.power / weight, 1)} W/kg`, right, 400, "500 34px", PNG.secondary, "right");
 
-  ctx.fillStyle = LIGHT.ink;
-  ctx.fillRect(left, 520, right - left, 6);
-  const stats = [
-    ["Durée", duration(summary.time), ""],
-    ["Distance", number(summary.distance, 2), "km"],
-    ["Vitesse moyenne", number(summary.speed, 1), "km/h"],
-    ["Cadence moyenne", number(summary.cadence), "rpm"],
-    ["Puissance max", number(summary.maxPower), "W"],
-    ["Calories", number(summary.calories), "kcal"],
-  ];
-  stats.forEach(([label, value, unit], i) => {
-    const x = left + (i % 3) * 320;
-    const y = 590 + Math.floor(i / 3) * 170;
-    ctx.fillStyle = LIGHT.muted;
-    ctx.font = "400 28px Barlow";
-    ctx.fillText(label, x, y);
-    ctx.fillStyle = LIGHT.ink;
-    ctx.font = "700 76px 'Barlow Condensed'";
-    ctx.fillText(value, x, y + 80);
-    ctx.fillStyle = LIGHT.muted;
-    ctx.font = "500 34px 'Barlow Condensed'";
-    ctx.fillText(unit, x + measure(ctx, value, "700 76px 'Barlow Condensed'") + 10, y + 80);
+  text("Cadence moyenne", left, 480, "400 24px", PNG.secondary);
+  reading(number(summary.cadence), "rpm", left, 566, 84);
+  text("Vitesse moyenne", 560, 480, "400 24px", PNG.secondary);
+  reading(number(summary.speed, 1), "km/h", 560, 566, 84);
+
+  card(620, 190);
+  [["Distance", number(summary.distance, 2), "km"], ["Durée", duration(summary.time), ""],
+    ["Temps total", duration(summary.elapsed), ""], ["Calories", number(summary.calories), "kcal"]].forEach(([label, value, unit], i) => {
+    const x = left + 30 + i * 230;
+    text(label, x, 690, "400 22px", PNG.secondary);
+    reading(value, unit, x, 768, 50);
   });
 
-  ctx.fillStyle = LIGHT.muted;
-  ctx.font = "400 28px Barlow";
-  ctx.fillText("Meilleurs efforts", left, 960);
-  if (summary.curve.length) drawPowerCurve(ctx, { x: left, y: 990, w: right - left, h: 270 }, summary.curve, LIGHT, 26);
+  card(840, 420);
+  const records = RECORD_DURATIONS.map((d) => [durationLabel(d), ride.records.get(d) ?? null]);
+  const top = Math.max(200, ...records.map(([, watts]) => watts ?? 0)) * 1.05;
+  records.forEach(([label, watts], i) => {
+    const y = 892 + i * 38;
+    text(label, left + 30, y + 8, "400 22px", PNG.secondary);
+    ctx.fillStyle = PNG.track;
+    ctx.beginPath();
+    ctx.roundRect(230, y - 6, 580, 12, 6);
+    ctx.fill();
+    if (watts !== null) {
+      ctx.fillStyle = colorOf(watts);
+      ctx.beginPath();
+      ctx.roundRect(230, y - 6, Math.max(12, watts / top * 580), 12, 6);
+      ctx.fill();
+    }
+    text(watts === null ? "–" : `${number(watts)} W`, right - 30, y + 10, "500 28px", PNG.ink, "right");
+  });
 
-  ctx.textAlign = "left";
-  ctx.fillStyle = LIGHT.muted;
-  ctx.font = "400 24px Barlow";
-  ctx.fillText("hometrainer.vercel.app", left, 1310);
-
+  text("hometrainer.vercel.app", left, 1305, "400 22px", PNG.tertiary);
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-}
-
-function measure(ctx, text, font) {
-  const previous = ctx.font;
-  ctx.font = font;
-  const width = ctx.measureText(text).width;
-  ctx.font = previous;
-  return width;
 }

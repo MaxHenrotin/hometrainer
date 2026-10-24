@@ -23,20 +23,20 @@ The page relies on Web Bluetooth, and only Chromium-based browsers implement it.
 1. Close Zwift, the Elite app or anything else connected to the trainer. It only accepts one Bluetooth connection at a time.
 2. Pedal for a few seconds to wake the trainer up.
 3. Click **Connecter le home-trainer** and pick your trainer in the list.
-4. Start pedalling. The clock only starts with your first pedal stroke, and the ride pauses by itself once the trainer has reported a cadence of 0 for a second. It picks up again as soon as you pedal. Some trainers take a while to notice you've stopped: the Suito keeps showing your last cadence for about 5 seconds, so its rides pause about 6 seconds after you stop.
-5. Click **Terminer la séance** when you're done.
+4. Start pedalling. The clock only starts with your first pedal stroke, and the ride pauses by itself once the trainer has reported a cadence of 0 for a second. It picks up again as soon as you pedal. Some trainers take a while to notice you've stopped: the Suito keeps showing your last cadence for about 5 seconds, so its rides pause about 6 seconds after you stop. Turn **Pause auto** off at the top if you'd rather keep the clock running.
+5. Hold **Maintenir pour terminer** for 2 seconds when you're done. Holding the button replaces a confirmation dialog, so a stray click can't end your ride.
 
-While you ride, the big number is your power averaged over 3 seconds, because the raw value jumps around too much to read. Under the main readings, a smaller section shows the session's average and max power and the calories burnt, your rolling average power over the last 15 s, 1, 2, 3, 5, 10, 20 and 45 min, and your best efforts so far. A chart shows the last 10 minutes.
+While you ride, the top row shows your power, cadence and speed, each with its average for the ride just below. The power is averaged over 3 seconds, because the raw value jumps around too much to read. On the right are the distance, the moving time, and one row per duration (1 s, 5 s, 15 s, 1, 2, 3, 5, 10, 20 and 45 min) with your rolling average power and, in a paler bar behind it, the best you've done over that duration so far. The 1 s record is your max power. The chart shows the last 10 minutes in 5-second bars, or the whole ride if you pick **Séance** at the top.
 
-Two fields at the top are optional. With your weight, the page adds watts per kilo. With your FTP (the power you can hold for about an hour), the big number and the chart take the colour of your power zone, from Z1 (recovery) to Z7 (sprint), and the summary shows the time spent in each zone. Your browser remembers both values, and they never leave it.
+Two fields at the top are optional. With your weight, the page adds watts per kilo. With your FTP (the power you can hold for about an hour), the bars take the colour of your power zone, from Z1 (recovery) to Z7 (sprint), and the summary shows the time spent in each zone. Your browser remembers both values, along with the two switches, and nothing leaves it.
 
 If the Bluetooth connection drops, the ride pauses and the page keeps trying to reconnect. The screen stays awake for the whole ride, and the page asks for confirmation if you try to close the tab before downloading your ride.
 
 ## After the ride
 
-The summary shows moving time, distance, average speed, cadence and power, max power, calories, your best efforts over 5 s, 15 s, 1 min, 5 min, 10 min, 20 min and 1 h, and the time in each zone if you entered an FTP. You can download three files:
+The summary mirrors the ride screen: average power, cadence and speed, a chart of the whole ride, the time in each zone if you entered an FTP, the distance, moving time, total time (pauses included) and calories, and your best effort over each duration. You can download three files, and holding **Maintenir pour recommencer** starts a new ride:
 
-- **Télécharger l'image**: a PNG recap of the ride, sized for sharing on a phone.
+- **Image**: a PNG recap of the ride, sized for sharing on a phone.
 - **Importer sur Strava**: downloads a `.fit` file with power, cadence and speed, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a **Virtual Ride**, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
 
   Getting the ride right on Strava took a few tries, because Strava fills in what an indoor file lacks on its own terms:
@@ -45,7 +45,7 @@ The summary shows moving time, distance, average speed, cadence and power, max p
   - The Salar is the flattest place on Earth, and every point of the loop was checked against SRTM elevation data to stay on the salt.
 
   Strava uses the distance from the file, not the length of the route, so the made-up route never changes your kilometres. Power, cadence and speed stay exactly as measured.
-- **Données CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
+- **CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
 
 ```
 time_s,speed_kmh,cadence_rpm,power_w,distance_km
@@ -75,7 +75,7 @@ The code is split by job:
 - `js/trainer.js` handles the Bluetooth connection, decodes the packets and reconnects after a drop
 - `js/ride.js` holds the ride logic: auto-pause, totals, 3-second power, rolling averages, best efforts
 - `js/zones.js` defines the seven power zones and adds up the time spent in each
-- `js/charts.js` draws the live chart and the best-efforts curve on a canvas
+- `js/charts.js` draws the bar charts on a canvas
 - `js/route.js` holds the virtual loop on the Salar de Uyuni
 - `js/exports.js` builds the CSV, the FIT file (with Garmin's FIT SDK, loaded from a CDN on demand) and the recap image
 - `js/app.js` wires all of it to the page

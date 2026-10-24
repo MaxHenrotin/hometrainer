@@ -6,83 +6,116 @@
 <title>Hometrainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script type="module" src="js/app.js"></script>
 </head>
 <body>
-<div class="track"></div>
-<header>
+<header class="top">
   <h1>Hometrainer</h1>
-  <label class="setting">Poids <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal"> kg</label>
-  <label class="setting">FTP <input id="ftp" type="number" min="50" max="600" step="1" inputmode="numeric"> W</label>
-  <span id="status">Pas connecté</span>
+  <div class="controls">
+    <div class="pill segmented live-only" role="group" aria-label="Durée affichée par le graphique">
+      <button type="button" data-chart="10min" aria-pressed="true">10 min</button>
+      <button type="button" data-chart="all" aria-pressed="false">Séance</button>
+    </div>
+    <div class="pill live-only">
+      <span id="autopause-label">Pause auto</span>
+      <button type="button" id="autopause" class="switch" role="switch" aria-checked="true" aria-labelledby="autopause-label"><span></span></button>
+    </div>
+    <label class="pill">Poids <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal"> kg</label>
+    <label class="pill">FTP <input id="ftp" type="number" min="50" max="600" step="1" inputmode="numeric"> W</label>
+    <span class="pill status"><span id="status-dot" class="dot"></span><span id="status">Pas connecté</span></span>
+  </div>
 </header>
 
 <main>
-  <section id="live">
-    <p id="banner" class="banner" role="status"></p>
-    <p class="label">Puissance (moyenne sur 3 s)</p>
-    <div class="power">
-      <output id="power">0</output><span>W</span>
-      <span id="wkg-box" class="wkg"><output id="wkg"></output> W/kg</span>
-      <span id="zone" class="zone"></span>
+  <section id="live" class="screen" aria-label="Séance en cours">
+    <div class="side">
+      <div class="readings">
+        <dl class="values">
+          <div class="value">
+            <dt>Puissance</dt>
+            <dd class="now"><span id="power" class="big">0</span><span class="unit">W</span></dd>
+            <dd class="average">moy. <span id="avg-power">0</span></dd>
+          </div>
+          <div class="value">
+            <dt>Cadence</dt>
+            <dd class="now"><span id="cadence">0</span><span class="unit">rpm</span></dd>
+            <dd class="average">moy. <span id="avg-cadence">0</span></dd>
+          </div>
+          <div class="value">
+            <dt>Vitesse</dt>
+            <dd class="now"><span id="speed">0,0</span><span class="unit">km/h</span></dd>
+            <dd class="average">moy. <span id="avg-speed">0,0</span></dd>
+          </div>
+        </dl>
+        <div class="power-line">
+          <span id="zone-box" class="zone"><span id="zone-scale" class="zone-scale" aria-hidden="true"></span><span id="zone-name"></span></span>
+          <span id="wkg-box" class="wkg"><strong id="wkg"></strong> W/kg <span class="average">moy. <span id="avg-wkg"></span></span></span>
+        </div>
+      </div>
+      <section class="card chart" aria-label="Graphique de la puissance">
+        <canvas id="live-chart"></canvas>
+        <p id="bubble" class="bubble" role="status"></p>
+      </section>
     </div>
-    <dl class="stats four">
-      <div><dt>Vitesse</dt><dd><output id="speed">0,0</output><small>km/h</small></dd></div>
-      <div><dt>Cadence</dt><dd><output id="cadence">0</output><small>rpm</small></dd></div>
-      <div><dt>Distance</dt><dd><output id="distance">0,00</output><small>km</small></dd></div>
-      <div><dt>Durée</dt><dd><output id="duration">0:00:00</output></dd></div>
-    </dl>
-    <div class="details">
-      <p>Séance</p>
-      <dl>
-        <div><dt>Moyenne</dt><dd><output id="avg"></output><small>W</small></dd></div>
-        <div><dt>Max</dt><dd><output id="max"></output><small>W</small></dd></div>
-        <div><dt>Calories</dt><dd><output id="kcal"></output><small>kcal</small></dd></div>
+
+    <aside class="column">
+      <dl class="totals">
+        <div><dt>Distance</dt><dd><span id="distance">0,00</span><span class="unit">km</span></dd></div>
+        <div><dt>Durée</dt><dd id="duration">0:00:00</dd></div>
       </dl>
-      <p>Moyennes glissantes</p>
-      <dl id="rolling"></dl>
-      <p>Records de la séance</p>
-      <dl id="records"></dl>
-    </div>
-    <canvas id="live-chart" class="live-chart" aria-label="Puissance des 10 dernières minutes"></canvas>
+      <ol id="rolling" class="card durations" aria-label="Moyennes glissantes et records de la séance"></ol>
+      <button type="button" id="connect" class="button primary">Connecter le home-trainer</button>
+      <button type="button" id="stop" class="button primary hold" hidden><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg>Maintenir pour terminer</button>
+    </aside>
   </section>
 
-  <section id="summary" hidden>
-    <p class="label">Puissance moyenne</p>
-    <div class="power">
-      <output id="s-power"></output><span>W</span>
-      <span id="s-wkg-box" class="wkg"><output id="s-wkg"></output> W/kg</span>
+  <section id="summary" class="screen" aria-label="Récap de la séance" hidden>
+    <div class="side">
+      <div class="readings">
+        <p id="ride-date" class="date"></p>
+        <dl class="values">
+          <div class="value">
+            <dt>Puissance moyenne</dt>
+            <dd class="now"><span id="s-power" class="big"></span><span class="unit">W</span></dd>
+            <dd id="s-wkg-box" class="average"><span id="s-wkg"></span> W/kg</dd>
+          </div>
+          <div class="value">
+            <dt>Cadence moyenne</dt>
+            <dd class="now"><span id="s-cadence"></span><span class="unit">rpm</span></dd>
+          </div>
+          <div class="value">
+            <dt>Vitesse moyenne</dt>
+            <dd class="now"><span id="s-speed"></span><span class="unit">km/h</span></dd>
+          </div>
+        </dl>
+      </div>
+      <section class="card chart" aria-label="Puissance sur toute la séance">
+        <canvas id="summary-chart"></canvas>
+      </section>
+      <div id="zones-box" class="zones">
+        <div id="zone-bar" class="zone-bar" aria-hidden="true"></div>
+        <ul id="zone-legend" class="zone-legend" aria-label="Temps par zone"></ul>
+      </div>
     </div>
-    <dl class="stats three">
-      <div><dt>Durée</dt><dd><output id="s-duration"></output></dd></div>
-      <div><dt>Distance</dt><dd><output id="s-distance"></output><small>km</small></dd></div>
-      <div><dt>Vitesse moyenne</dt><dd><output id="s-speed"></output><small>km/h</small></dd></div>
-      <div><dt>Cadence moyenne</dt><dd><output id="s-cadence"></output><small>rpm</small></dd></div>
-      <div><dt>Puissance max</dt><dd><output id="s-max"></output><small>W</small></dd></div>
-      <div><dt>Calories</dt><dd><output id="s-calories"></output><small>kcal</small></dd></div>
-    </dl>
-    <p id="curve-label" class="label curve-label">Meilleurs efforts</p>
-    <canvas id="curve-chart" class="curve-chart" aria-label="Meilleure puissance moyenne sur 5 s, 15 s, 1 min, 5 min, 10 min, 20 min et 1 h"></canvas>
-    <div id="zones-box">
-      <p class="label curve-label">Temps par zone</p>
-      <ol id="zones" class="zones"></ol>
-    </div>
+
+    <aside class="column">
+      <dl class="totals">
+        <div><dt>Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
+        <div><dt>Durée</dt><dd id="s-duration"></dd></div>
+        <div><dt>Temps total</dt><dd id="s-elapsed"></dd></div>
+        <div><dt>Calories</dt><dd><span id="s-calories"></span><span class="unit">kcal</span></dd></div>
+      </dl>
+      <ol id="records" class="card durations" aria-label="Records de la séance"></ol>
+      <div class="downloads">
+        <button type="button" id="strava" class="button primary">Importer sur Strava</button>
+        <button type="button" id="png" class="button">Image</button>
+        <button type="button" id="csv" class="button">CSV</button>
+      </div>
+      <button type="button" id="restart" class="button hold"><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg>Maintenir pour recommencer</button>
+    </aside>
   </section>
-
-  <p id="message"></p>
-
-  <div class="actions">
-    <button id="connect">Connecter le home-trainer</button>
-    <button id="stop" hidden>Terminer la séance</button>
-    <button id="png" hidden>Télécharger l'image</button>
-    <button id="strava" class="secondary" hidden>Importer sur Strava</button>
-    <button id="csv" class="secondary" hidden>Données CSV</button>
-    <button id="restart" class="secondary" hidden>Nouvelle séance</button>
-  </div>
 </main>
-
-<footer id="hint"></footer>
 </body>
 </html>
