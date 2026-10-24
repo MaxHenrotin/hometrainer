@@ -5,6 +5,7 @@
   --line: #d5dae2;
   --red: #d62828;
   --blue: #1d4ed8;
+  --orange: #e8590c;
   --button-ink: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
@@ -15,6 +16,7 @@
     --line: #2a3650;
     --red: #ff5a52;
     --blue: #6b8cff;
+    --orange: #ff922b;
     --button-ink: #0f1a2e;
   }
 }
@@ -79,6 +81,7 @@ main { flex: 1; display: flex; flex-direction: column; justify-content: center; 
   color: var(--button-ink);
   background: var(--blue);
 }
+.banner.paused { background: var(--orange); }
 .banner.bluetooth { background: var(--red); }
 .banner:empty { display: none; }
 

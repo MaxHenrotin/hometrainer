@@ -51,6 +51,7 @@ function renderLive() {
   $("status").textContent = status();
   $("banner").textContent = banner();
   $("banner").classList.toggle("bluetooth", reconnecting);
+  $("banner").classList.toggle("paused", !reconnecting && ride.state === "paused");
   document.body.dataset.state = reconnecting ? "paused" : ride.state;
 
   const { ctx, box } = fitCanvas($("live-chart"));
