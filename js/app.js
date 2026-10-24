@@ -1,10 +1,12 @@
-import { drawPowerCurve, drawPowerLine, fitCanvas } from "./charts.js";
+import { drawPowerBars, drawPowerCurve, fitCanvas } from "./charts.js";
 import { csv, download, recapImage, tcx } from "./exports.js";
-import { duration, number } from "./format.js";
-import { Ride } from "./ride.js";
+import { duration, durationLabel, number } from "./format.js";
+import { RECORD_DURATIONS, Ride } from "./ride.js";
 import { Trainer } from "./trainer.js";
+import { ZONES, zoneIndex, zoneTimes } from "./zones.js";
 
 const LIVE_WINDOW = 600;  // seconds of riding shown on the live chart
+const ROLLING_DURATIONS = [15, 60, 120, 180, 300, 600, 1200, 2700];
 const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
 const HINTS = {
   idle: "Pédale quelques secondes pour réveiller le home-trainer avant de te connecter.",
@@ -18,15 +20,43 @@ let ride = new Ride();
 let reconnecting = false;
 let wakeLock = null;
 
-// The weight is optional and only remembered by this browser
-const weightInput = $("weight");
-try { weightInput.value = localStorage.getItem("weight") ?? ""; } catch { /* storage blocked: the field just starts empty */ }
-const weight = () => Number(weightInput.value) || null;
-const wkg = (power) => (weight() ? number(power / weight(), 1) : "?");
+// Weight and FTP are optional, only remembered by this browser, and anything
+// that depends on them stays hidden while they're empty
+const settings = { weight: $("weight"), ftp: $("ftp") };
+for (const [name, input] of Object.entries(settings)) {
+  try { input.value = localStorage.getItem(name) ?? ""; } catch { /* storage blocked: the field just starts empty */ }
+  input.addEventListener("input", () => {
+    try { localStorage.setItem(name, input.value); } catch { /* the value just won't be remembered */ }
+    render();
+  });
+}
+const weight = () => Number(settings.weight.value) || null;
+const ftp = () => Number(settings.ftp.value) || null;
+
+function showWkg(id, power) {
+  $(`${id}-box`).hidden = !weight();
+  if (weight()) $(id).textContent = number(power / weight(), 1);
+}
 
 function colors() {
   const style = getComputedStyle(document.documentElement);
-  return Object.fromEntries(["bg", "ink", "muted", "line", "red"].map((name) => [name, style.getPropertyValue(`--${name}`).trim()]));
+  const read = (name) => style.getPropertyValue(`--${name}`).trim();
+  return {
+    ...Object.fromEntries(["bg", "ink", "muted", "line", "red"].map((name) => [name, read(name)])),
+    zones: ZONES.map((_, i) => read(`z${i + 1}`)),
+  };
+}
+
+// One small cell per duration for the rolling averages and the records, filled on every update
+function buildCells(id, durations) {
+  $(id).innerHTML = durations.map((d) => `<div><dt>${durationLabel(d)}</dt><dd><output></output><small>W</small></dd></div>`).join("");
+}
+
+function fillCells(id, durations, value) {
+  $(id).querySelectorAll("output").forEach((output, i) => {
+    const watts = value(durations[i]);
+    output.textContent = watts === null ? "–" : number(watts);
+  });
 }
 
 function status() {
@@ -42,12 +72,27 @@ function banner() {
 }
 
 function renderLive() {
-  $("power").textContent = number(ride.displayPower);
-  $("wkg").textContent = wkg(ride.displayPower);
+  const palette = colors();
+  const colorOf = (power) => (ftp() ? palette.zones[zoneIndex(power, ftp())] : palette.red);
+  const power = ride.displayPower;
+  $("power").textContent = number(power);
+  $("power").style.color = ftp() ? colorOf(power) : "";
+  showWkg("wkg", power);
+  $("zone").hidden = !ftp();
+  if (ftp()) {
+    const zone = zoneIndex(power, ftp());
+    $("zone").textContent = `Z${zone + 1} ${ZONES[zone].name}`;
+    $("zone").style.color = palette.zones[zone];
+  }
   $("speed").textContent = number(ride.speed, 1);
   $("cadence").textContent = number(ride.cadence);
   $("distance").textContent = number(ride.distance, 2);
   $("duration").textContent = duration(ride.time);
+  $("avg").textContent = number(ride.averagePower);
+  $("max").textContent = number(ride.maxPower);
+  $("kj").textContent = number(ride.energy / 1000);
+  fillCells("rolling", ROLLING_DURATIONS, (d) => ride.average(d));
+  fillCells("records", RECORD_DURATIONS, (d) => ride.records.get(d) ?? null);
   $("status").textContent = status();
   $("banner").textContent = banner();
   $("banner").classList.toggle("bluetooth", reconnecting);
@@ -56,13 +101,13 @@ function renderLive() {
 
   const { ctx, box } = fitCanvas($("live-chart"));
   const from = Math.max(0, ride.time - LIVE_WINDOW);
-  drawPowerLine(ctx, box, ride.samples, colors(), from, from + LIVE_WINDOW);
+  drawPowerBars(ctx, box, ride.samples, palette, from, from + LIVE_WINDOW, colorOf);
 }
 
 function renderSummary() {
   const summary = ride.summary();
   $("s-power").textContent = number(summary.power);
-  $("s-wkg").textContent = wkg(summary.power);
+  showWkg("s-wkg", summary.power);
   $("s-duration").textContent = duration(summary.time);
   $("s-distance").textContent = number(summary.distance, 2);
   $("s-speed").textContent = number(summary.speed, 1);
@@ -76,6 +121,17 @@ function renderSummary() {
   if (summary.curve.length) {
     const { ctx, box } = fitCanvas($("curve-chart"));
     drawPowerCurve(ctx, box, summary.curve, colors());
+  }
+
+  $("zones-box").hidden = !ftp();
+  if (ftp()) {
+    const times = zoneTimes(ride.samples, ftp());
+    const total = times.reduce((a, b) => a + b, 0) || 1;
+    $("zones").innerHTML = ZONES.map((zone, i) => {
+      const share = times[i] / total * 100;
+      return `<li><span>Z${i + 1} ${zone.name}</span><span class="bar"><span style="width: ${share}%; background: var(--z${i + 1})"></span></span>`
+        + `<span>${duration(times[i])}</span><span class="share">${Math.round(share)} %</span></li>`;
+    }).join("");
   }
 }
 
@@ -157,10 +213,6 @@ $("tcx").addEventListener("click", () => {
 });
 $("png").addEventListener("click", async () => download(await recapImage(ride, weight()), fileName("png")));
 
-weightInput.addEventListener("input", () => {
-  try { localStorage.setItem("weight", weightInput.value); } catch { /* the weight just won't be remembered */ }
-  render();
-});
 addEventListener("resize", render);
 
 // Ask before closing the tab during a ride or on its summary, so a ride isn't lost before it's downloaded
@@ -173,6 +225,8 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && trainer?.active && (!wakeLock || wakeLock.released)) keepScreenOn();
 });
 
+buildCells("rolling", ROLLING_DURATIONS);
+buildCells("records", RECORD_DURATIONS);
 reset();
 if (!navigator.bluetooth) {
   $("connect").disabled = true;

@@ -7,6 +7,14 @@
   --blue: #1d4ed8;
   --orange: #e8590c;
   --button-ink: #ffffff;
+  /* Power zones, from recovery (Z1) to sprint (Z7) */
+  --z1: #8a94a6;
+  --z2: #2f74d0;
+  --z3: #2b9a5d;
+  --z4: #d9a400;
+  --z5: #ef6c00;
+  --z6: #d62828;
+  --z7: #8e3bb8;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -18,6 +26,13 @@
     --blue: #6b8cff;
     --orange: #ff922b;
     --button-ink: #0f1a2e;
+    --z1: #9aa4b5;
+    --z2: #5b9bff;
+    --z3: #45c47f;
+    --z4: #ffd43b;
+    --z5: #ff922b;
+    --z6: #ff5a52;
+    --z7: #c77dff;
   }
 }
 
@@ -42,8 +57,8 @@ header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; pad
 h1 { margin: 0 auto 0 0; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.01em; }
 #status { color: var(--muted); }
 
-.weight { color: var(--muted); }
-.weight input {
+.setting { color: var(--muted); }
+.setting input {
   width: 4.5em;
   margin: 0 4px;
   padding: 4px 8px;
@@ -53,7 +68,7 @@ h1 { margin: 0 auto 0 0; font-family: "Barlow Condensed", sans-serif; font-weigh
   border: 1px solid var(--line);
   border-radius: 6px;
 }
-.weight input:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
+.setting input:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
 
 main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 32px; }
 
@@ -62,7 +77,8 @@ main { flex: 1; display: flex; flex-direction: column; justify-content: center; 
 .power { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 16px; font-family: "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; line-height: 0.9; }
 .power > output { font-weight: 700; font-size: clamp(120px, 24vw, 280px); color: var(--red); }
 .power > span { font-weight: 500; font-size: clamp(36px, 6vw, 72px); color: var(--muted); }
-.power .wkg { margin-left: 16px; font-size: clamp(24px, 3.5vw, 40px); }
+.power .wkg, .power .zone { margin-left: 16px; font-size: clamp(24px, 3.5vw, 40px); }
+.power .zone { font-weight: 700; }
 
 .stats { display: grid; margin: 32px 0 0; border-top: 4px solid var(--ink); }
 .stats.four { grid-template-columns: repeat(4, 1fr); }
@@ -84,6 +100,20 @@ main { flex: 1; display: flex; flex-direction: column; justify-content: center; 
 .banner.paused { background: var(--orange); }
 .banner.bluetooth { background: var(--red); }
 .banner:empty { display: none; }
+
+/* Small print under the main readings: session totals, rolling averages, records */
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 12px 32px; align-items: baseline; margin-top: 24px; }
+.details p { margin: 0; color: var(--muted); font-size: 15px; }
+.details dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 4px 16px; margin: 0; }
+.details dt { color: var(--muted); font-size: 13px; line-height: 1.2; }
+.details dd { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 24px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.details small { font-size: 0.65em; font-weight: 500; color: var(--muted); margin-left: 3px; }
+
+.zones { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.zones li { display: grid; grid-template-columns: 11em 1fr 4.5em 3em; gap: 12px; align-items: center; font-variant-numeric: tabular-nums; }
+.zones .bar { height: 14px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.zones .bar span { display: block; height: 100%; }
+.zones .share { color: var(--muted); text-align: right; }
 
 /* Readings fade while the ride is paused, so a glance is enough to see it */
 body[data-state="paused"] #live output { opacity: 0.4; }
@@ -115,6 +145,10 @@ footer { padding-bottom: 24px; color: var(--muted); font-size: 15px; }
 [hidden] { display: none !important; }
 
 @media (max-width: 640px) {
+  .details { grid-template-columns: 1fr; gap: 4px; }
+  .details dl { margin-bottom: 12px; }
+  .zones li { grid-template-columns: 7em 1fr 4em; }
+  .zones .share { display: none; }
   .stats.four, .stats.three { grid-template-columns: repeat(2, 1fr); }
   .stats.four div:nth-child(n), .stats.three div:nth-child(n) { padding-left: 16px; border-left: 1px solid var(--line); }
   .stats.four div:nth-child(2n + 1), .stats.three div:nth-child(2n + 1) { padding-left: 0; border-left: 0; }

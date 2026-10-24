@@ -26,13 +26,15 @@ The page relies on Web Bluetooth, and only Chromium-based browsers implement it.
 4. Start pedalling. The clock only starts with your first pedal stroke, and the ride pauses by itself when you stop pedalling for 3 seconds. It picks up again as soon as you pedal.
 5. Click **Terminer la séance** when you're done.
 
-While you ride, the big number is your power averaged over 3 seconds, because the raw value jumps around too much to read. Below it there's a chart of the last 10 minutes. If you enter your weight at the top, the page also shows watts per kilo. The weight is remembered by your browser and never leaves it.
+While you ride, the big number is your power averaged over 3 seconds, because the raw value jumps around too much to read. Under the main readings, a smaller section shows the session's average and max power and energy, your rolling average power over the last 15 s, 1, 2, 3, 5, 10, 20 and 45 min, and your best efforts so far. A chart shows the last 10 minutes.
+
+Two fields at the top are optional. With your weight, the page adds watts per kilo. With your FTP (the power you can hold for about an hour), the big number and the chart take the colour of your power zone, from Z1 (recovery) to Z7 (sprint), and the summary shows the time spent in each zone. Your browser remembers both values, and they never leave it.
 
 If the Bluetooth connection drops, the ride pauses and the page keeps trying to reconnect. The screen stays awake for the whole ride, and the page asks for confirmation if you try to close the tab before downloading your ride.
 
 ## After the ride
 
-The summary shows moving time, distance, average speed, cadence and power, max power, energy, and your best efforts over 5 s, 15 s, 1 min, 5 min, 10 min and 20 min. You can download three files:
+The summary shows moving time, distance, average speed, cadence and power, max power, energy, your best efforts over 5 s, 15 s, 1 min, 5 min, 10 min, 20 min and 1 h, and the time in each zone if you entered an FTP. You can download three files:
 
 - **Télécharger l'image**: a PNG recap of the ride, sized for sharing on a phone.
 - **Importer sur Strava**: downloads a `.tcx` file with power, cadence and speed, and opens Strava's upload page in a new tab, where you pick the file. Then set the activity type to **Virtual Ride** on Strava.
@@ -59,18 +61,6 @@ python3 -m http.server
 
 Then open http://localhost:8000 in Chrome. Web Bluetooth only works on HTTPS pages and on localhost.
 
-## Terminal version
-
-`ride.py` is the first version of the project, a simpler recorder for the terminal. It prints a live line and saves each ride as a CSV in `rides/`, but it has no auto-pause and none of the exports. I tested it on Ubuntu.
-
-```
-conda env create -f environment.yml
-conda activate hometrainer
-python ride.py
-```
-
-Press Ctrl+C to stop. The ride summary is printed and the CSV is written to `rides/`.
-
 ## How it works
 
 Smart trainers expose the Bluetooth Fitness Machine Service (FTMS, UUID `0x1826`). The page subscribes to its Indoor Bike Data characteristic (`0x2AD2`). The trainer sends a small packet about once a second, with a flags field saying which values the packet contains. The page reads instant speed, cadence and power, and skips the rest.
@@ -78,7 +68,8 @@ Smart trainers expose the Bluetooth Fitness Machine Service (FTMS, UUID `0x1826`
 The code is split by job:
 
 - `js/trainer.js` handles the Bluetooth connection, decodes the packets and reconnects after a drop
-- `js/ride.js` holds the ride logic: auto-pause, totals, 3-second power, best efforts
+- `js/ride.js` holds the ride logic: auto-pause, totals, 3-second power, rolling averages, best efforts
+- `js/zones.js` defines the seven power zones and adds up the time spent in each
 - `js/charts.js` draws the live chart and the best-efforts curve on a canvas
 - `js/exports.js` builds the CSV, the TCX and the recap image
 - `js/app.js` wires all of it to the page

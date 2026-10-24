@@ -1,6 +1,7 @@
 // Seconds without pedalling before the ride pauses itself
 const AUTO_PAUSE_DELAY = 3;
-const CURVE_DURATIONS = [5, 15, 60, 300, 600, 1200, 3600];
+// Durations of the best efforts, shown live and in the summary
+export const RECORD_DURATIONS = [5, 15, 60, 300, 600, 1200, 3600];
 
 // A ride waits for the first pedal stroke, then switches between riding and paused.
 // Time, distance and energy only add up while riding.
@@ -14,6 +15,8 @@ export class Ride {
   speed = 0;
   cadence = 0;
   power = 0;
+  maxPower = 0;
+  records = new Map();  // duration in seconds → best average power
   samples = [];
   #last = null;
   #stoppedAt = null;
@@ -39,8 +42,13 @@ export class Ride {
     }
 
     if (this.state === "riding") {
-      const { time, speed, cadence, power, distance } = this;
-      this.samples.push({ timestamp: now, time, speed, cadence, power, distance, power3s: this.#average3s() });
+      const { time, speed, cadence, power, distance, energy } = this;
+      this.samples.push({ timestamp: now, time, speed, cadence, power, distance, energy, power3s: this.#average3s() });
+      this.maxPower = Math.max(this.maxPower, power);
+      for (const duration of RECORD_DURATIONS) {
+        const average = this.average(duration);
+        if (average !== null && average > (this.records.get(duration) ?? -1)) this.records.set(duration, average);
+      }
     }
   }
 
@@ -56,16 +64,28 @@ export class Ride {
     return this.state === "riding" ? this.samples.at(-1).power3s : this.power;
   }
 
+  get averagePower() {
+    return this.time ? this.energy / this.time : 0;
+  }
+
+  // Average power over the last `seconds` of riding, or null until the ride is that long.
+  // It comes from the energy counter, so it stays exact however irregularly the trainer sends data.
+  average(seconds) {
+    if (this.time < seconds) return null;
+    const from = this.#lastSampleBefore(this.time - seconds);
+    return (this.energy - from.energy) / (this.time - from.time);
+  }
+
   summary() {
     return {
       time: this.time,
       distance: this.distance,
       speed: this.distance / this.time * 3600,
       cadence: this.revolutions / this.time,
-      power: this.energy / this.time,
-      maxPower: this.samples.reduce((max, s) => Math.max(max, s.power), 0),
+      power: this.averagePower,
+      maxPower: this.maxPower,
       energy: this.energy / 1000,
-      curve: this.#powerCurve(),
+      curve: [...this.records].map(([duration, power]) => ({ duration, power })),
     };
   }
 
@@ -79,23 +99,15 @@ export class Ride {
     return sum / count;
   }
 
-  // Best average power over each duration. Samples are first resampled to one per second
-  // of moving time, so the result doesn't depend on how often the trainer sends data.
-  #powerCurve() {
-    const perSecond = [];
-    let i = 0;
-    for (let second = 1; second <= this.time; second++) {
-      while (i < this.samples.length - 1 && this.samples[i + 1].time <= second) i++;
-      perSecond.push(this.samples[i].power);
+  // Binary search, since a long ride holds thousands of samples
+  #lastSampleBefore(time) {
+    let low = 0;
+    let high = this.samples.length - 1;
+    while (low < high) {
+      const middle = Math.ceil((low + high) / 2);
+      if (this.samples[middle].time <= time) low = middle;
+      else high = middle - 1;
     }
-    return CURVE_DURATIONS.filter((d) => d <= perSecond.length).map((duration) => {
-      let sum = perSecond.slice(0, duration).reduce((a, b) => a + b, 0);
-      let best = sum;
-      for (let j = duration; j < perSecond.length; j++) {
-        sum += perSecond[j] - perSecond[j - duration];
-        best = Math.max(best, sum);
-      }
-      return { duration, power: best / duration };
-    });
+    return this.samples[low];
   }
 }

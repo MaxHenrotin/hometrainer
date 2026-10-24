@@ -14,7 +14,8 @@
 <div class="track"></div>
 <header>
   <h1>Hometrainer</h1>
-  <label class="weight">Poids <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal"> kg</label>
+  <label class="setting">Poids <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal"> kg</label>
+  <label class="setting">FTP <input id="ftp" type="number" min="50" max="600" step="1" inputmode="numeric"> W</label>
   <span id="status">Pas connecté</span>
 </header>
 
@@ -23,7 +24,9 @@
     <p id="banner" class="banner" role="status"></p>
     <p class="label">Puissance (moyenne sur 3 s)</p>
     <div class="power">
-      <output id="power">0</output><span>W</span><span class="wkg"><output id="wkg">?</output> W/kg</span>
+      <output id="power">0</output><span>W</span>
+      <span id="wkg-box" class="wkg"><output id="wkg"></output> W/kg</span>
+      <span id="zone" class="zone"></span>
     </div>
     <dl class="stats four">
       <div><dt>Vitesse</dt><dd><output id="speed">0,0</output><small>km/h</small></dd></div>
@@ -31,13 +34,26 @@
       <div><dt>Distance</dt><dd><output id="distance">0,00</output><small>km</small></dd></div>
       <div><dt>Durée</dt><dd><output id="duration">0:00:00</output></dd></div>
     </dl>
+    <div class="details">
+      <p>Séance</p>
+      <dl>
+        <div><dt>Moyenne</dt><dd><output id="avg"></output><small>W</small></dd></div>
+        <div><dt>Max</dt><dd><output id="max"></output><small>W</small></dd></div>
+        <div><dt>Énergie</dt><dd><output id="kj"></output><small>kJ</small></dd></div>
+      </dl>
+      <p>Moyennes glissantes</p>
+      <dl id="rolling"></dl>
+      <p>Records de la séance</p>
+      <dl id="records"></dl>
+    </div>
     <canvas id="live-chart" class="live-chart" aria-label="Puissance des 10 dernières minutes"></canvas>
   </section>
 
   <section id="summary" hidden>
     <p class="label">Puissance moyenne</p>
     <div class="power">
-      <output id="s-power"></output><span>W</span><span class="wkg"><output id="s-wkg"></output> W/kg</span>
+      <output id="s-power"></output><span>W</span>
+      <span id="s-wkg-box" class="wkg"><output id="s-wkg"></output> W/kg</span>
     </div>
     <dl class="stats three">
       <div><dt>Durée</dt><dd><output id="s-duration"></output></dd></div>
@@ -48,7 +64,11 @@
       <div><dt>Énergie</dt><dd><output id="s-energy"></output><small>kJ ≈ kcal</small></dd></div>
     </dl>
     <p id="curve-label" class="label curve-label">Meilleurs efforts</p>
-    <canvas id="curve-chart" class="curve-chart" aria-label="Meilleure puissance moyenne sur 5 s, 15 s, 1 min, 5 min, 10 min et 20 min"></canvas>
+    <canvas id="curve-chart" class="curve-chart" aria-label="Meilleure puissance moyenne sur 5 s, 15 s, 1 min, 5 min, 10 min, 20 min et 1 h"></canvas>
+    <div id="zones-box">
+      <p class="label curve-label">Temps par zone</p>
+      <ol id="zones" class="zones"></ol>
+    </div>
   </section>
 
   <p id="message"></p>

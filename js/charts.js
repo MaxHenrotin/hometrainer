@@ -13,31 +13,22 @@ export function fitCanvas(canvas) {
   return { ctx, box: { x: 0, y: 0, w: width, h: height } };
 }
 
-// 3-second power over moving time, between `from` and `to` seconds
-export function drawPowerLine(ctx, box, samples, colors, from, to, font = 13) {
+// 3-second power over moving time, between `from` and `to` seconds, as one bar per sample.
+// `colorOf(power)` picks each bar's colour, which is how power zones show up.
+export function drawPowerBars(ctx, box, samples, colors, from, to, colorOf, font = 13) {
   const visible = samples.filter((s) => s.time >= from);
   const top = Math.max(100, Math.ceil(Math.max(0, ...visible.map((s) => s.power3s)) * 1.1 / 50) * 50);
   const inner = { ...box, y: box.y + font * 1.5, h: box.h - font * 1.5 };  // room for the top label
   const x = (time) => inner.x + (time - from) / (to - from) * inner.w;
   const y = (power) => inner.y + inner.h - power / top * inner.h;
 
-  if (visible.length > 1) powerArea(ctx, visible, colors, font, x, y, inner);
+  for (let i = 1; i < visible.length; i++) {
+    const { time, power3s } = visible[i];
+    ctx.fillStyle = colorOf(power3s);
+    // The extra half pixel closes the hairline gaps antialiasing leaves between bars
+    ctx.fillRect(x(visible[i - 1].time), y(power3s), x(time) - x(visible[i - 1].time) + 0.5, inner.y + inner.h - y(power3s));
+  }
   gridLines(ctx, inner, colors, font, [top / 2, top], y);
-}
-
-function powerArea(ctx, visible, colors, font, x, y, box) {
-  ctx.beginPath();
-  visible.forEach((s, i) => (i ? ctx.lineTo(x(s.time), y(s.power3s)) : ctx.moveTo(x(s.time), y(s.power3s))));
-  ctx.strokeStyle = colors.red;
-  ctx.lineWidth = font / 6.5;
-  ctx.lineJoin = "round";
-  ctx.stroke();
-  ctx.lineTo(x(visible.at(-1).time), box.y + box.h);
-  ctx.lineTo(x(visible[0].time), box.y + box.h);
-  ctx.globalAlpha = 0.12;
-  ctx.fillStyle = colors.red;
-  ctx.fill();
-  ctx.globalAlpha = 1;
 }
 
 // Best average power for each duration. Durations are evenly spaced rather than on a time
