@@ -44,9 +44,10 @@ body {
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.pill { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 14px; border-radius: 999px; background: var(--card); font-size: 14px; color: var(--secondary); }
+.pill { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 16px; border-radius: 999px; background: var(--card); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); font-size: 16px; color: var(--ink); }
 .pill input { width: 4.2em; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-weight: 600; color: var(--ink); text-align: right; -moz-appearance: textfield; }
 .pill input::placeholder { color: var(--tertiary); }
+.pill input:focus::placeholder { color: transparent; }
 .pill input:focus { outline: 2px solid var(--blue); outline-offset: 0; background: var(--card); }
 .pill input::-webkit-outer-spin-button, .pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .status { color: var(--ink); font-weight: 500; }
