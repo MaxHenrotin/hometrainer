@@ -105,12 +105,17 @@ dt { font-size: 15px; color: var(--secondary); }
 .chart.with-switch canvas { top: 66px; height: calc(100% - 84px); }
 .chart .segmented { position: absolute; top: 16px; right: 18px; z-index: 1; }
 
-/* The state of the ride, floating over the middle of the app like a notification. Clicks go
-   through it to the cards below. */
-.bubble { position: fixed; top: 50%; left: 50%; z-index: 20; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(90vw, 760px); pointer-events: none; margin: 0; padding: 16px 28px; border-radius: 26px; background: rgba(255, 255, 255, 0.92); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); font-size: 23px; font-weight: 600; text-align: center; }
+/* The state of the ride, floating over the middle of the app like a notification, with a deeper
+   shadow than the cards. Clicks go through it to the cards below. Its colour tells the kind of
+   message: info (blue), start (green), pause (orange) or error (red). */
+.bubble { position: fixed; top: 50%; left: 50%; z-index: 20; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(90vw, 760px); pointer-events: none; margin: 0; padding: 16px 28px; border-radius: 26px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 23px; font-weight: 600; text-align: center; }
 .bubble:empty { display: none; }
 .bubble::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); }
+.bubble.start { background: #DDF6E4; }
+.bubble.start::before { background: var(--green); }
+.bubble.pause { background: #FFEBD2; }
 .bubble.pause::before { background: var(--orange); }
+.bubble.error { background: #FFDCDA; }
 .bubble.error::before { background: var(--red); }
 
 .totals { container-type: inline-size; display: grid; align-content: center; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 22px; }
@@ -166,14 +171,13 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
 /* On a large screen the live cards share their column's height, and their contents scale with
    both sides of the card, since it can be resized */
 @media (min-width: 901px) {
-  #live .card { flex: 1 1 0; min-height: 0; user-select: none; transition: scale 0.15s, box-shadow 0.15s, opacity 0.15s; }
+  #live .card { flex: 1 1 0; min-height: 0; user-select: none; transition: scale 0.15s, box-shadow 0.15s; }
   #live .side > :first-child { flex-grow: 30; }
   #live .side > :nth-child(2) { flex-grow: 70; }
   #live .column > :first-child { flex-grow: 13; }
   #live .column > :nth-child(2) { flex-grow: 87; }
-  /* A held card lifts above the others, and the card it would swap with fades */
+  /* A held card lifts above the others */
   #live .card.lifted { z-index: 10; scale: 1.02; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; }
-  #live .card.target { opacity: 0.5; }
   #live .readings, #live .totals, #live .durations { container-type: size; }
   #live .readings { --f: min(10.5cqw, 42cqh); }
   #live .totals dd { font-size: min(13.3cqw, 90cqh); }

@@ -12,7 +12,7 @@ const LIVE_BARS = 120;   // 10 minutes of 5-second bars
 const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than this
 const COLUMN_MIN = 240;  // px, narrowest column when resizing the live cards
 const CARD_MIN = 100;    // px, lowest live card
-const LIFT_TIME = 400;   // ms a live card is held before it can be dragged onto another
+const SWAP_TIME = 250;   // ms a card takes to slide to its new place
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
@@ -98,12 +98,12 @@ function renderStatus(text, dot) {
   $("status-dot").className = `dot ${dot}`;
 }
 
-// What the bubble over the app says, and how it's marked: info, pause or error
+// What the bubble over the app says, and how it's marked: info, start, pause or error
 function bubble() {
   if (message) return [message, "error"];
   if (!trainer?.active) return ["Pédale pour réveiller le home-trainer, puis connecte-le", "info"];
   if (reconnecting) return ["Bluetooth déconnecté. Reconnexion…", "error"];
-  if (ride.state === "waiting") return ["Pédale pour démarrer", "info"];
+  if (ride.state === "waiting") return ["Pédale pour démarrer", "start"];
   if (ride.state === "paused") return ["En pause. Pédale pour reprendre", "pause"];
   return ["", ""];
 }
@@ -219,54 +219,55 @@ function addGrips(live, card) {
   }
 }
 
-// Holding a live card lifts it, and dropping it on another card swaps their places. The sizes stay
-// with the places, so each card takes the size of the place it moves to.
+// Pressing a live card lifts it and it follows the pointer. Passing over another card swaps their
+// places at once, the other card sliding to the place the dragged one left. Sizes stay with the
+// places, so each card takes the size of the place it moves to.
 function makeMovable(card) {
-  let start = null;  // where the press began, while the card is pressed
-  let timer;
-  let target = null;
-  const drop = () => {
-    clearTimeout(timer);
-    target?.classList.remove("target");
-    card.classList.remove("lifted");
-    card.style.translate = "";
-    if (target) swap(card, target);
-    start = target = null;
-  };
+  let grab = null;  // where the card is held, as a share of its width and height, while it's dragged
   card.addEventListener("pointerdown", (event) => {
     if (!wide.matches || event.button !== 0 || event.target.closest(".grip, button")) return;
-    start = { x: event.clientX, y: event.clientY };
-    timer = setTimeout(() => {
-      card.setPointerCapture(event.pointerId);
-      card.classList.add("lifted");
-    }, LIFT_TIME);
+    card.setPointerCapture(event.pointerId);
+    const box = card.getBoundingClientRect();
+    grab = { x: (event.clientX - box.x) / box.width, y: (event.clientY - box.y) / box.height };
+    card.classList.add("lifted");
   });
   card.addEventListener("pointermove", (event) => {
-    if (!start) return;
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    // Moving before the card is lifted is not a hold
-    if (!card.classList.contains("lifted")) {
-      if (Math.hypot(dx, dy) > 5) drop();
-      return;
-    }
-    card.style.translate = `${dx}px ${dy}px`;
-    target?.classList.remove("target");
-    target = document.elementsFromPoint(event.clientX, event.clientY).find((el) => el !== card && el.matches("#live .card")) ?? null;
-    target?.classList.add("target");
+    if (!grab) return;
+    // A card still sliding away is skipped, or it would be found under the pointer and swapped back
+    const other = document.elementsFromPoint(event.clientX, event.clientY)
+      .find((el) => el !== card && el.matches("#live .card") && !el.getAnimations().length);
+    if (other) swap(card, other);
+    // The card keeps the same spot under the pointer, even when its size changes
+    card.style.translate = "";
+    const box = card.getBoundingClientRect();
+    card.style.translate = `${event.clientX - box.x - grab.x * box.width}px ${event.clientY - box.y - grab.y * box.height}px`;
   });
+  const drop = () => {
+    if (!grab) return;
+    grab = null;
+    card.classList.remove("lifted");
+    const from = card.style.translate;
+    card.style.translate = "";
+    if (from) card.animate([{ translate: from }, { translate: "0 0" }], { duration: SWAP_TIME, easing: "ease-out" });
+  };
   card.addEventListener("pointerup", drop);
   card.addEventListener("pointercancel", drop);
 }
 
-function swap(a, b) {
+// The other card slides from where it was to the dragged card's place
+function swap(dragged, other) {
+  const before = other.getBoundingClientRect();
   const mark = document.createComment("");
-  a.replaceWith(mark);
-  b.replaceWith(a);
-  mark.replaceWith(b);
-  [a.style.flex, b.style.flex] = [b.style.flex, a.style.flex];
+  dragged.replaceWith(mark);
+  other.replaceWith(dragged);
+  mark.replaceWith(other);
+  [dragged.style.flex, other.style.flex] = [other.style.flex, dragged.style.flex];
   placeGrips();
   render();
+  const after = other.getBoundingClientRect();
+  const dx = before.x + before.width / 2 - after.x - after.width / 2;
+  const dy = before.y + before.height / 2 - after.y - after.height / 2;
+  other.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: SWAP_TIME, easing: "ease-out" });
 }
 
 // Hold-to-confirm: the action runs once the button has been held for HOLD_TIME while its ring fills.
