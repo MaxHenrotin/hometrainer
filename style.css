@@ -1,3 +1,8 @@
+/* The fonts come from this site, not from Google, so no visitor's address is sent elsewhere */
+@font-face { font-family: Barlow; font-weight: 500; font-display: swap; src: url(fonts/barlow-500.woff2) format("woff2"); }
+@font-face { font-family: Barlow; font-weight: 600; font-display: swap; src: url(fonts/barlow-600.woff2) format("woff2"); }
+@font-face { font-family: "Barlow Semi Condensed"; font-weight: 600; font-display: swap; src: url(fonts/barlow-semi-condensed-600.woff2) format("woff2"); }
+
 :root {
   --bg: #F5F5F7;
   --card: #FFFFFF;

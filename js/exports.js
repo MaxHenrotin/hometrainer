@@ -17,7 +17,7 @@ export function csv(ride) {
 }
 
 // Loaded only when someone exports to Strava, since the SDK weighs about 440 KB
-const FIT_SDK = "https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.218.0/+esm";
+const FIT_SDK = "./vendor/fitsdk.js";
 const semicircles = (degrees) => Math.round(degrees * 2 ** 31 / 180);
 
 // Garmin FIT, the format Zwift sends to Strava, following the virtual route. As a virtual ride,
