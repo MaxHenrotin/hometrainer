@@ -30,21 +30,9 @@ const GLYPHS = {
     [19, 10], [19, 0], [19, 10], [27, 10], [24, 0], [25, 10 / 3], [29, 10 / 3], [27, 10], [30, 0]],
   M: [[0, 0], [0, 10], [3, 4], [6, 10], [6, 0]],
   X: [[0, 0], [6, 10], [3, 5], [0, 10], [6, 0]],
-  K: [[0, 0], [0, 10], [0, 4], [5, 10], [1.7, 6.04], [5, 0]],
   C: [...arc(3, 5, 3, 5, 270, 315), ...arc(3, 5, 3, 5, 315, 45), ...arc(3, 5, 3, 5, 45, 270)],
   O: arc(3, 5, 3, 5, 270, -90),
   ".": [[0, 0], [0, 1.2], [1.2, 1.2], [1.2, 0], [0, 0], [1.2, 0]],
-  " ": [[0, 0], [2, 0]],
-  0: [[0, 0], [0, 10], [5, 10], [5, 0], [0, 0], [5, 0]],
-  1: [[1.5, 0], [1.5, 10], [0, 8.5], [1.5, 10], [1.5, 0]],
-  2: [[0, 0], [0, 5], [5, 5], [5, 10], [0, 10], [5, 10], [5, 5], [0, 5], [0, 0], [5, 0]],
-  3: [[0, 0], [5, 0], [5, 5], [0, 5], [5, 5], [5, 10], [0, 10], [5, 10], [5, 0]],
-  4: [[4, 0], [4, 10], [0, 3], [5, 3], [4, 3], [4, 0]],
-  5: [[0, 0], [5, 0], [5, 5], [0, 5], [0, 10], [5, 10], [0, 10], [0, 5], [5, 5], [5, 0]],
-  6: [[0, 0], [0, 10], [5, 10], [0, 10], [0, 5], [5, 5], [5, 0], [0, 0], [5, 0]],
-  7: [[1.5, 0], [5, 10], [0, 10], [5, 10], [1.5, 0]],
-  8: [[0, 0], [0, 10], [5, 10], [5, 0], [0, 0], [0, 5], [5, 5], [5, 0]],
-  9: [[0, 0], [5, 0], [5, 10], [0, 10], [0, 5], [5, 5], [5, 0]],
 };
 
 // Upper-case text in one line, slanted like the logo
@@ -87,20 +75,20 @@ function heart() {
   });
 }
 
-// Each drawing is one line of [x, y] points, in any unit with y going up, for a ride of `km` kilometres
+// The drawings the route can follow, each one line of [x, y] points in any unit, with y going up.
+// Adding one is adding a line here.
 const DRAWINGS = {
-  loop,
-  url: () => text("WATTAMAX.COM"),
-  tt: () => TT,
-  wordmark: () => WORDMARK,
-  bike,
-  heart,
-  distance: (km) => text(`${Math.round(km)} KM`),
+  url: text("WATTAMAX.COM"),
+  loop: loop(),
+  tt: TT,
+  wordmark: WORDMARK,
+  bike: bike(),
+  heart: heart(),
 };
 
 // For a ride of `km` kilometres, the function giving the latitude and longitude after `distance` kilometres
 export function route(drawing, km) {
-  const points = DRAWINGS[drawing](km);
+  const points = DRAWINGS[drawing];
   const along = [0];
   for (let k = 1; k < points.length; k++) along.push(along[k - 1] + Math.hypot(points[k][0] - points[k - 1][0], points[k][1] - points[k - 1][1]));
   const scale = km * 1000 / along.at(-1);  // metres per unit
