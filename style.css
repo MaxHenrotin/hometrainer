@@ -61,12 +61,13 @@ h1 img { display: block; }
 .pill input { width: 4.2em; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-weight: 600; color: var(--ink); text-align: right; -moz-appearance: textfield; }
 .pill input::placeholder { color: var(--tertiary); }
 .pill input:focus::placeholder { color: transparent; }
-/* An empty field glows red, softly and over and over, so it's hard to leave empty. Both fields run
-   the glow from page load, filled or not, and only show it while empty: their glows stay in step. */
+/* A field that is empty or still holds its default value glows red, softly and over and over, until
+   the rider types their own. Both fields run the glow from page load and only show it in those
+   states, so their glows stay in step. */
 @property --glow { syntax: "<number>"; inherits: false; initial-value: 0; }
 @keyframes glow { to { --glow: 1; } }
 .pill input { animation: glow 0.8s ease-in-out infinite alternate; }
-.pill input:placeholder-shown:not(:focus) { background: color-mix(in srgb, #FFC8C4 calc(var(--glow) * 100%), #FFE3E1); box-shadow: 0 0 0 calc(var(--glow) * 4px) rgba(255, 59, 48, calc(0.4 - var(--glow) * 0.25)); }
+.pill input:is(:placeholder-shown, .default):not(:focus) { background: color-mix(in srgb, #FFC8C4 calc(var(--glow) * 100%), #FFE3E1); box-shadow: 0 0 0 calc(var(--glow) * 4px) rgba(255, 59, 48, calc(0.4 - var(--glow) * 0.25)); }
 .pill input:focus { background: var(--card); }
 .pill input::-webkit-outer-spin-button, .pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 /* The connection pill is a button that connects the trainer, like the big button, while that one is shown */

@@ -7,7 +7,7 @@ export const RECORD_DURATIONS = [5, 15, 60, 120, 180, 300, 600, 1200, 2700];
 // The speed is simulated from the power, as on a flat road with no wind (Martin et al., 1998).
 // The trainer's own speed only follows the gear and the cadence, and comes out far too low.
 const BIKE_WEIGHT = 8;      // kg, wheels included
-const DEFAULT_WEIGHT = 75;  // kg, for a rider who hasn't entered their weight
+export const DEFAULT_WEIGHT = 75;  // kg, for a rider who hasn't entered their weight
 const CDA = 0.32;           // m², drag area seated on the hoods
 const CRR = 0.004;          // rolling resistance of road tyres on asphalt
 const DRIVETRAIN = 0.976;   // share of the power that reaches the wheel

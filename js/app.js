@@ -1,7 +1,7 @@
 import { drawBars, fitCanvas } from "./charts.js";
 import { csv, download, fit, recapImage } from "./exports.js";
 import { duration, durationLabel, number } from "./format.js";
-import { RECORD_DURATIONS, Ride } from "./ride.js";
+import { DEFAULT_WEIGHT, RECORD_DURATIONS, Ride } from "./ride.js";
 import { Trainer } from "./trainer.js";
 import { ZONES, zoneIndex, zoneTimes } from "./zones.js";
 
@@ -14,6 +14,7 @@ const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than
 const COLUMN_MIN = 240;  // px, narrowest column when resizing the live cards
 const CARD_MIN = 100;    // px, lowest live card
 const SLIDE_TIME = 250;  // ms a card or the bubble takes to slide to its new place
+const DEFAULT_FTP = 200; // W, until the rider enters their own
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
@@ -33,11 +34,15 @@ let message = "";  // an error to show in the bubble until the next connection a
 const load = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
 const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* not remembered */ } };
 
-// Weight and FTP are optional, and what depends on them stays hidden while they're empty
+// Weight and FTP start at typical values until the rider types their own. What depends on them
+// stays hidden if the rider empties a field.
 const settings = { weight: $("weight"), ftp: $("ftp") };
+const defaults = { weight: DEFAULT_WEIGHT, ftp: DEFAULT_FTP };
 for (const [name, input] of Object.entries(settings)) {
-  input.value = load(name) ?? "";
-  input.addEventListener("input", () => { save(name, input.value); ride.weight = weight(); render(); });
+  const saved = load(name);
+  input.value = saved ?? defaults[name];
+  input.classList.toggle("default", saved === null);
+  input.addEventListener("input", () => { input.classList.remove("default"); save(name, input.value); ride.weight = weight(); render(); });
 }
 const weight = () => Number(settings.weight.value) || null;
 const ftp = () => Number(settings.ftp.value) || null;
