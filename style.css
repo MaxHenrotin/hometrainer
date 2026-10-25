@@ -140,38 +140,48 @@ dt { font-size: 15px; color: var(--secondary); }
 .figures { display: flex; flex-direction: column; justify-content: center; height: 100%; }
 /* Out of a row, the figures are centred, with even space above, between and below them: the gap
    between two figures matches the card's vertical padding, which adds to the space above and
-   below. The power line puts each of its items on a line of its own, so its height is known even
-   at its 15 px floor, and the figures' size leaves room for it. */
-@container (aspect-ratio < 1.16) and (height > 250px) {
+   below. The power line stays on one line when the card is wide enough for it at 15 px, and
+   otherwise puts each item on a line of its own. Either way its height is known, even at its
+   floor, and the figures' size leaves room for it. */
+@container (aspect-ratio < 1.26) and (height > 255px) {
   .figures:not(:has(.heart:not([hidden]))) {
-    --f: min(28cqw, (100cqh - 132px) * 0.205, (100cqh - 72px) * 0.164);
+    --f: min(28cqw, (100cqh - 90px) * 0.205, (100cqh - 72px) * 0.188);
     gap: 24px; justify-content: space-evenly; text-align: center;
     & .values { display: contents; }
-    & :is(.now, .zone-legend) { justify-content: center; }
+    & :is(.now, .power-line, .zone-legend) { justify-content: center; }
     & > :is(.power-line, .zones) { margin-top: 0; }
-    & .power-line { flex-flow: column nowrap; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
+    @container (width <= 368px) {
+      --f: min(28cqw, (100cqh - 132px) * 0.205, (100cqh - 72px) * 0.164);
+      & .power-line { flex-flow: column nowrap; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
+    }
   }
 }
-@container (aspect-ratio < 1.94) and (height > 175px) {
+@container (aspect-ratio < 2.86) and (height > 175px) {
   .figures:has(.heart:not([hidden])) {
-    --f: min(15cqw, (100cqh - 108px) * 0.296, (100cqh - 48px) * 0.218);
+    --f: min(15cqw, (100cqh - 66px) * 0.296, (100cqh - 48px) * 0.262);
     gap: 24px; justify-content: space-evenly; text-align: center;
     & .values { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-auto-flow: row; }
-    & :is(.now, .zone-legend) { justify-content: center; }
+    & :is(.now, .power-line, .zone-legend) { justify-content: center; }
     & > :is(.power-line, .zones) { margin-top: 0; }
-    & .power-line { flex-flow: column nowrap; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
+    @container (width <= 368px) {
+      --f: min(15cqw, (100cqh - 108px) * 0.296, (100cqh - 48px) * 0.218);
+      & .power-line { flex-flow: column nowrap; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
+    }
   }
 }
 @container (aspect-ratio < 0.64) {
   .figures:has(.heart:not([hidden])) {
-    --f: min(28cqw, (100cqh - 156px) * 0.156, (100cqh - 96px) * 0.131);
+    --f: min(28cqw, (100cqh - 114px) * 0.156, (100cqh - 96px) * 0.146);
     & .values { display: contents; }
+    @container (width <= 368px) {
+      --f: min(28cqw, (100cqh - 156px) * 0.156, (100cqh - 96px) * 0.131);
+    }
   }
 }
 
-/* In a row, the line stays on one line: its 15 px floor gives way in a card too narrow for its
-   longest content (about 21.6 em of text and two 22 px gaps) */
-.power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.44); margin-top: calc(var(--f) * 0.19); font-size: max(calc(var(--f) * 0.3), min(15px, (100cqw - 44px) / 21.6)); }
+/* On one line, the line never grows wider than the card, which fits its longest content (about
+   21.6 em of text and two 22 px gaps). Its 15 px floor only gives way in a row too narrow for it. */
+.power-line { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.44); margin-top: calc(var(--f) * 0.19); font-size: min(max(calc(var(--f) * 0.3), 15px), (100cqw - 44px) / 21.6); }
 .zone { font-weight: 600; }
 .power-line strong { font-weight: 600; }
 .wkg .average { margin-left: 0.5em; font-size: 0.85em; color: var(--secondary); }
