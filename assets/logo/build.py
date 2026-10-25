@@ -38,5 +38,6 @@ cairosvg.svg2png(bytestring=preview(files["wattamax-icon-light.svg"], files["wat
 print(OUT / "wattamax-og.png")
 
 outlines = Path(__file__).parents[2] / "js" / "outlines.js"
-outlines.write_text(js({"TT": stroke(files["wattamax-tt.svg"]), "WORDMARK": stroke(files["wattamax-wordmark.svg"])}))
+outlines.write_text(js({"TT": stroke(files["wattamax-tt.svg"]), "ICON": stroke(files["wattamax-icon.svg"]),
+                        "WORDMARK": stroke(files["wattamax-wordmark.svg"])}))
 print(outlines)

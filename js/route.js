@@ -2,7 +2,7 @@
 // so like Zwift's worlds, the ride follows a drawing centred on Isla Incahuasi on the Salar de
 // Uyuni (Bolivia), the flattest place on Earth. The drawing is scaled so that the whole ride
 // draws it once, whatever its length.
-import { TT, WORDMARK } from "./outlines.js";
+import { ICON, TT, WORDMARK } from "./outlines.js";
 
 const CENTER = { lat: -20.242, lon: -67.625 };  // Isla Incahuasi
 export const ALTITUDE = 3656;  // metres, the level of the salt flat
@@ -81,6 +81,7 @@ const DRAWINGS = {
   url: text("WATTAMAX.COM"),
   loop: loop(),
   tt: TT,
+  icon: ICON,
   wordmark: WORDMARK,
   bike: bike(),
   heart: heart(),
