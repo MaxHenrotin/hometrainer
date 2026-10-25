@@ -134,17 +134,39 @@ dt { font-size: 15px; color: var(--secondary); }
 .now .big { font-size: calc(var(--f) * 1.38); }
 .value .average { margin-top: calc(var(--f) * 0.1); font-size: calc(var(--f) * 0.38); color: var(--secondary); }
 
-/* Past a certain shape, figures stacked come out bigger than side by side, so they stack. A card
+/* Past a certain shape, figures stacked come out bigger than side by side, so they stack. Four
+   figures first go two by two. Each layout starts where it gives the bigger figures. A card
    can't restyle its own layout from its shape, only its children's, hence the rules on them. */
 .figures { display: flex; flex-direction: column; justify-content: center; height: 100%; }
-/* Stacked figures are centred, with even space above, between and below them: the gap between
-   two figures matches the card's vertical padding, which adds to the space above and below */
-@container (aspect-ratio < 1.62) {
-  .figures { --f: min(28cqw, (100cqh - 72px) * 0.18); gap: 24px; justify-content: space-evenly; text-align: center; }
-  .figures:has(.heart:not([hidden])) { --f: min(28cqw, (100cqh - 96px) * 0.14); }
-  .values { display: contents; }
-  .now, .power-line, .zone-legend { justify-content: center; }
-  .figures > :is(.power-line, .zones) { margin-top: 0; }
+/* Out of a row, the figures are centred, with even space above, between and below them: the gap
+   between two figures matches the card's vertical padding, which adds to the space above and
+   below. The power line puts each of its items on a line of its own, so its height is known even
+   at its 15 px floor, and the figures' size leaves room for it. */
+@container (aspect-ratio < 1.16) and (height > 250px) {
+  .figures:not(:has(.heart:not([hidden]))) {
+    --f: min(28cqw, (100cqh - 132px) * 0.205, (100cqh - 72px) * 0.164);
+    gap: 24px; justify-content: space-evenly; text-align: center;
+    & .values { display: contents; }
+    & :is(.now, .zone-legend) { justify-content: center; }
+    & > :is(.power-line, .zones) { margin-top: 0; }
+    & .power-line { flex-flow: column nowrap; gap: 0.2em; }
+  }
+}
+@container (aspect-ratio < 1.94) and (height > 175px) {
+  .figures:has(.heart:not([hidden])) {
+    --f: min(15cqw, (100cqh - 108px) * 0.296, (100cqh - 48px) * 0.218);
+    gap: 24px; justify-content: space-evenly; text-align: center;
+    & .values { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-auto-flow: row; }
+    & :is(.now, .zone-legend) { justify-content: center; }
+    & > :is(.power-line, .zones) { margin-top: 0; }
+    & .power-line { flex-flow: column nowrap; gap: 0.2em; }
+  }
+}
+@container (aspect-ratio < 0.64) {
+  .figures:has(.heart:not([hidden])) {
+    --f: min(28cqw, (100cqh - 156px) * 0.156, (100cqh - 96px) * 0.131);
+    & .values { display: contents; }
+  }
 }
 
 .power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.44); margin-top: calc(var(--f) * 0.19); font-size: max(calc(var(--f) * 0.3), 15px); }
