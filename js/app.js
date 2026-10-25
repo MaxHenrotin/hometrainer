@@ -58,9 +58,13 @@ function setChartMode(mode) {
   render();
 }
 
+// The 1-second average flickers too much to read live; the max power under the power figure
+// stands in for its record
+const ROLLING_DURATIONS = RECORD_DURATIONS.filter((d) => d > 1);
+
 // One row per duration: rolling average and session record live, best effort in the summary
-function buildRows(id) {
-  $(id).innerHTML = RECORD_DURATIONS.map((d) => `<li><span class="label">${durationLabel(d)}</span>`
+function buildRows(id, durations) {
+  $(id).innerHTML = durations.map((d) => `<li><span class="label">${durationLabel(d)}</span>`
     + '<span class="bar"><span class="ghost"></span><span class="fill"></span></span><span class="watts"></span><span class="record"></span></li>').join("");
 }
 
@@ -125,6 +129,7 @@ function renderLive() {
   const power = ride.displayPower;
   $("power").textContent = number(power);
   $("avg-power").textContent = number(ride.averagePower);
+  $("max-power").textContent = number(ride.maxPower);
   $("cadence").textContent = number(ride.cadence);
   $("avg-cadence").textContent = number(ride.averageCadence);
   $("speed").textContent = number(ride.speed, 1);
@@ -137,7 +142,7 @@ function renderLive() {
     $("wkg").textContent = number(power / weight(), 1);
     $("avg-wkg").textContent = number(ride.averagePower / weight(), 1);
   }
-  fillRows("rolling", RECORD_DURATIONS.map((d) => ({ value: ride.average(d), record: ride.records.get(d) ?? null })));
+  fillRows("rolling", ROLLING_DURATIONS.map((d) => ({ value: ride.average(d), record: ride.records.get(d) ?? null })));
 
   if (!trainer?.active) renderStatus("Pas connecté", "");
   else if (reconnecting) renderStatus("Déconnecté", "lost");
@@ -429,8 +434,8 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && trainer?.active && (!wakeLock || wakeLock.released)) keepScreenOn();
 });
 
-buildRows("rolling");
-buildRows("records");
+buildRows("rolling", ROLLING_DURATIONS);
+buildRows("records", RECORD_DURATIONS);
 placeGrips();
 for (const card of $("live").querySelectorAll(".card")) makeMovable(card);
 setAutoPause(autoPause);
