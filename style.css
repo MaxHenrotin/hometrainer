@@ -204,7 +204,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .durations .label { font-size: max(0.6em, 10px); color: var(--secondary); }
 .durations .bar { position: relative; height: 0.45em; border-radius: 0.23em; background: var(--track); overflow: hidden; }
 .durations .bar span { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 0.23em; }
-.durations .ghost { background: #D1D1D6; }
+.durations .ghost { background: #D9D9DE; }
 .durations .watts { text-align: right; }
 .durations .record { font-size: max(0.55em, 10px); color: var(--tertiary); text-align: right; }
 
