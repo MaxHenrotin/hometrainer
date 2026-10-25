@@ -49,12 +49,12 @@ h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.0
 .pill input { width: 4.2em; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-weight: 600; color: var(--ink); text-align: right; -moz-appearance: textfield; }
 .pill input::placeholder { color: var(--tertiary); }
 .pill input:focus::placeholder { color: transparent; }
-/* An empty field glows red, softly and over and over, so it's hard to leave empty */
-.pill input:placeholder-shown:not(:focus) { animation: glow 1.6s ease-in-out infinite; }
-@keyframes glow {
-  0%, 100% { background: #FFE3E1; box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
-  50% { background: #FFC8C4; box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.15); }
-}
+/* An empty field glows red, softly and over and over, so it's hard to leave empty. Both fields run
+   the glow from page load, filled or not, and only show it while empty: their glows stay in step. */
+@property --glow { syntax: "<number>"; inherits: false; initial-value: 0; }
+@keyframes glow { to { --glow: 1; } }
+.pill input { animation: glow 0.8s ease-in-out infinite alternate; }
+.pill input:placeholder-shown:not(:focus) { background: color-mix(in srgb, #FFC8C4 calc(var(--glow) * 100%), #FFE3E1); box-shadow: 0 0 0 calc(var(--glow) * 4px) rgba(255, 59, 48, calc(0.4 - var(--glow) * 0.25)); }
 .pill input:focus { outline: 2px solid var(--blue); outline-offset: 0; background: var(--card); }
 .pill input::-webkit-outer-spin-button, .pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .status { color: var(--ink); font-weight: 500; }
@@ -203,13 +203,19 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
   #live .durations li { font-size: min(5.9cqw, 5.5cqh); }
   /* Past a certain shape, figures stacked come out bigger than side by side, so they stack. A card
      can't restyle its own layout from its shape, only its children's, hence the rules on them. */
+  #live .figures { display: flex; flex-direction: column; justify-content: center; height: 100%; }
+  /* Stacked figures are centred, with even space above, between and below them: the gap between
+     two figures matches the card's vertical padding, which adds to the space above and below */
   @container (aspect-ratio < 1.62) {
-    #live .readings > * { --f: min(28cqw, 17cqh); }
-    #live .values { grid-template-columns: minmax(0, 1fr); gap: calc(var(--f) * 0.25); }
+    #live .figures { --f: min(28cqw, (100cqh - 72px) * 0.18); gap: 24px; justify-content: space-evenly; text-align: center; }
+    #live .values { display: contents; }
+    #live .now, #live .power-line { justify-content: center; }
+    #live .power-line { margin-top: 0; }
+    #live .power-line:not(:has(> :not([hidden]))) { display: none; }
   }
   @container (aspect-ratio < 3.08) {
-    #live .totals dl { grid-template-columns: minmax(0, 1fr); }
-    #live .totals dd { font-size: min(24cqw, 41cqh); }
+    #live .totals dl { display: flex; flex-direction: column; justify-content: space-evenly; gap: 20px; height: 100%; text-align: center; }
+    #live .totals dd { font-size: min(24cqw, (100cqh - 20px) * 0.46); }
   }
 }
 
@@ -226,5 +232,5 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
 }
 @media (prefers-reduced-motion: reduce) {
   .switch, .switch span, .button { transition: none; }
-  .pill input:placeholder-shown:not(:focus) { animation: none; background: #FFE3E1; }
+  .pill input { animation: none; }
 }

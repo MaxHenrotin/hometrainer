@@ -28,26 +28,28 @@
   <section id="live" class="screen" aria-label="Séance en cours">
     <div class="side">
       <div class="card readings">
-        <dl class="values">
-          <div class="value">
-            <dt class="sr-only">Puissance</dt>
-            <dd class="now"><span id="power" class="big">0</span><span class="unit">W</span></dd>
-            <dd class="average">moy. <span id="avg-power">0</span></dd>
+        <div class="figures">
+          <dl class="values">
+            <div class="value">
+              <dt class="sr-only">Puissance</dt>
+              <dd class="now"><span id="power" class="big">0</span><span class="unit">W</span></dd>
+              <dd class="average">moy. <span id="avg-power">0</span></dd>
+            </div>
+            <div class="value">
+              <dt class="sr-only">Cadence</dt>
+              <dd class="now"><span id="cadence">0</span><span class="unit">rpm</span></dd>
+              <dd class="average">moy. <span id="avg-cadence">0</span></dd>
+            </div>
+            <div class="value">
+              <dt class="sr-only">Vitesse</dt>
+              <dd class="now"><span id="speed">0,0</span><span class="unit">km/h</span></dd>
+              <dd class="average">moy. <span id="avg-speed">0,0</span></dd>
+            </div>
+          </dl>
+          <div class="power-line">
+            <span id="zone" class="zone"></span>
+            <span id="wkg-box" class="wkg"><strong id="wkg"></strong> W/kg <span class="average">moy. <span id="avg-wkg"></span></span></span>
           </div>
-          <div class="value">
-            <dt class="sr-only">Cadence</dt>
-            <dd class="now"><span id="cadence">0</span><span class="unit">rpm</span></dd>
-            <dd class="average">moy. <span id="avg-cadence">0</span></dd>
-          </div>
-          <div class="value">
-            <dt class="sr-only">Vitesse</dt>
-            <dd class="now"><span id="speed">0,0</span><span class="unit">km/h</span></dd>
-            <dd class="average">moy. <span id="avg-speed">0,0</span></dd>
-          </div>
-        </dl>
-        <div class="power-line">
-          <span id="zone" class="zone"></span>
-          <span id="wkg-box" class="wkg"><strong id="wkg"></strong> W/kg <span class="average">moy. <span id="avg-wkg"></span></span></span>
         </div>
       </div>
       <section class="card chart with-switch" aria-label="Graphique de la puissance">
