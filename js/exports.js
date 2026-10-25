@@ -155,6 +155,6 @@ export async function recapImage(ride, weight, colorOf) {
     text(watts === null ? "–" : `${number(watts)} W`, right - 30, y + 10, "500 28px", PNG.ink, "right");
   });
 
-  text("hometrainer.vercel.app", left, 1305, "400 22px", PNG.tertiary);
+  text("wattamax.com", left, 1305, "400 22px", PNG.tertiary);
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }

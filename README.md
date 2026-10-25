@@ -2,7 +2,7 @@
 
 A web page that connects to a smart bike trainer over Bluetooth and shows your power, speed and cadence while you ride. At the end you get a summary, a recap image, and files for Strava or your own analysis. You don't need an account or a subscription, and there's nothing to install.
 
-**Use it here: https://hometrainer.vercel.app**
+**Use it here: https://wattamax.com**
 
 I wrote it because I only wanted to see my watts on my Elite Suito, and paying for Zwift or Rouvy just for that felt silly. It has only been tested with a Suito, but it should work with any trainer that supports Bluetooth FTMS, which covers most smart trainers sold in the last few years (Wahoo Kickr, Tacx Neo and Flux, Elite Direto and Justo, Saris H3...).
 
