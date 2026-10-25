@@ -392,17 +392,17 @@ $("bubble").addEventListener("click", toggleDock);
 for (const button of document.querySelectorAll("[data-chart]")) button.addEventListener("click", () => setChartMode(button.dataset.chart));
 // Browsers on iPhone and iPad, Bluefy included, ignore download links, so the file goes
 // through the share sheet, where "Enregistrer dans Fichiers" keeps it
-const save = (blob, name) => ios ? navigator.share({ files: [new File([blob], name, { type: blob.type })] }) : download(blob, name);
+const saveFile = (blob, name) => ios ? navigator.share({ files: [new File([blob], name, { type: blob.type })] }) : download(blob, name);
 
-$("csv").addEventListener("click", () => save(csv(ride), fileName("csv")));
+$("csv").addEventListener("click", () => saveFile(csv(ride), fileName("csv")));
 $("strava").addEventListener("click", async () => {
   // On computers and Android the tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it.
   // On iPhone and iPad it would hide the share sheet, so it opens once the file is saved, and not if the sheet is closed
   if (!ios) open(STRAVA_UPLOAD, "_blank", "noopener");
-  await save(await fit(ride), fileName("fit"));
+  await saveFile(await fit(ride), fileName("fit"));
   if (ios) open(STRAVA_UPLOAD, "_blank", "noopener");
 });
-$("png").addEventListener("click", async () => save(await recapImage(ride, weight(), colorOf), fileName("png")));
+$("png").addEventListener("click", async () => saveFile(await recapImage(ride, weight(), colorOf), fileName("png")));
 
 // A chart is drawn again whenever its size changes: the window, or a card resized or moved
 const resizes = new ResizeObserver(render);
