@@ -8,7 +8,7 @@ export const RECORD_DURATIONS = [5, 15, 60, 120, 180, 300, 600, 1200, 2700];
 // The trainer's own speed only follows the gear and the cadence, and comes out far too low.
 const BIKE_WEIGHT = 8;      // kg, wheels included
 export const DEFAULT_WEIGHT = 75;  // kg, for a rider who hasn't entered their weight
-const CDA = 0.38;           // m², drag area sitting upright, as riders do on a home trainer
+const CDA = 0.35;           // m², drag area sitting upright, as riders do on a home trainer
 const CRR = 0.004;          // rolling resistance of road tyres on asphalt
 const DRIVETRAIN = 0.976;   // share of the power that reaches the wheel
 const AIR_DENSITY = 1.2;    // kg/m³, around 20 °C
