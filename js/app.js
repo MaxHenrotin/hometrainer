@@ -17,6 +17,8 @@ const SLIDE_TIME = 250;  // ms a card or the bubble takes to slide to its new pl
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
 const wide = matchMedia("(min-width: 901px), (orientation: landscape)");  // the live cards are only resized and moved in two columns
+// iPadOS passes for a Mac, but a Mac has no touch screen
+const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 const color = (name) => css.getPropertyValue(`--${name}`).trim();
 const ZONE_COLORS = ZONES.map((_, i) => color(`z${i + 1}`));
 
@@ -388,13 +390,19 @@ $("autopause").addEventListener("click", () => setAutoPause(!autoPause));
 // Only its button takes clicks in the middle of the page, and all of it once docked
 $("bubble").addEventListener("click", toggleDock);
 for (const button of document.querySelectorAll("[data-chart]")) button.addEventListener("click", () => setChartMode(button.dataset.chart));
-$("csv").addEventListener("click", () => download(csv(ride), fileName("csv")));
+// Browsers on iPhone and iPad, Bluefy included, ignore download links, so the file goes
+// through the share sheet, where "Enregistrer dans Fichiers" keeps it
+const save = (blob, name) => ios ? navigator.share({ files: [new File([blob], name, { type: blob.type })] }) : download(blob, name);
+
+$("csv").addEventListener("click", () => save(csv(ride), fileName("csv")));
 $("strava").addEventListener("click", async () => {
-  // The tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it
-  open(STRAVA_UPLOAD, "_blank", "noopener");
-  download(await fit(ride), fileName("fit"));
+  // On computers and Android the tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it.
+  // On iPhone and iPad it would hide the share sheet, so it opens once the file is saved, and not if the sheet is closed
+  if (!ios) open(STRAVA_UPLOAD, "_blank", "noopener");
+  await save(await fit(ride), fileName("fit"));
+  if (ios) open(STRAVA_UPLOAD, "_blank", "noopener");
 });
-$("png").addEventListener("click", async () => download(await recapImage(ride, weight(), colorOf), fileName("png")));
+$("png").addEventListener("click", async () => save(await recapImage(ride, weight(), colorOf), fileName("png")));
 
 // A chart is drawn again whenever its size changes: the window, or a card resized or moved
 const resizes = new ResizeObserver(render);
@@ -417,11 +425,11 @@ for (const card of $("live").querySelectorAll(".card")) makeMovable(card);
 setAutoPause(autoPause);
 setChartMode(chartMode);
 reset();
-// What to do without Web Bluetooth, told for the browser at hand. iPadOS passes for a Mac, but a Mac has no touch screen
+// What to do without Web Bluetooth, told for the browser at hand
 function noBluetoothMessage() {
   const agent = navigator.userAgent;
   const useChrome = "Ouvre cette page dans Google Chrome ou Microsoft Edge.";
-  if (/iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1)) {
+  if (ios) {
     return "Sur iPhone et iPad, Safari et les autres navigateurs ne gèrent pas le Bluetooth. Installe l'app gratuite Bluefy depuis l'App Store et ouvre cette page dedans.";
   }
   if (navigator.brave) {
