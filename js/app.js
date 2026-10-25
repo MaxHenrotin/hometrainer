@@ -388,7 +388,7 @@ function reset() {
 function fileName(extension) {
   const d = ride.startedAt;
   const pad = (n) => String(n).padStart(2, "0");
-  return `hometrainer_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.${extension}`;
+  return `wattamax_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.${extension}`;
 }
 
 $("connect").addEventListener("click", connect);

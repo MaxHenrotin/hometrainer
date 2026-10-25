@@ -1,4 +1,4 @@
-# Hometrainer
+# Wattamax
 
 A web page that connects to a smart bike trainer over Bluetooth and shows your power, speed and cadence while you ride. At the end you get a summary, a recap image, and files for Strava or your own analysis. You don't need an account or a subscription, and there's nothing to install.
 
@@ -61,8 +61,8 @@ time_s,speed_kmh,cadence_rpm,power_w,distance_km
 It's plain HTML, CSS and JavaScript modules, with no build step and nothing to install. Because of the modules, opening `index.html` straight from the file system doesn't work. Clone the repo and serve the folder instead:
 
 ```
-git clone https://github.com/MaxHenrotin/hometrainer.git
-cd hometrainer
+git clone https://github.com/MaxHenrotin/wattamax.git
+cd wattamax
 python3 -m http.server
 ```
 

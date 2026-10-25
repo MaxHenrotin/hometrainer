@@ -116,7 +116,7 @@ export async function recapImage(ride, weight, colorOf) {
 
   ctx.fillStyle = PNG.bg;
   ctx.fillRect(0, 0, 1080, 1350);
-  text("Hometrainer", left, 100, "600 34px", PNG.ink);
+  text("Wattamax", left, 100, "600 34px", PNG.ink);
   text(ride.startedAt.toLocaleDateString("fr", { weekday: "long", day: "numeric", month: "long", year: "numeric" }), right, 100, "400 26px", PNG.secondary, "right");
 
   text("Puissance moyenne", left, 200, "400 26px", PNG.secondary);
