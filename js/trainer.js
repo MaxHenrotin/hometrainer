@@ -48,9 +48,13 @@ export class Trainer {
     const server = await this.device.gatt.connect();
     const service = await server.getPrimaryService(FTMS_SERVICE);
     const characteristic = await service.getCharacteristic(INDOOR_BIKE_DATA);
-    characteristic.oncharacteristicvaluechanged = (event) => this.onData(parseIndoorBikeData(event.target.value));
+    // Bluefy on iPhone and iPad ignores the oncharacteristicvaluechanged property, only listeners get the values
+    characteristic.addEventListener("characteristicvaluechanged", this.#onValue);
     await characteristic.startNotifications();
   }
+
+  // One shared function, so subscribing again after a reconnection doesn't add a second listener
+  #onValue = (event) => this.onData(parseIndoorBikeData(event.target.value));
 
   async #reconnect() {
     if (!this.active) return;
