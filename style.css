@@ -44,7 +44,8 @@ body {
 /* Header: name, docked bubble, auto-pause, weight, FTP, connection */
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
-.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* The controls take the rest of the line, so they wrap among themselves rather than below the name */
+.controls { flex: 1 1 0; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; min-width: 0; }
 .pill { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-size: 14px; color: var(--ink); }
 .pill input { width: 4.2em; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-weight: 600; color: var(--ink); text-align: right; -moz-appearance: textfield; }
 .pill input::placeholder { color: var(--tertiary); }
@@ -129,10 +130,12 @@ dt { font-size: 15px; color: var(--secondary); }
 .dock { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.07); color: var(--secondary); cursor: pointer; pointer-events: auto; }
 .dock:hover { background: rgba(0, 0, 0, 0.12); }
 .dock svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-/* Docked: a small pill in the header, left of the auto-pause switch */
-.bubble.docked { position: static; width: auto; height: auto; max-width: 420px; min-height: 38px; margin: 0; padding: 6px 14px; gap: 8px; border-radius: 19px; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; pointer-events: auto; }
+/* Docked: a small pill in the header, left of the auto-pause switch. It counts as 120 px wide when
+   the header decides to wrap, and grows into the room left, up to its text: so it shrinks first,
+   cutting its text short, and the header only wraps once it's down to 120 px. */
+.bubble.docked { position: static; flex: 1 1 120px; width: auto; height: auto; min-width: 120px; max-width: max-content; min-height: 38px; margin: 0; padding: 6px 14px; gap: 8px; border-radius: 19px; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; pointer-events: auto; }
 .bubble.docked::before { width: 8px; height: 8px; }
-.bubble.docked span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bubble.docked span { min-width: 0; max-width: 380px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bubble.docked .dock { display: none; }
 
 .totals { container-type: inline-size; padding: 20px 22px; }
