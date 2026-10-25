@@ -1,10 +1,10 @@
 // The made-up route Strava gets with each ride. Strava only works out moving time from GPS data,
-// so like Zwift's worlds, the ride follows a drawing centred on Isla Incahuasi on the Salar de
-// Uyuni (Bolivia), the flattest place on Earth. The drawing is scaled so that the whole ride
-// draws it once, whatever its length.
+// so like Zwift's worlds, the ride follows a drawing on the Salar de Uyuni (Bolivia), the flattest
+// place on Earth. The drawing is scaled so that the whole ride draws it once, whatever its length.
 import { ICON, TT, WORDMARK } from "./outlines.js";
 
-const CENTER = { lat: -20.242, lon: -67.625 };  // Isla Incahuasi
+// East of Isla Incahuasi, about 30 km from any shore or island, so even a long ride stays on flat salt
+const CENTER = { lat: -20.36, lon: -67.35 };
 export const ALTITUDE = 3656;  // metres, the level of the salt flat
 
 const METERS_PER_DEGREE_LAT = 110700;
