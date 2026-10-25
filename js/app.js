@@ -28,6 +28,7 @@ let trainer = null;
 let heart = null;  // the heart rate strap, from the moment the person asks to connect one
 let ride = new Ride();
 let reconnecting = false;
+let heartLost = false;  // the strap dropped and is reconnecting on its own, or can be picked again
 let wakeLock = null;
 let message = "";  // an error to show in the bubble until the next connection attempt
 
@@ -162,7 +163,7 @@ function renderLive() {
 
   const beating = ride.heartRate !== null;
   $("heart-connect").classList.toggle("on", beating);
-  $("heart-connect").disabled = !navigator.bluetooth || heart !== null;
+  $("heart-connect").disabled = !navigator.bluetooth || (heart !== null && !heartLost);
   $("heart-connect").title = $("heart-connect").ariaLabel = beating ? "Ceinture cardio connectée" : "Connecter la ceinture cardio";
   if (!trainer?.active) renderStatus("Pas connecté", "");
   else if (reconnecting) renderStatus("Déconnecté", "lost");
@@ -398,12 +399,15 @@ async function connect() {
   renderLive();
 }
 
-// The strap can be connected at any time before the end of the ride, and stays connected until then
+// The strap can be connected at any time before the end of the ride, and stays connected until then.
+// If it drops, the button picks it again, in case reconnecting on its own doesn't work.
 async function connectHeart() {
   message = "";
+  heart?.disconnect();
+  heartLost = false;
   heart = new HeartRateMonitor(
     ({ heartRate }) => { ride.heartRate = heartRate; renderLive(); },
-    (connected) => { if (!connected) ride.heartRate = null; renderLive(); },
+    (connected) => { heartLost = !connected; if (!connected) ride.heartRate = null; renderLive(); },
   );
   renderLive();
   try {
@@ -421,6 +425,7 @@ function finish() {
   trainer.disconnect();
   heart?.disconnect();
   reconnecting = false;
+  heartLost = false;
   wakeLock?.release();
   if (ride.time < 1) {
     reset();
