@@ -76,14 +76,13 @@ function buildRows(id, labels) {
 }
 
 // `rows` holds, per duration, the watts to draw and the record behind them (null when there's none yet).
-// The longest bar fills its track, and the record's paler bar takes the colour of its zone.
+// The longest bar fills its track, with the record as a grey bar behind it.
 function fillRows(id, rows) {
   const top = Math.max(1, ...rows.flatMap((r) => [r.value ?? 0, r.record ?? 0]));
   $(id).querySelectorAll("li").forEach((li, i) => {
     const { value, record } = rows[i];
     const [ghost, fill] = li.querySelectorAll(".bar span");
     ghost.style.width = `${(record ?? 0) / top * 100}%`;
-    ghost.style.background = record === null ? "" : `color-mix(in srgb, ${colorOf(record)} 35%, transparent)`;
     fill.style.width = `${(value ?? 0) / top * 100}%`;
     fill.style.background = value === null ? "" : colorOf(value);
     li.querySelector(".watts").textContent = value === null ? "–" : number(value);
