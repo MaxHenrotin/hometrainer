@@ -2,7 +2,7 @@ import { drawBars, fitCanvas } from "./charts.js";
 import { csv, download, fit, recapImage } from "./exports.js";
 import { duration, durationLabel, number } from "./format.js";
 import { DEFAULT_WEIGHT, RECORD_DURATIONS, Ride } from "./ride.js";
-import { Trainer } from "./trainer.js";
+import { HeartRateMonitor, Trainer } from "./sensors.js";
 import { ZONES, zoneIndex, zoneTimes } from "./zones.js";
 
 const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
@@ -25,6 +25,7 @@ const color = (name) => css.getPropertyValue(`--${name}`).trim();
 const ZONE_COLORS = ZONES.map((_, i) => color(`z${i + 1}`));
 
 let trainer = null;
+let heart = null;  // the heart rate strap, from the moment the person asks to connect one
 let ride = new Ride();
 let reconnecting = false;
 let wakeLock = null;
@@ -153,8 +154,16 @@ function renderLive() {
     $("wkg").textContent = number(power / weight(), 1);
     $("avg-wkg").textContent = number(ride.averagePower / weight(), 1);
   }
+  // The heart rate shows once a strap is connected, and a dash while it's lost
+  $("heart-box").hidden = !heart?.active;
+  $("heart-rate").textContent = ride.heartRate === null ? "–" : number(ride.heartRate);
+  $("avg-heart-rate").textContent = ride.averageHeartRate === null ? "–" : number(ride.averageHeartRate);
   fillRows("rolling", RECORD_DURATIONS.map((d) => ({ value: ride.average(d), record: ride.records.get(d) ?? null })));
 
+  const beating = ride.heartRate !== null;
+  $("heart-connect").classList.toggle("on", beating);
+  $("heart-connect").disabled = !navigator.bluetooth || heart !== null;
+  $("heart-connect").title = $("heart-connect").ariaLabel = beating ? "Ceinture cardio connectée" : "Connecter la ceinture cardio";
   if (!trainer?.active) renderStatus("Pas connecté", "");
   else if (reconnecting) renderStatus("Déconnecté", "lost");
   else renderStatus(trainer.name, "on");
@@ -186,6 +195,7 @@ function summaryView() {
     elapsed: duration(summary.elapsed),
     calories: number(summary.calories),
     records: [summary.maxPower, ...RECORD_DURATIONS.map((d) => ride.records.get(d) ?? null)],
+    heartRate: summary.heartRate === null ? null : { average: number(summary.heartRate), max: number(summary.maxHeartRate) },
     bars: rideBars(),
   };
 }
@@ -198,6 +208,11 @@ function renderSummary() {
   $("s-wkg").textContent = view.wkg;
   $("s-cadence").textContent = view.cadence;
   $("s-speed").textContent = view.speed;
+  $("s-heart-box").hidden = !view.heartRate;
+  if (view.heartRate) {
+    $("s-heart-rate").textContent = view.heartRate.average;
+    $("s-max-heart-rate").textContent = view.heartRate.max;
+  }
   $("s-distance").textContent = view.distance;
   $("s-duration").textContent = view.duration;
   $("s-elapsed").textContent = view.elapsed;
@@ -383,8 +398,28 @@ async function connect() {
   renderLive();
 }
 
+// The strap can be connected at any time before the end of the ride, and stays connected until then
+async function connectHeart() {
+  message = "";
+  heart = new HeartRateMonitor(
+    ({ heartRate }) => { ride.heartRate = heartRate; renderLive(); },
+    (connected) => { if (!connected) ride.heartRate = null; renderLive(); },
+  );
+  renderLive();
+  try {
+    await heart.connect();
+  } catch (error) {
+    if (error.name !== "NotFoundError") {
+      message = "Connexion à la ceinture cardio impossible. Vérifie que tu la portes, électrodes humides, puis réessaie.";
+    }
+    heart = null;
+  }
+  renderLive();
+}
+
 function finish() {
   trainer.disconnect();
+  heart?.disconnect();
   reconnecting = false;
   wakeLock?.release();
   if (ride.time < 1) {
@@ -402,6 +437,7 @@ function finish() {
 
 function reset() {
   trainer = null;
+  heart = null;
   ride = new Ride();
   ride.autoPause = autoPause;
   ride.weight = weight();
@@ -423,6 +459,7 @@ function fileName(extension) {
 
 $("connect").addEventListener("click", connect);
 $("status-pill").addEventListener("click", () => $("connect").click());
+$("heart-connect").addEventListener("click", connectHeart);
 $("about-open").addEventListener("click", () => $("about").showModal());
 $("about").querySelector(".close").addEventListener("click", () => $("about").close());
 onHold($("stop"), finish);

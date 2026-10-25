@@ -23,10 +23,14 @@ export class Ride {
   distance = 0;     // km
   energy = 0;       // joules
   revolutions = 0;  // rpm × seconds, gives the average cadence
+  beats = 0;        // bpm × seconds, gives the average heart rate
+  heartTime = 0;    // riding time with a heart rate, seconds: the strap may come or go during the ride
   speed = 0;
   cadence = 0;
   power = 0;
+  heartRate = null;  // bpm, null without a strap sending it
   maxPower = 0;
+  maxHeartRate = 0;
   autoPause = true;  // off: the clock keeps running while the rider doesn't pedal
   weight = null;     // kg, the rider's
   records = new Map();  // duration in seconds → best average power
@@ -42,6 +46,10 @@ export class Ride {
       this.distance += this.speed * dt / 3600;
       this.energy += this.power * dt;
       this.revolutions += this.cadence * dt;
+      if (this.heartRate !== null) {
+        this.beats += this.heartRate * dt;
+        this.heartTime += dt;
+      }
       this.#accelerate(dt);
     }
     this.#last = now;
@@ -67,9 +75,10 @@ export class Ride {
     }
 
     if (this.state === "riding") {
-      const { time, speed, cadence, power, distance, energy } = this;
-      this.samples.push({ timestamp: now, time, speed, cadence, power, distance, energy, power3s: this.#average3s() });
+      const { time, speed, cadence, power, heartRate, distance, energy } = this;
+      this.samples.push({ timestamp: now, time, speed, cadence, power, heartRate, distance, energy, power3s: this.#average3s() });
       this.maxPower = Math.max(this.maxPower, power);
+      this.maxHeartRate = Math.max(this.maxHeartRate, heartRate);
       for (const duration of RECORD_DURATIONS) {
         const average = this.average(duration);
         if (average !== null && average > (this.records.get(duration) ?? -1)) this.records.set(duration, average);
@@ -101,6 +110,11 @@ export class Ride {
 
   get averageCadence() {
     return this.time ? this.revolutions / this.time : 0;
+  }
+
+  // Null when no strap sent a heart rate during the ride
+  get averageHeartRate() {
+    return this.heartTime ? this.beats / this.heartTime : null;
   }
 
   get averageSpeed() {
@@ -139,6 +153,8 @@ export class Ride {
       cadence: this.averageCadence,
       power: this.averagePower,
       maxPower: this.maxPower,
+      heartRate: this.averageHeartRate,
+      maxHeartRate: this.heartTime ? this.maxHeartRate : null,
       calories: this.calories,
     };
   }

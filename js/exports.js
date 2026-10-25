@@ -11,8 +11,8 @@ export function download(blob, name) {
 }
 
 export function csv(ride) {
-  const rows = ride.samples.map((s) => [s.time.toFixed(1), s.speed, s.cadence, s.power, s.distance.toFixed(3)]);
-  const lines = [["time_s", "speed_kmh", "cadence_rpm", "power_w", "distance_km"], ...rows].map((row) => row.join(","));
+  const rows = ride.samples.map((s) => [s.time.toFixed(1), s.speed, s.cadence, s.power, s.heartRate ?? "", s.distance.toFixed(3)]);
+  const lines = [["time_s", "speed_kmh", "cadence_rpm", "power_w", "heart_rate_bpm", "distance_km"], ...rows].map((row) => row.join(","));
   return new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
 }
 
@@ -55,6 +55,7 @@ export async function fit(ride, drawing = "url") {
       enhancedSpeed: s.speed / 3.6,
       power: Math.max(0, s.power),
       cadence: Math.min(254, Math.round(s.cadence)),
+      ...(s.heartRate !== null && { heartRate: s.heartRate }),
     });
   });
   encoder.onMesg(MesgNum.EVENT, { timestamp: last, event: "timer", eventType: "stopAll" });
@@ -72,6 +73,7 @@ export async function fit(ride, drawing = "url") {
     avgPower: Math.round(summary.power),
     maxPower: summary.maxPower,
     avgCadence: Math.round(summary.cadence),
+    ...(summary.heartRate !== null && { avgHeartRate: Math.round(summary.heartRate), maxHeartRate: summary.maxHeartRate }),
     sport: "cycling",
     subSport: "virtualActivity",
   };
@@ -87,7 +89,7 @@ export async function fit(ride, drawing = "url") {
 
 // The summary screen as a 1280×720 window shows it, without its buttons, drawn at 1.5× into a
 // 1920×1080 picture. `view` holds what the screen shows, `labels` the names of its record rows.
-const PNG = { bg: "#F5F5F7", card: "#FFFFFF", ink: "#1D1D1F", secondary: "#6E6E73", tertiary: "#86868B", track: "#F2F2F5" };
+const PNG = { bg: "#F5F5F7", card: "#FFFFFF", ink: "#1D1D1F", secondary: "#6E6E73", tertiary: "#86868B", track: "#F2F2F5", red: "#FF3B30" };
 const SCALE = 1.5;
 const BIG = '"Barlow Semi Condensed"';
 
@@ -164,16 +166,35 @@ export async function recapImage(view, labels, colorOf) {
   // Left column: the averages with the zones under them, then the chart. The cards share 588 px
   // 30/70, or 40/60 with the zones, once the readings' padding is set aside, as flex does on screen.
   const zones = view.zones.length > 0;
+  const heart = view.heartRate !== null;
   const readings = (588 - 48) * (zones ? 0.4 : 0.3);  // content height
   card(44, 82, 748, readings + 48);
-  const f = Math.min(0.105 * 692, zones ? (readings - 40) * 0.4 : 0.42 * readings);
+  const f = Math.min((heart ? 0.08 : 0.105) * 692, zones ? (readings - 40) * 0.4 : 0.42 * readings);
   const line = Math.max(f * 0.3, 15);
   const legend = Math.max(f * 0.22, 13);
-  const content = f * 1.31 + f * 0.19 + Math.max(f * 0.44, line * 1.2) + (zones ? f * 0.3 + 20 + legend * 1.2 : 0);
+  const below = heart ? f * 0.53 : 0;  // the max heart rate, under the digits
+  const content = f * 1.31 + below + f * 0.19 + Math.max(f * 0.44, line * 1.2) + (zones ? f * 0.3 + 20 + legend * 1.2 : 0);
   let y = 106 + (readings - content) / 2 + f * 1.23;
-  [[view.power, "W", f * 1.38, view.zone.color || PNG.ink], [view.cadence, "rpm", f], [view.speed, "km/h", f]]
-    .forEach(([value, unit, size, color = PNG.ink], i) => reading(value, unit, [72, 349.7, 568.8][i], y, size, color, 0.26 * f / size));
-  y += f * 0.02 + f * 0.19 + Math.max(f * 0.44, line * 1.2) / 2 + line * 0.35;
+  const figures = [[view.power, "W", f * 1.38, view.zone.color || PNG.ink], [view.cadence, "rpm", f], [view.speed, "km/h", f]];
+  if (heart) figures.push([view.heartRate.average, "", f]);
+  // Columns as the grid lays them out: 1.3 shares for the power, 1 for each other figure, 24 px apart
+  const share = (692 - 24 * (figures.length - 1)) / (figures.length + 0.3);
+  const left = (i) => 72 + i * (share + 24) + (i && 0.3 * share);
+  figures.forEach(([value, unit, size, color = PNG.ink], i) => reading(value, unit, left(i), y, size, color, 0.26 * f / size));
+  if (heart) {
+    // The heart stands on the baseline in place of a unit, as the inline SVG does on screen
+    const icon = Math.max(f * 0.26, 10) * 0.8;
+    const x = left(3) + readingWidth(view.heartRate.average, "", f, 0.26) + 6;
+    ctx.save();
+    ctx.translate(x, y - icon);
+    ctx.scale(icon / 24, icon / 24);
+    ctx.fillStyle = PNG.red;
+    ctx.fill(new Path2D(document.querySelector("#heart-shape path").getAttribute("d")));
+    ctx.restore();
+    font(f * 0.38);
+    text(`max ${view.heartRate.max}`, left(3), y + f * 0.555, PNG.secondary);
+  }
+  y += f * 0.02 + below + f * 0.19 + Math.max(f * 0.44, line * 1.2) / 2 + line * 0.35;
   // The zone and the W/kg, 22 px apart
   let x = 72;
   if (view.zone.name) {

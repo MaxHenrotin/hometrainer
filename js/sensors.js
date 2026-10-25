@@ -1,5 +1,7 @@
 const FTMS_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA = 0x2ad2;
+const HEART_RATE_SERVICE = 0x180d;
+const HEART_RATE_MEASUREMENT = 0x2a37;
 const RECONNECT_DELAY = 2000;
 
 // Decode cadence and power from an FTMS Indoor Bike Data packet.
@@ -18,14 +20,19 @@ function parseIndoorBikeData(view) {
   return values;
 }
 
-// A Bluetooth FTMS trainer. If the connection drops, it keeps trying to reconnect
-// until disconnect() is called.
-export class Trainer {
+// Decode the beats per minute from a Heart Rate Measurement packet: the first flag bit says
+// whether they take one byte or two
+function parseHeartRate(view) {
+  return { heartRate: view.getUint8(0) & 0x01 ? view.getUint16(1, true) : view.getUint8(1) };
+}
+
+// A Bluetooth device sending its readings on one characteristic. If the connection drops, it keeps
+// trying to reconnect until disconnect() is called.
+class Sensor {
   active = false;
 
-  constructor(onData, onConnectionChange) {
-    this.onData = onData;
-    this.onConnectionChange = onConnectionChange;
+  constructor(service, characteristic, parse, onData, onConnectionChange) {
+    Object.assign(this, { service, characteristic, parse, onData, onConnectionChange });
   }
 
   get name() {
@@ -33,7 +40,7 @@ export class Trainer {
   }
 
   async connect() {
-    this.device = await navigator.bluetooth.requestDevice({ filters: [{ services: [FTMS_SERVICE] }] });
+    this.device = await navigator.bluetooth.requestDevice({ filters: [{ services: [this.service] }] });
     await this.#subscribe();
     this.active = true;
     this.device.addEventListener("gattserverdisconnected", () => this.#reconnect());
@@ -46,15 +53,15 @@ export class Trainer {
 
   async #subscribe() {
     const server = await this.device.gatt.connect();
-    const service = await server.getPrimaryService(FTMS_SERVICE);
-    const characteristic = await service.getCharacteristic(INDOOR_BIKE_DATA);
+    const service = await server.getPrimaryService(this.service);
+    const characteristic = await service.getCharacteristic(this.characteristic);
     // Bluefy on iPhone and iPad ignores the oncharacteristicvaluechanged property, only listeners get the values
     characteristic.addEventListener("characteristicvaluechanged", this.#onValue);
     await characteristic.startNotifications();
   }
 
   // One shared function, so subscribing again after a reconnection doesn't add a second listener
-  #onValue = (event) => this.onData(parseIndoorBikeData(event.target.value));
+  #onValue = (event) => this.onData(this.parse(event.target.value));
 
   async #reconnect() {
     if (!this.active) return;
@@ -69,5 +76,19 @@ export class Trainer {
         await new Promise((resolve) => setTimeout(resolve, RECONNECT_DELAY));
       }
     }
+  }
+}
+
+// A smart trainer, through the Fitness Machine Service
+export class Trainer extends Sensor {
+  constructor(onData, onConnectionChange) {
+    super(FTMS_SERVICE, INDOOR_BIKE_DATA, parseIndoorBikeData, onData, onConnectionChange);
+  }
+}
+
+// A heart rate strap, through the standard Heart Rate Service
+export class HeartRateMonitor extends Sensor {
+  constructor(onData, onConnectionChange) {
+    super(HEART_RATE_SERVICE, HEART_RATE_MEASUREMENT, parseHeartRate, onData, onConnectionChange);
   }
 }

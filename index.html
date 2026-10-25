@@ -18,6 +18,8 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
+<!-- The heart drawn by the header button and next to the heart rate, and read by the recap image -->
+<svg hidden><symbol id="heart-shape" viewBox="0 0 24 24"><path d="M12 21C5 16 2 12.5 2 8.5 2 5.5 4.3 3.5 7 3.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 2.7 0 5 2 5 5 0 4-3 7.5-10 12.5z"></path></symbol></svg>
 <header class="top">
   <h1><button type="button" id="about-open" class="brand" aria-haspopup="dialog"><img src="assets/wattamax-icon-light.svg" alt="" width="38" height="38"><img src="assets/wattamax-wordmark.svg" alt="Wattamax" width="112" height="18"></button></h1>
   <div class="pill live-only">
@@ -26,6 +28,7 @@
   </div>
   <label class="pill">Poids <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal" placeholder="—"> kg</label>
   <label class="pill">FTP <input id="ftp" type="number" min="50" max="600" step="1" inputmode="numeric" placeholder="—"> W</label>
+  <button type="button" id="heart-connect" class="pill heart-button live-only"><svg class="heart-icon" aria-hidden="true"><use href="#heart-shape"></use></svg></button>
   <button type="button" id="status-pill" class="pill status"><span id="status-dot" class="dot"></span><span id="status">Pas connecté</span></button>
 </header>
 
@@ -49,6 +52,11 @@
               <dt class="sr-only">Vitesse</dt>
               <dd class="now"><span id="speed">0,0</span><span class="unit">km/h</span></dd>
               <dd class="average">moy. <span id="avg-speed">0,0</span></dd>
+            </div>
+            <div id="heart-box" class="value heart" hidden>
+              <dt class="sr-only">Fréquence cardiaque</dt>
+              <dd class="now"><span id="heart-rate"></span><span class="unit"><svg class="heart-icon" aria-hidden="true"><use href="#heart-shape"></use></svg></span></dd>
+              <dd class="average">moy. <span id="avg-heart-rate"></span></dd>
             </div>
           </dl>
           <div class="power-line">
@@ -94,6 +102,11 @@
             <div class="value">
               <dt class="sr-only">Vitesse moyenne</dt>
               <dd class="now"><span id="s-speed"></span><span class="unit">km/h</span></dd>
+            </div>
+            <div id="s-heart-box" class="value heart" hidden>
+              <dt class="sr-only">Fréquence cardiaque moyenne</dt>
+              <dd class="now"><span id="s-heart-rate"></span><span class="unit"><svg class="heart-icon" aria-hidden="true"><use href="#heart-shape"></use></svg></span></dd>
+              <dd class="average">max <span id="s-max-heart-rate"></span></dd>
             </div>
           </dl>
           <div class="power-line">

@@ -34,6 +34,8 @@ The page relies on Web Bluetooth, and only Chromium-based browsers implement it.
 
 While you ride, the top row shows your power, cadence and speed, each with its average for the ride just below. The power is averaged over 3 seconds, because the raw value jumps around too much to read. The speed is the one you'd ride at on a flat road with that power (see [How it works](#how-it-works)). On the right are the distance, the moving time, and one row per duration (5 s, 15 s, 1, 2, 3, 5, 10, 20 and 45 min) with your rolling average power and, in a paler bar behind it, the best you've done over that duration so far. The longest bar fills its track. There's no 1 s row on this screen, because it flickered too much to read; your max power shows under the power figure instead, next to the zone and W/kg. On the summary, it becomes the **Max** row at the top of the durations. The chart shows the last 10 minutes in 5-second bars, or the whole ride if you pick **Total** in its corner.
 
+To see your heart rate too, wear a Bluetooth heart rate strap, click the heart at the top and pick the strap in the list. You can do this before or during the ride. Your heart rate then shows next to the speed, with its ride average under it, and the heart at the top turns red. A strap only shows up in the list while you wear it, and wetting its electrodes helps it pick up your beats.
+
 On a computer you can rearrange the ride screen to taste. Drag the edge or corner between two cards to resize them: the numbers grow or shrink to fill the card, and stack on top of each other once the card is tall enough for that to make them bigger. Press a card and drag it over another one to swap them. Reloading the page brings the default layout back. Messages like "Pédale pour démarrer" or a lost connection float in the middle of the screen, and the small button in their corner tucks them into the top bar, where a click brings them back.
 
 Two fields at the top hold your weight and FTP, set to 75 kg and 200 W until you enter your own. The page uses your weight for watts per kilo and to simulate your speed. With your FTP (the power you can hold for about an hour), the bars, record bars included, and the power figure take the colour of your power zone, from Z1 (recovery) to Z7 (sprint), the zone name shows under the figures in the same colour, and the summary shows the time spent in each zone. Both fields pulse red until you click them, and again if you empty one, in which case what depends on it disappears (the speed then assumes 75 kg). Your browser remembers both values, along with the two switches, and nothing leaves it.
@@ -42,10 +44,10 @@ If the Bluetooth connection drops, the ride pauses and the page keeps trying to 
 
 ## After the ride
 
-The summary is the ride screen without the live values: average power (in its zone colour), cadence and speed, with the zone, W/kg and time in each zone under them, a chart of the whole ride, the distance, moving time, total time (pauses included) and calories, one in each corner of their card, and your max power and best effort over each duration. The date replaces the connection status at the top. You can download three files, and holding **Maintenir pour recommencer** starts a new ride:
+The summary is the ride screen without the live values: average power (in its zone colour), cadence and speed (plus your average and max heart rate if a strap was connected), with the zone, W/kg and time in each zone under them, a chart of the whole ride, the distance, moving time, total time (pauses included) and calories, one in each corner of their card, and your max power and best effort over each duration. The date replaces the connection status at the top. You can download three files, and holding **Maintenir pour recommencer** starts a new ride:
 
 - **Image**: the summary screen as a 1920×1080 PNG, without its buttons.
-- **Importer sur Strava**: downloads a `.fit` file with power, cadence and speed, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a **Virtual Ride**, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
+- **Importer sur Strava**: downloads a `.fit` file with power, cadence, speed and heart rate, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a **Virtual Ride**, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
 
   Getting the ride right on Strava took a few tries, because Strava fills in what an indoor file lacks on its own terms:
   - It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route on the Salar de Uyuni in Bolivia, on the open salt east of Isla Incahuasi, away from the island and the shores. The route is a drawing scaled to the ride's length, so every ride draws it once from start to finish. For now it always writes WATTAMAX.COM. The other drawings in the code trace an organic loop, the TT, the full icon, the wordmark, a bike or a heart. The position stands still during pauses, which Strava counts as stopped.
@@ -56,11 +58,11 @@ The summary is the ride screen without the live values: average power (in its zo
 - **CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
 
 ```
-time_s,speed_kmh,cadence_rpm,power_w,distance_km
-1.0,30.12,90,205,0.008
+time_s,speed_kmh,cadence_rpm,power_w,heart_rate_bpm,distance_km
+1.0,30.12,90,205,128,0.008
 ```
 
-`time_s` is moving time. Power and cadence come straight from the trainer, speed is simulated from power, and distance is computed from speed, so it starts at zero for each ride. The trainer's own odometer doesn't reset between rides, which is why the page doesn't use it.
+`time_s` is moving time. `heart_rate_bpm` stays empty while no strap is sending. Power and cadence come straight from the trainer, speed is simulated from power, and distance is computed from speed, so it starts at zero for each ride. The trainer's own odometer doesn't reset between rides, which is why the page doesn't use it.
 
 ## Running it yourself
 
@@ -76,13 +78,13 @@ Then open http://localhost:8000 in Chrome. Web Bluetooth only works on HTTPS pag
 
 ## How it works
 
-Smart trainers expose the Bluetooth Fitness Machine Service (FTMS, UUID `0x1826`). The page subscribes to its Indoor Bike Data characteristic (`0x2AD2`). The trainer sends a small packet about once a second, with a flags field saying which values the packet contains. The page reads cadence and power, and skips the rest.
+Smart trainers expose the Bluetooth Fitness Machine Service (FTMS, UUID `0x1826`). The page subscribes to its Indoor Bike Data characteristic (`0x2AD2`). The trainer sends a small packet about once a second, with a flags field saying which values the packet contains. The page reads cadence and power, and skips the rest. Heart rate straps all use the standard Heart Rate Service (`0x180D`), whose Heart Rate Measurement characteristic (`0x2A37`) sends the beats per minute in one or two bytes, depending on a flag.
 
 It ignores the trainer's speed too. Without an app setting its resistance, the trainer only reports how fast its flywheel spins, which depends on your gear and cadence rather than your power: on one test ride, 161 W averaged 22.9 km/h, where a flat road gives about 30. Like Zwift, the page works out the speed from your power instead, using the model of Martin et al. (1998). On every packet, the power that reaches the wheel, minus rolling resistance and air drag, goes into kinetic energy. The speed therefore builds up and dies down over a few seconds, as on a real bike. The model assumes no wind and no slope, an 8 kg bike, a drag area of 0.32 m² (seated on the hoods), a rolling resistance of 0.004 and a drivetrain efficiency of 97.6 %. After a pause you set off again from standstill.
 
 The code is split by job:
 
-- `js/trainer.js` handles the Bluetooth connection, decodes the packets and reconnects after a drop
+- `js/sensors.js` handles the Bluetooth connections to the trainer and the heart rate strap, decodes their packets and reconnects after a drop
 - `js/ride.js` holds the ride logic: auto-pause, simulated speed, totals, 3-second power, rolling averages, best efforts
 - `js/zones.js` defines the seven power zones and adds up the time spent in each
 - `js/charts.js` draws the bar charts on a canvas
