@@ -34,15 +34,16 @@ let message = "";  // an error to show in the bubble until the next connection a
 const load = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
 const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* not remembered */ } };
 
-// Weight and FTP start at typical values until the rider types their own. What depends on them
-// stays hidden if the rider empties a field.
+// Weight and FTP start at typical values. Clicking a field once keeps its value as the rider's own,
+// since it may well be theirs. What depends on them stays hidden if the rider empties a field.
 const settings = { weight: $("weight"), ftp: $("ftp") };
 const defaults = { weight: DEFAULT_WEIGHT, ftp: DEFAULT_FTP };
 for (const [name, input] of Object.entries(settings)) {
   const saved = load(name);
   input.value = saved ?? defaults[name];
   input.classList.toggle("default", saved === null);
-  input.addEventListener("input", () => { input.classList.remove("default"); save(name, input.value); ride.weight = weight(); render(); });
+  input.addEventListener("focus", () => { input.classList.remove("default"); save(name, input.value); });
+  input.addEventListener("input", () => { save(name, input.value); ride.weight = weight(); render(); });
 }
 const weight = () => Number(settings.weight.value) || null;
 const ftp = () => Number(settings.ftp.value) || null;

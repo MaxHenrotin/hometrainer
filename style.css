@@ -62,7 +62,7 @@ h1 img { display: block; }
 .pill input::placeholder { color: var(--tertiary); }
 .pill input:focus::placeholder { color: transparent; }
 /* A field that is empty or still holds its default value glows red, softly and over and over, until
-   the rider types their own. Both fields run the glow from page load and only show it in those
+   the rider clicks it. Both fields run the glow from page load and only show it in those
    states, so their glows stay in step. */
 @property --glow { syntax: "<number>"; inherits: false; initial-value: 0; }
 @keyframes glow { to { --glow: 1; } }
