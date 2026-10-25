@@ -3,6 +3,16 @@ const AUTO_PAUSE_DELAY = 1;
 // Durations of the rolling averages and of the best efforts, the same on every screen
 export const RECORD_DURATIONS = [1, 5, 15, 60, 120, 180, 300, 600, 1200, 2700];
 
+// The speed is simulated from the power, as on a flat road with no wind (Martin et al., 1998).
+// The trainer's own speed only follows the gear and the cadence, and comes out far too low.
+const BIKE_WEIGHT = 8;      // kg, wheels included
+const DEFAULT_WEIGHT = 75;  // kg, for a rider who hasn't entered their weight
+const CDA = 0.32;           // m², drag area seated on the hoods
+const CRR = 0.004;          // rolling resistance of road tyres on asphalt
+const DRIVETRAIN = 0.976;   // share of the power that reaches the wheel
+const AIR_DENSITY = 1.2;    // kg/m³, around 20 °C
+const GRAVITY = 9.81;
+
 // A ride waits for the first pedal stroke, then switches between riding and paused.
 // Time, distance and energy only add up while riding.
 export class Ride {
@@ -17,6 +27,7 @@ export class Ride {
   power = 0;
   maxPower = 0;
   autoPause = true;  // off: the clock keeps running while the rider doesn't pedal
+  weight = null;     // kg, the rider's
   records = new Map();  // duration in seconds → best average power
   samples = [];
   #last = null;
@@ -30,6 +41,7 @@ export class Ride {
       this.distance += this.speed * dt / 3600;
       this.energy += this.power * dt;
       this.revolutions += this.cadence * dt;
+      this.#accelerate(dt);
     }
     this.#last = now;
     Object.assign(this, values);
@@ -47,7 +59,10 @@ export class Ride {
       this.startedAt ??= new Date(now);
     } else if (this.state === "riding" && this.autoPause) {
       this.#stoppedAt ??= now;
-      if (now - this.#stoppedAt >= AUTO_PAUSE_DELAY * 1000) this.state = "paused";
+      if (now - this.#stoppedAt >= AUTO_PAUSE_DELAY * 1000) {
+        this.state = "paused";
+        this.speed = 0;  // the rider has stopped, and sets off again from standstill
+      }
     }
 
     if (this.state === "riding") {
@@ -125,6 +140,15 @@ export class Ride {
       maxPower: this.maxPower,
       calories: this.calories,
     };
+  }
+
+  // The power left after the drivetrain, rolling resistance and air drag goes into kinetic energy,
+  // so the speed keeps its momentum like a real bike's: it builds up and dies down over seconds
+  #accelerate(dt) {
+    const mass = (this.weight ?? DEFAULT_WEIGHT) + BIKE_WEIGHT;
+    const v = this.speed / 3.6;
+    const resistance = (CRR * mass * GRAVITY + AIR_DENSITY * CDA * v * v / 2) * v;
+    this.speed = Math.sqrt(Math.max(0, v * v + 2 * dt * (DRIVETRAIN * this.power - resistance) / mass)) * 3.6;
   }
 
   #average3s() {

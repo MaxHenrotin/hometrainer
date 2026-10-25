@@ -37,7 +37,7 @@ const save = (key, value) => { try { localStorage.setItem(key, value); } catch {
 const settings = { weight: $("weight"), ftp: $("ftp") };
 for (const [name, input] of Object.entries(settings)) {
   input.value = load(name) ?? "";
-  input.addEventListener("input", () => { save(name, input.value); render(); });
+  input.addEventListener("input", () => { save(name, input.value); ride.weight = weight(); render(); });
 }
 const weight = () => Number(settings.weight.value) || null;
 const ftp = () => Number(settings.ftp.value) || null;
@@ -374,6 +374,7 @@ function reset() {
   trainer = null;
   ride = new Ride();
   ride.autoPause = autoPause;
+  ride.weight = weight();
   message = "";
   $("summary").hidden = true;
   $("live").hidden = false;

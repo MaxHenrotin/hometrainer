@@ -2,17 +2,17 @@ const FTMS_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA = 0x2ad2;
 const RECONNECT_DELAY = 2000;
 
-// Decode speed, cadence and power from an FTMS Indoor Bike Data packet.
+// Decode cadence and power from an FTMS Indoor Bike Data packet.
 // Each flag bit says whether a field is present; unused fields still have to be skipped.
 function parseIndoorBikeData(view) {
   const flags = view.getUint16(0, true);
   let offset = 2;
   const values = {};
-  if (!(flags & 0x01)) { values.speed = view.getUint16(offset, true) / 100; offset += 2; }  // inverted bit: 0 means present
+  if (!(flags & 0x01)) offset += 2;  // speed, the ride simulates its own (inverted bit: 0 means present)
   if (flags & 0x02) offset += 2;  // average speed
   if (flags & 0x04) { values.cadence = view.getUint16(offset, true) / 2; offset += 2; }
   if (flags & 0x08) offset += 2;  // average cadence
-  if (flags & 0x10) offset += 3;  // total distance, the ride computes its own from speed
+  if (flags & 0x10) offset += 3;  // total distance, the ride computes its own
   if (flags & 0x20) offset += 2;  // resistance level
   if (flags & 0x40) values.power = view.getInt16(offset, true);
   return values;
