@@ -10,9 +10,8 @@ const HOLD_TIME = 2000;  // ms, the same as the ring animation in style.css
 const BUCKET = 5;        // seconds of riding behind each bar of the live chart
 const LIVE_BARS = 120;   // 10 minutes of 5-second bars
 const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than this
-const COLUMN_MIN = 320;  // px, narrowest right column when resizing the live cards
-const SIDE_MIN = 480;    // px, narrowest left column
-const NEIGHBOUR_MIN = 300;  // px, the least height the chart or the durations give up to the card above
+const COLUMN_MIN = 240;  // px, narrowest column when resizing the live cards
+const CARD_MIN = 100;    // px, lowest live card
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
@@ -175,7 +174,7 @@ const render = () => ($("summary").hidden ? renderLive() : renderSummary());
 
 // A live card resizes from its corners that touch another card. Sideways moves the border between
 // the two columns; up and down moves the border between the card and the one above or below it,
-// and only the top card gets a height, the bottom one taking what's left.
+// by sharing the column's height between them. The corner facing both borders gets a notch.
 function makeResizable(card) {
   const live = $("live");
   const column = card.parentElement;
@@ -186,7 +185,7 @@ function makeResizable(card) {
     const y = (v === "bottom") === (card === top);
     if (!x && !y) continue;
     const grip = document.createElement("span");
-    grip.className = `grip ${v} ${h}`;
+    grip.className = `grip ${v} ${h}${x && y ? " corner" : ""}`;
     grip.style.cursor = x && y ? ((v === "top") === (h === "left") ? "nwse-resize" : "nesw-resize") : x ? "ew-resize" : "ns-resize";
     let start;
     grip.addEventListener("pointerdown", (event) => {
@@ -197,10 +196,15 @@ function makeResizable(card) {
     grip.addEventListener("pointermove", (event) => {
       if (!grip.hasPointerCapture(event.pointerId)) return;
       if (x) {
-        const widest = live.clientWidth - parseFloat(getComputedStyle(live).columnGap) - SIDE_MIN;
+        const widest = live.clientWidth - parseFloat(getComputedStyle(live).columnGap) - COLUMN_MIN;
         live.style.setProperty("--column", `${Math.min(Math.max(start.column - (event.clientX - start.x), COLUMN_MIN), widest)}px`);
       }
-      if (y) top.style.flex = `0 0 ${Math.min(start.top + event.clientY - start.y, start.top + start.bottom - NEIGHBOUR_MIN)}px`;
+      if (y) {
+        const total = start.top + start.bottom;
+        const height = Math.min(Math.max(start.top + event.clientY - start.y, CARD_MIN), total - CARD_MIN);
+        top.style.flex = `${height} 1 ${height}px`;
+        bottom.style.flex = `${total - height} 1 ${total - height}px`;
+      }
       render();
     });
     card.append(grip);
@@ -317,9 +321,9 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && trainer?.active && (!wakeLock || wakeLock.released)) keepScreenOn();
 });
 
-for (const card of $("live").querySelectorAll(".card")) makeResizable(card);
 buildRows("rolling");
 buildRows("records");
+for (const card of $("live").querySelectorAll(".card")) makeResizable(card);
 setAutoPause(autoPause);
 setChartMode(chartMode);
 reset();

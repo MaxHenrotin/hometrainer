@@ -77,27 +77,37 @@ main { flex: 1; display: flex; min-height: 0; }
 .grip.bottom { bottom: -6px; }
 .grip.left { left: -6px; }
 .grip.right { right: -6px; }
+/* The notch: a quarter of a ring hugging the rounded corner, like the resize mark of iPad windows */
+.grip.corner::before { content: ""; position: absolute; width: 66px; height: 66px; border: 3px solid transparent; border-right-color: rgba(0, 0, 0, 0.2); border-radius: 50%; mask: conic-gradient(transparent 60deg, #000 60deg 120deg, transparent 120deg); pointer-events: none; }
+.grip.corner.top::before { top: 1px; }
+.grip.corner.bottom::before { bottom: 1px; }
+.grip.corner.left::before { left: 1px; }
+.grip.corner.right::before { right: 1px; }
+.grip.bottom.right::before { transform: rotate(45deg); }
+.grip.bottom.left::before { transform: rotate(135deg); }
+.grip.top.left::before { transform: rotate(225deg); }
+.grip.top.right::before { transform: rotate(315deg); }
 
 dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
-.unit { margin-left: 6px; font-size: 22px; font-weight: 500; letter-spacing: 0; color: var(--tertiary); }
+.unit { margin-left: 6px; font-size: 0.26em; font-weight: 500; letter-spacing: 0; color: var(--tertiary); }
 
 /* Digits of equal width, so numbers don't shift as they change. Only on numbers: in Inter this
    also widens the hyphen. */
 .values, .power-line, .totals, .durations, .zone-legend, .pill input { font-variant-numeric: tabular-nums; }
 
 /* Number sizes follow the width the readings actually get */
-.readings { container-type: inline-size; align-content: center; padding: 24px 28px; }
+.readings { --f: clamp(44px, 10.5cqw, 96px); container-type: inline-size; align-content: center; padding: 24px 28px; }
 .values { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: end; }
-.now { display: flex; align-items: baseline; font-size: clamp(44px, 10.5cqw, 96px); font-weight: 600; letter-spacing: -0.055em; line-height: 0.95; }
-.now .big { font-size: clamp(60px, 14.5cqw, 124px); }
-.value .average { margin-top: 8px; font-size: 32px; letter-spacing: -0.02em; color: var(--secondary); }
+.now { display: flex; align-items: baseline; font-size: var(--f); font-weight: 600; letter-spacing: -0.055em; line-height: 0.95; }
+.now .big { font-size: calc(var(--f) * 1.38); }
+.value .average { margin-top: calc(var(--f) * 0.1); font-size: calc(var(--f) * 0.38); letter-spacing: -0.02em; color: var(--secondary); }
 .date { margin: 0 0 10px; font-size: 15px; color: var(--secondary); }
 
-.power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: 24px; margin-top: 16px; font-size: 16px; }
+.power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.28); margin-top: calc(var(--f) * 0.19); font-size: calc(var(--f) * 0.19); }
 .zone { font-weight: 600; }
 .wkg strong { font-weight: 600; }
-.wkg .average { margin-left: 8px; font-size: 14px; color: var(--secondary); }
+.wkg .average { margin-left: 0.5em; font-size: 0.85em; color: var(--secondary); }
 
 .chart { position: relative; flex: 1; min-height: 180px; padding: 22px 24px 18px; }
 /* Out of the flow, so the drawing's size never feeds back into the layout */
@@ -114,19 +124,19 @@ dt { font-size: 15px; color: var(--secondary); }
 
 .totals { container-type: inline-size; display: grid; align-content: center; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 22px; }
 .totals dd { font-size: clamp(28px, 13.3cqw, 50px); font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
-.totals .unit { font-size: 19px; margin-left: 5px; }
+.totals .unit { font-size: 0.38em; margin-left: 5px; }
 #summary .totals dd { font-size: 36px; }
 #summary .totals .unit { font-size: 15px; }
 
 /* Rolling averages (live) and best efforts (summary): one row per duration */
-.durations { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; margin: 0; padding: 20px 22px; list-style: none; }
-.durations li { display: grid; grid-template-columns: 50px minmax(0, 1fr) 50px 36px; align-items: center; gap: 12px; }
-.durations .label { font-size: 13px; color: var(--secondary); }
-.durations .bar { position: relative; height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; }
-.durations .bar span { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 5px; }
+.durations { flex: 1; display: flex; font-size: 22px; flex-direction: column; justify-content: space-between; min-height: 0; margin: 0; padding: 20px 22px; list-style: none; }
+.durations li { display: grid; grid-template-columns: 2.3em minmax(0, 1fr) 2.3em 1.6em; align-items: center; gap: 0.55em; }
+.durations .label { font-size: 0.6em; color: var(--secondary); }
+.durations .bar { position: relative; height: 0.45em; border-radius: 0.23em; background: var(--track); overflow: hidden; }
+.durations .bar span { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 0.23em; }
 .durations .ghost { background: var(--ghost); }
-.durations .watts { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; text-align: right; }
-.durations .record { font-size: 12px; color: var(--tertiary); text-align: right; }
+.durations .watts { font-weight: 500; letter-spacing: -0.02em; text-align: right; }
+.durations .record { font-size: 0.55em; color: var(--tertiary); text-align: right; }
 
 .zones { display: flex; flex-direction: column; gap: 10px; padding: 20px 22px; }
 .zone-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; }
@@ -159,8 +169,22 @@ body[data-screen="summary"] .live-only { display: none; }
 .hold.holding .progress { stroke-dashoffset: 0; transition: stroke-dashoffset 2s linear; }
 
 /* Readings fade while the ride is paused, so a glance is enough to see it */
-body[data-state="paused"] #live .readings > *, body[data-state="paused"] #live .totals > * { opacity: 0.45; }
+body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused"] #live .totals > :not(.grip) { opacity: 0.45; }
 #live .readings > *, #live .totals > * { transition: opacity 0.3s; }
+
+/* On a large screen the live cards share their column's height, and their contents scale with
+   both sides of the card, since it can be resized */
+@media (min-width: 901px) {
+  #live .card { flex: 1 1 0; min-height: 0; }
+  #live .readings { flex-grow: 30; }
+  #live .chart { flex-grow: 70; }
+  #live .totals { flex-grow: 13; }
+  #live .durations { flex-grow: 87; }
+  #live .readings, #live .totals, #live .durations { container-type: size; }
+  #live .readings { --f: min(10.5cqw, 42cqh); }
+  #live .totals dd { font-size: min(13.3cqw, 90cqh); }
+  #live .durations li { font-size: min(5.9cqw, 5.5cqh); }
+}
 
 @media (max-width: 900px) {
   body { padding: 20px 16px; }
@@ -170,10 +194,8 @@ body[data-state="paused"] #live .readings > *, body[data-state="paused"] #live .
   .durations { gap: 12px; }
   .values { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .values .value:first-child { grid-column: 1 / -1; }
-  .now { font-size: 52px; }
+  .readings { --f: 52px; }
   .now .big { font-size: 96px; }
-  .unit { font-size: 17px; }
-  .value .average { font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .switch, .switch span, .button { transition: none; }
