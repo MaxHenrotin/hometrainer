@@ -77,16 +77,6 @@ main { flex: 1; display: flex; min-height: 0; }
 .grip.bottom { bottom: -6px; }
 .grip.left { left: -6px; }
 .grip.right { right: -6px; }
-/* The notch: a quarter of a ring hugging the rounded corner, like the resize mark of iPad windows */
-.grip.corner::before { content: ""; position: absolute; width: 66px; height: 66px; border: 3px solid transparent; border-right-color: rgba(0, 0, 0, 0.2); border-radius: 50%; mask: conic-gradient(transparent 60deg, #000 60deg 120deg, transparent 120deg); pointer-events: none; }
-.grip.corner.top::before { top: 1px; }
-.grip.corner.bottom::before { bottom: 1px; }
-.grip.corner.left::before { left: 1px; }
-.grip.corner.right::before { right: 1px; }
-.grip.bottom.right::before { transform: rotate(45deg); }
-.grip.bottom.left::before { transform: rotate(135deg); }
-.grip.top.left::before { transform: rotate(225deg); }
-.grip.top.right::before { transform: rotate(315deg); }
 
 dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
@@ -115,8 +105,9 @@ dt { font-size: 15px; color: var(--secondary); }
 .chart.with-switch canvas { top: 66px; height: calc(100% - 84px); }
 .chart .segmented { position: absolute; top: 16px; right: 18px; z-index: 1; }
 
-/* The state of the ride, floating over the chart like a notification */
-.bubble { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 12px; width: max-content; max-width: 86%; margin: 0; padding: 16px 28px; border-radius: 26px; background: rgba(255, 255, 255, 0.92); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); font-size: 23px; font-weight: 600; text-align: center; }
+/* The state of the ride, floating over the middle of the app like a notification. Clicks go
+   through it to the cards below. */
+.bubble { position: fixed; top: 50%; left: 50%; z-index: 20; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(90vw, 760px); pointer-events: none; margin: 0; padding: 16px 28px; border-radius: 26px; background: rgba(255, 255, 255, 0.92); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); font-size: 23px; font-weight: 600; text-align: center; }
 .bubble:empty { display: none; }
 .bubble::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); }
 .bubble.pause::before { background: var(--orange); }
@@ -175,11 +166,14 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
 /* On a large screen the live cards share their column's height, and their contents scale with
    both sides of the card, since it can be resized */
 @media (min-width: 901px) {
-  #live .card { flex: 1 1 0; min-height: 0; }
-  #live .readings { flex-grow: 30; }
-  #live .chart { flex-grow: 70; }
-  #live .totals { flex-grow: 13; }
-  #live .durations { flex-grow: 87; }
+  #live .card { flex: 1 1 0; min-height: 0; user-select: none; transition: scale 0.15s, box-shadow 0.15s, opacity 0.15s; }
+  #live .side > :first-child { flex-grow: 30; }
+  #live .side > :nth-child(2) { flex-grow: 70; }
+  #live .column > :first-child { flex-grow: 13; }
+  #live .column > :nth-child(2) { flex-grow: 87; }
+  /* A held card lifts above the others, and the card it would swap with fades */
+  #live .card.lifted { z-index: 10; scale: 1.02; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; }
+  #live .card.target { opacity: 0.5; }
   #live .readings, #live .totals, #live .durations { container-type: size; }
   #live .readings { --f: min(10.5cqw, 42cqh); }
   #live .totals dd { font-size: min(13.3cqw, 90cqh); }

@@ -12,9 +12,11 @@ const LIVE_BARS = 120;   // 10 minutes of 5-second bars
 const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than this
 const COLUMN_MIN = 240;  // px, narrowest column when resizing the live cards
 const CARD_MIN = 100;    // px, lowest live card
+const LIFT_TIME = 400;   // ms a live card is held before it can be dragged onto another
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
+const wide = matchMedia("(min-width: 901px)");  // the live cards are only resized and moved on a large screen
 const color = (name) => css.getPropertyValue(`--${name}`).trim();
 const ZONE_COLORS = ZONES.map((_, i) => color(`z${i + 1}`));
 
@@ -96,7 +98,7 @@ function renderStatus(text, dot) {
   $("status-dot").className = `dot ${dot}`;
 }
 
-// What the bubble over the chart says, and how it's marked: info, pause or error
+// What the bubble over the app says, and how it's marked: info, pause or error
 function bubble() {
   if (message) return [message, "error"];
   if (!trainer?.active) return ["Pédale pour réveiller le home-trainer, puis connecte-le", "info"];
@@ -174,9 +176,15 @@ const render = () => ($("summary").hidden ? renderLive() : renderSummary());
 
 // A live card resizes from its corners that touch another card. Sideways moves the border between
 // the two columns; up and down moves the border between the card and the one above or below it,
-// by sharing the column's height between them. The corner facing both borders gets a notch.
-function makeResizable(card) {
+// by sharing the column's height between them. Grips depend on where the cards are, so they're
+// placed again after a swap.
+function placeGrips() {
   const live = $("live");
+  for (const grip of live.querySelectorAll(".grip")) grip.remove();
+  for (const card of live.querySelectorAll(".card")) addGrips(live, card);
+}
+
+function addGrips(live, card) {
   const column = card.parentElement;
   const inSide = column.classList.contains("side");
   const [top, bottom] = column.querySelectorAll(":scope > .card");
@@ -185,7 +193,7 @@ function makeResizable(card) {
     const y = (v === "bottom") === (card === top);
     if (!x && !y) continue;
     const grip = document.createElement("span");
-    grip.className = `grip ${v} ${h}${x && y ? " corner" : ""}`;
+    grip.className = `grip ${v} ${h}`;
     grip.style.cursor = x && y ? ((v === "top") === (h === "left") ? "nwse-resize" : "nesw-resize") : x ? "ew-resize" : "ns-resize";
     let start;
     grip.addEventListener("pointerdown", (event) => {
@@ -209,6 +217,56 @@ function makeResizable(card) {
     });
     card.append(grip);
   }
+}
+
+// Holding a live card lifts it, and dropping it on another card swaps their places. The sizes stay
+// with the places, so each card takes the size of the place it moves to.
+function makeMovable(card) {
+  let start = null;  // where the press began, while the card is pressed
+  let timer;
+  let target = null;
+  const drop = () => {
+    clearTimeout(timer);
+    target?.classList.remove("target");
+    card.classList.remove("lifted");
+    card.style.translate = "";
+    if (target) swap(card, target);
+    start = target = null;
+  };
+  card.addEventListener("pointerdown", (event) => {
+    if (!wide.matches || event.button !== 0 || event.target.closest(".grip, button")) return;
+    start = { x: event.clientX, y: event.clientY };
+    timer = setTimeout(() => {
+      card.setPointerCapture(event.pointerId);
+      card.classList.add("lifted");
+    }, LIFT_TIME);
+  });
+  card.addEventListener("pointermove", (event) => {
+    if (!start) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    // Moving before the card is lifted is not a hold
+    if (!card.classList.contains("lifted")) {
+      if (Math.hypot(dx, dy) > 5) drop();
+      return;
+    }
+    card.style.translate = `${dx}px ${dy}px`;
+    target?.classList.remove("target");
+    target = document.elementsFromPoint(event.clientX, event.clientY).find((el) => el !== card && el.matches("#live .card")) ?? null;
+    target?.classList.add("target");
+  });
+  card.addEventListener("pointerup", drop);
+  card.addEventListener("pointercancel", drop);
+}
+
+function swap(a, b) {
+  const mark = document.createComment("");
+  a.replaceWith(mark);
+  b.replaceWith(a);
+  mark.replaceWith(b);
+  [a.style.flex, b.style.flex] = [b.style.flex, a.style.flex];
+  placeGrips();
+  render();
 }
 
 // Hold-to-confirm: the action runs once the button has been held for HOLD_TIME while its ring fills.
@@ -323,7 +381,8 @@ document.addEventListener("visibilitychange", () => {
 
 buildRows("rolling");
 buildRows("records");
-for (const card of $("live").querySelectorAll(".card")) makeResizable(card);
+placeGrips();
+for (const card of $("live").querySelectorAll(".card")) makeMovable(card);
 setAutoPause(autoPause);
 setChartMode(chartMode);
 reset();
