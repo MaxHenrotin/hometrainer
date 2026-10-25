@@ -13,18 +13,17 @@ export function fitCanvas(canvas) {
 const STEPS = [50, 100, 200, 250, 500];
 
 // One rounded bar per value, in `slots` evenly spaced places from the left, so a chart that
-// isn't full yet fills up from the left. `colorOf(watts)` picks each bar's colour. A scale on
-// the left marks round values, and grows with the highest bar.
+// isn't full yet fills up from the left. `colorOf(watts)` picks each bar's colour. The highest
+// bar reaches the top, from 100 W up, and a scale on the left marks round values below it.
 export function drawBars(ctx, box, values, slots, colorOf, colors) {
-  const highest = Math.max(100, ...values) * 1.08;
-  const step = STEPS.find((s) => highest / s <= 5) ?? 1000;
-  const top = Math.ceil(highest / step) * step;
-  const inset = 8;  // keeps the top label from being cut in half
+  const top = Math.max(100, ...values);
+  const step = STEPS.find((s) => top / s <= 5) ?? 1000;
+  const inset = 8;  // keeps a label at the very top from being cut in half
   const y = (watts) => box.y + box.h - watts / top * (box.h - inset);
 
   ctx.font = "500 13px Barlow, sans-serif";
   ctx.textBaseline = "middle";
-  const gutter = ctx.measureText(`${top} W`).width + 14;
+  const gutter = ctx.measureText(`${Math.floor(top / step) * step} W`).width + 14;
   const plot = { x: box.x + gutter, w: box.w - gutter };
   for (let watts = step; watts <= top; watts += step) {
     ctx.fillStyle = colors.grid;
