@@ -6,6 +6,7 @@ import { Trainer } from "./trainer.js";
 import { ZONES, zoneIndex, zoneTimes } from "./zones.js";
 
 const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
+const OPEN_STRAVA = "Ouvrir Strava";  // the Strava button on iPhone and iPad, once the file is saved
 const HOLD_TIME = 2000;  // ms, the same as the ring animation in style.css
 const BUCKET = 5;        // seconds of riding behind each bar of the live chart
 const LIVE_BARS = 120;   // 10 minutes of 5-second bars
@@ -374,6 +375,7 @@ function reset() {
   document.body.dataset.screen = "live";
   $("connect").hidden = false;
   $("stop").hidden = true;
+  $("strava").textContent = "Importer sur Strava";
   renderLive();
 }
 
@@ -396,11 +398,19 @@ const saveFile = (blob, name) => ios ? navigator.share({ files: [new File([blob]
 
 $("csv").addEventListener("click", () => saveFile(csv(ride), fileName("csv")));
 $("strava").addEventListener("click", async () => {
-  // On computers and Android the tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it.
-  // On iPhone and iPad it would hide the share sheet, so it opens once the file is saved, and not if the sheet is closed
-  if (!ios) open(STRAVA_UPLOAD, "_blank", "noopener");
-  await saveFile(await fit(ride), fileName("fit"));
-  if (ios) open(STRAVA_UPLOAD, "_blank", "noopener");
+  const button = $("strava");
+  if (!ios) {
+    // The tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it
+    open(STRAVA_UPLOAD, "_blank", "noopener");
+    download(await fit(ride), fileName("fit"));
+  } else if (button.textContent === OPEN_STRAVA) {
+    open(STRAVA_UPLOAD, "_blank", "noopener");
+  } else {
+    // A tab opened before would hide the share sheet, and one opened after is blocked, as the press is long past.
+    // So Strava opens on a second press. Closing the sheet without saving leaves the button as it was
+    await saveFile(await fit(ride), fileName("fit"));
+    button.textContent = OPEN_STRAVA;
+  }
 });
 $("png").addEventListener("click", async () => saveFile(await recapImage(ride, weight(), colorOf), fileName("png")));
 
