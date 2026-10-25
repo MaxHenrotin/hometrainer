@@ -42,6 +42,21 @@ Without the orange, the TT would merge with the As, so the mono version leaves a
 
 All letters are converted to `<path>`, so the files don't depend on any installed font.
 
+## Regenerating the files
+
+The SVGs are generated, so don't edit them by hand. The scripts are in `logo/`:
+
+- `tt.py` defines the TT and the slant. Everything else reads them from here.
+- `icon.py` draws the icon around the TT.
+- `wordmark.py` builds the wordmark from Barlow's outlines (the font and its licence are in `logo/fonts/`), plus the TT on its own.
+
+To rebuild all seven files after a change:
+
+```sh
+pip install -r assets/logo/requirements.txt
+python assets/logo/build.py
+```
+
 ## Colours
 
 | | Hex |
