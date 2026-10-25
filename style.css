@@ -8,6 +8,7 @@
   --track: #F2F2F5;
   --ghost: #E5E5EA;
   --accent: #FF5E3A;    /* bars when no FTP is set */
+  --strava: #FC4C02;    /* Strava's own orange, on its export button */
   --shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   --blue: #007AFF;
   --orange: #FF9500;
@@ -200,6 +201,8 @@ dt { font-size: 15px; color: var(--secondary); }
 .button.primary { background: var(--ink); color: var(--card); }
 .button.primary:hover { background: #333336; }
 .button.accent { background: var(--accent); color: var(--card); }
+.button.strava { background: var(--strava); color: var(--card); }
+.button.strava:hover { background: #E34402; }
 .button.accent:hover { background: #F04A24; }
 .button:disabled { opacity: 0.4; cursor: default; }
 .button:focus-visible, .segmented button:focus-visible, .switch:focus-visible, .dock:focus-visible, .pill input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
