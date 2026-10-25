@@ -129,7 +129,7 @@ dt { font-size: 15px; color: var(--secondary); }
 /* The summary's figures come with their date and labels, which keep their size */
 #summary .readings { --f: min(10.5cqw, (100cqh - 50px) * 0.55); display: flex; flex-direction: column; justify-content: center; }
 
-.power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.35); margin-top: calc(var(--f) * 0.19); font-size: max(calc(var(--f) * 0.24), 13px); }
+.power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.44); margin-top: calc(var(--f) * 0.19); font-size: max(calc(var(--f) * 0.3), 15px); }
 .zone { font-weight: 600; }
 .wkg strong { font-weight: 600; }
 .wkg .average { margin-left: 0.5em; font-size: 0.85em; color: var(--secondary); }
