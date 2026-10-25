@@ -88,9 +88,8 @@ main { flex: 1; display: flex; min-height: 0; }
 /* Each card's smallest readable size */
 .readings, .chart { min-height: 100px; }
 .chart.with-switch { min-height: 140px; }
-#summary .readings { min-height: 150px; }
 #live .totals { min-height: 56px; }
-#summary .totals { min-height: 140px; }
+#summary .totals { min-height: 88px; }
 .durations { min-height: 200px; }
 /* Corner grips of the live cards: invisible, the cursor shows where to drag */
 .grip { position: absolute; z-index: 2; width: 28px; height: 28px; touch-action: none; }
@@ -114,21 +113,18 @@ dt { font-size: 15px; color: var(--secondary); }
 .now { display: flex; align-items: baseline; font-size: var(--f); font-weight: 600; letter-spacing: -0.01em; line-height: 0.95; }
 .now .big { font-size: calc(var(--f) * 1.38); }
 .value .average { margin-top: calc(var(--f) * 0.1); font-size: calc(var(--f) * 0.38); color: var(--secondary); }
-.date { margin: 0 0 10px; font-size: 15px; color: var(--secondary); }
 
-/* Live, past a certain shape, figures stacked come out bigger than side by side, so they stack. A
-   card can't restyle its own layout from its shape, only its children's, hence the rules on them. */
-#live .figures { display: flex; flex-direction: column; justify-content: center; height: 100%; }
+/* Past a certain shape, figures stacked come out bigger than side by side, so they stack. A card
+   can't restyle its own layout from its shape, only its children's, hence the rules on them. */
+.figures { display: flex; flex-direction: column; justify-content: center; height: 100%; }
 /* Stacked figures are centred, with even space above, between and below them: the gap between
    two figures matches the card's vertical padding, which adds to the space above and below */
 @container (aspect-ratio < 1.62) {
-  #live .figures { --f: min(28cqw, (100cqh - 72px) * 0.18); gap: 24px; justify-content: space-evenly; text-align: center; }
-  #live .values { display: contents; }
-  #live .now, #live .power-line { justify-content: center; }
-  #live .power-line { margin-top: 0; }
+  .figures { --f: min(28cqw, (100cqh - 72px) * 0.18); gap: 24px; justify-content: space-evenly; text-align: center; }
+  .values { display: contents; }
+  .now, .power-line, .zone-legend { justify-content: center; }
+  .figures > :is(.power-line, .zones) { margin-top: 0; }
 }
-/* The summary's figures come with their date and labels, which keep their size */
-#summary .readings { --f: min(10.5cqw, (100cqh - 50px) * 0.55); display: flex; flex-direction: column; justify-content: center; }
 
 .power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.44); margin-top: calc(var(--f) * 0.19); font-size: max(calc(var(--f) * 0.3), 15px); }
 .zone { font-weight: 600; }
@@ -163,20 +159,21 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble.docked span { min-width: 0; max-width: 380px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bubble.docked .dock { display: none; }
 
-.totals { padding: 20px 22px; }
+/* The summary adds a line under the totals, and --more is the height it takes from them */
+.totals { --more: 0px; display: flex; flex-direction: column; gap: 14px; padding: 20px 22px; }
 .totals dd { font-weight: 600; letter-spacing: -0.01em; line-height: 1.05; }
 .totals .unit { font-size: max(0.38em, 10px); margin-left: 5px; }
-/* Live, even space around the totals: the gap between them matches the card's padding, which adds
-   to the space at the edges, and their lines are trimmed to the digits so the space is the one seen */
-#live .totals dl { display: flex; align-items: center; justify-content: space-evenly; gap: 20px 22px; height: 100%; }
-#live .totals dd { font-size: min((100cqw - 22px) * 0.145, 100cqh); text-box: trim-both cap alphabetic; }
+/* Even space around the totals: the gap between them matches the card's padding, which adds to
+   the space at the edges, and their lines are trimmed to the digits so the space is the one seen */
+.totals dl { flex: 1; display: flex; align-items: center; justify-content: space-evenly; gap: 20px 22px; }
+.totals dd { font-size: min((100cqw - 22px) * 0.145, 100cqh - var(--more)); text-box: trim-both cap alphabetic; }
 @container (aspect-ratio < 3.5) {
-  #live .totals dl { flex-direction: column; }
-  #live .totals dd { font-size: min(27cqw, (100cqh - 20px) * 0.6); }
+  .totals dl { flex-direction: column; }
+  .totals dd { font-size: min(27cqw, (100cqh - 20px - var(--more)) * 0.6); }
 }
-/* The summary's four totals, two by two under their labels */
-#summary .totals dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: center; gap: 16px; height: 100%; }
-#summary .totals dd { font-size: min((100cqw - 16px) * 0.13, (100cqh - 52px) * 0.47); }
+#summary .totals { --more: 32px; }
+.more { margin: 0; font-size: 15px; color: var(--secondary); text-align: center; }
+.more strong { font-weight: 600; color: var(--ink); }
 
 /* Rolling averages (live) and best efforts (summary): one row per duration */
 .durations { display: flex; flex-direction: column; justify-content: space-between; margin: 0; padding: 20px 22px; list-style: none; }
@@ -188,9 +185,11 @@ dt { font-size: 15px; color: var(--secondary); }
 .durations .watts { text-align: right; }
 .durations .record { font-size: max(0.55em, 10px); color: var(--tertiary); text-align: right; }
 
-.zones { display: flex; flex-direction: column; gap: 10px; padding: 20px 22px; }
+/* Time in each zone, under the power line of the summary, which makes room for it */
+#summary .readings:has(.zones:not([hidden])) { --f: min(10.5cqw, (100cqh - 40px) * 0.4); }
+.zones { display: flex; flex-direction: column; gap: 10px; margin-top: calc(var(--f) * 0.3); }
 .zone-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; }
-.zone-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--secondary); }
+.zone-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: max(calc(var(--f) * 0.22), 13px); color: var(--secondary); }
 .zone-legend li { display: flex; align-items: center; gap: 6px; }
 .zone-legend i { width: 10px; height: 10px; border-radius: 3px; }
 .zone-legend strong { color: var(--ink); font-weight: 600; }
@@ -209,8 +208,10 @@ dt { font-size: 15px; color: var(--secondary); }
 .downloads { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
 .downloads .button { padding: 0 16px; font-size: 15px; white-space: nowrap; }
 
-/* The auto-pause switch and the bubble only matter during a ride */
+/* The auto-pause switch and the bubble only matter during a ride. On the summary, the connection
+   pill gives the ride's date instead, without its dot. */
 body[data-screen="summary"] .live-only { display: none; }
+body[data-screen="summary"] .dot { display: none; }
 
 /* Hold-to-confirm: the ring fills over 2 seconds while the button is held */
 .ring { flex: none; width: 20px; height: 20px; transform: rotate(-90deg); }
@@ -227,25 +228,28 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
    The same query is in app.js. */
 @media (min-width: 901px), (orientation: landscape) {
   #live .card { user-select: none; transform-origin: 0 0; }
-  #live .side > :first-child { flex-grow: 30; }
-  #live .side > :nth-child(2) { flex-grow: 70; }
+  .side > :first-child { flex-grow: 30; }
+  .side > :nth-child(2) { flex-grow: 70; }
   #live .column > :first-child { flex-grow: 13; }
   #live .column > :nth-child(2) { flex-grow: 87; }
-  #summary .side > :nth-child(2) { flex-grow: 1.2; }
-  #summary .column > :nth-child(2) { flex-grow: 2.4; }
+  /* The time in zones takes room in the summary's readings */
+  #summary .side:has(.zones:not([hidden])) > :first-child { flex-grow: 40; }
+  #summary .side:has(.zones:not([hidden])) > :nth-child(2) { flex-grow: 60; }
+  #summary .column > :first-child { flex-grow: 20; }
+  #summary .column > :nth-child(2) { flex-grow: 80; }
   /* A dragged card floats above the others, at the size it had in its place */
   #live .card.dragged { position: fixed; z-index: 10; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; will-change: translate; }
 }
 
-/* A phone or a small window: tighter spacing, a smaller header and bubble. The connection pill
-   only shows its dot, its text is still read out. */
+/* A phone or a small window: tighter spacing, a smaller header and bubble. During a ride, the
+   connection pill only shows its dot, its text is still read out. */
 @media (max-width: 900px) {
   body { gap: 12px; padding: 12px 16px; }
   .screen, .side, .column { gap: 12px; }
   .top { gap: 8px; }
   .pill { min-height: 32px; gap: 6px; padding: 4px 12px; font-size: 13px; }
   .bubble.docked { min-height: 32px; }
-  .status { width: 32px; padding: 0; justify-content: center; font-size: 0; }
+  body:not([data-screen="summary"]) .status { width: 32px; padding: 0; justify-content: center; font-size: 0; }
   .bubble { gap: 12px; padding: 24px 52px 24px 28px; border-radius: 28px; font-size: 20px; }
   .dock { top: 12px; right: 12px; }
   .readings { padding: 16px 20px; }
@@ -266,9 +270,9 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
   #live .chart { flex-grow: 26; }
   #live .totals { flex-grow: 10; }
   #live .durations { flex-grow: 40; }
-  #summary .readings { flex-grow: 26; }
-  #summary .chart { flex-grow: 22; }
-  #summary .totals { flex-grow: 18; }
+  #summary .readings { flex-grow: 28; }
+  #summary .chart { flex-grow: 24; }
+  #summary .totals { flex-grow: 14; }
   #summary .durations { flex-grow: 34; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -80,39 +80,44 @@
   <section id="summary" class="screen" aria-label="Récap de la séance" hidden>
     <div class="side">
       <div class="card readings">
-        <p id="ride-date" class="date"></p>
-        <dl class="values">
-          <div class="value">
-            <dt>Puissance moyenne</dt>
-            <dd class="now"><span id="s-power" class="big"></span><span class="unit">W</span></dd>
-            <dd id="s-wkg-box" class="average"><span id="s-wkg"></span> W/kg</dd>
+        <div class="figures">
+          <dl class="values">
+            <div class="value">
+              <dt class="sr-only">Puissance moyenne</dt>
+              <dd class="now"><span id="s-power" class="big"></span><span class="unit">W</span></dd>
+            </div>
+            <div class="value">
+              <dt class="sr-only">Cadence moyenne</dt>
+              <dd class="now"><span id="s-cadence"></span><span class="unit">rpm</span></dd>
+            </div>
+            <div class="value">
+              <dt class="sr-only">Vitesse moyenne</dt>
+              <dd class="now"><span id="s-speed"></span><span class="unit">km/h</span></dd>
+            </div>
+          </dl>
+          <div class="power-line">
+            <span id="s-zone" class="zone"></span>
+            <span id="s-wkg-box" class="wkg"><strong id="s-wkg"></strong> W/kg</span>
           </div>
-          <div class="value">
-            <dt>Cadence moyenne</dt>
-            <dd class="now"><span id="s-cadence"></span><span class="unit">rpm</span></dd>
+          <div id="zones-box" class="zones">
+            <div id="zone-bar" class="zone-bar" aria-hidden="true"></div>
+            <ul id="zone-legend" class="zone-legend" aria-label="Temps par zone"></ul>
           </div>
-          <div class="value">
-            <dt>Vitesse moyenne</dt>
-            <dd class="now"><span id="s-speed"></span><span class="unit">km/h</span></dd>
-          </div>
-        </dl>
+        </div>
       </div>
       <section class="card chart" aria-label="Puissance sur toute la séance">
         <canvas id="summary-chart"></canvas>
       </section>
-      <div id="zones-box" class="card zones">
-        <div id="zone-bar" class="zone-bar" aria-hidden="true"></div>
-        <ul id="zone-legend" class="zone-legend" aria-label="Temps par zone"></ul>
-      </div>
     </div>
 
     <aside class="column">
-      <div class="card totals"><dl>
-        <div><dt>Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
-        <div><dt>Durée</dt><dd id="s-duration"></dd></div>
-        <div><dt>Temps total</dt><dd id="s-elapsed"></dd></div>
-        <div><dt>Calories</dt><dd><span id="s-calories"></span><span class="unit">kcal</span></dd></div>
-      </dl></div>
+      <div class="card totals">
+        <dl>
+          <div><dt class="sr-only">Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
+          <div><dt class="sr-only">Durée</dt><dd id="s-duration"></dd></div>
+        </dl>
+        <p class="more">temps total <strong id="s-elapsed"></strong> · <strong id="s-calories"></strong> kcal</p>
+      </div>
       <ol id="records" class="card durations" aria-label="Records de la séance"></ol>
       <div class="downloads">
         <button type="button" id="strava" class="button strava">Importer sur Strava</button>

@@ -1,5 +1,5 @@
-import { duration, durationLabel, number } from "./format.js";
-import { RECORD_DURATIONS } from "./ride.js";
+import { drawBars } from "./charts.js";
+import { number } from "./format.js";
 import { ALTITUDE, route } from "./route.js";
 
 export function download(blob, name) {
@@ -85,86 +85,166 @@ export async function fit(ride, drawing = "url") {
   return new Blob([encoder.close()], { type: "application/vnd.ant.fit" });
 }
 
-// A 1080×1350 picture (the portrait format of most social apps) in the app's style:
-// average power, cadence and speed, the totals, and the best effort on each duration
+// The summary screen as a 1280×720 window shows it, without its buttons, drawn at 1.5× into a
+// 1920×1080 picture. `view` holds what the screen shows, `labels` the names of its record rows.
 const PNG = { bg: "#F5F5F7", card: "#FFFFFF", ink: "#1D1D1F", secondary: "#6E6E73", tertiary: "#86868B", track: "#F2F2F5" };
+const SCALE = 1.5;
+const BIG = '"Barlow Semi Condensed"';
 
-export async function recapImage(ride, weight, colorOf) {
-  await Promise.all(['600 100px "Barlow Semi Condensed"', "600 30px Barlow", "500 30px Barlow"].map((font) => document.fonts.load(font)));
+export async function recapImage(view, labels, colorOf) {
+  await Promise.all([`600 100px ${BIG}`, "600 30px Barlow", "500 30px Barlow"].map((font) => document.fonts.load(font)));
   const [icon, wordmark] = await Promise.all(["assets/wattamax-icon-light.svg", "assets/wattamax-wordmark.svg"].map(async (src) => {
     const image = Object.assign(new Image(), { src });
     await image.decode();
     return image;
   }));
-  const summary = ride.summary();
-  const canvas = Object.assign(document.createElement("canvas"), { width: 1080, height: 1350 });
+  const canvas = Object.assign(document.createElement("canvas"), { width: 1280 * SCALE, height: 720 * SCALE });
   const ctx = canvas.getContext("2d");
-  const left = 80;
-  const right = 1000;
-  const text = (value, x, y, font, color, align = "left", family = "Barlow") => {
-    ctx.font = `${font} ${family}, sans-serif`;
+  ctx.scale(SCALE, SCALE);
+  ctx.textBaseline = "alphabetic";
+  const font = (size, weight = 500, family = "Barlow") => { ctx.font = `${weight} ${size}px ${family}, sans-serif`; };
+  const width = (value) => ctx.measureText(value).width;
+  const text = (value, x, y, color) => {
     ctx.fillStyle = color;
-    ctx.textAlign = align;
     ctx.fillText(value, x, y);
-    return ctx.measureText(value).width;
+    return width(value);
   };
-  // A number followed by its unit in smaller grey type
-  const reading = (value, unit, x, y, size) => {
+  // Pieces of text one after the other, each [text, colour, weight], from x
+  const runs = (pieces, x, y, size) => {
+    for (const [value, color, weight] of pieces) {
+      font(size, weight);
+      x += text(value, x, y, color);
+    }
+  };
+  const runsWidth = (pieces, size) => pieces.reduce((sum, [value, , weight]) => { font(size, weight); return sum + width(value); }, 0);
+  // A big number and its unit in small grey type, as in .now and .totals
+  const reading = (value, unit, x, y, size, color, unitScale) => {
+    font(size, 600, BIG);
     ctx.letterSpacing = `${-size * 0.01}px`;
-    const width = text(value, x, y, `600 ${size}px`, PNG.ink, "left", '"Barlow Semi Condensed"');
+    x += text(value, x, y, color);
     ctx.letterSpacing = "0px";
-    if (unit) text(unit, x + width + size * 0.12, y, `500 ${Math.round(size * 0.32)}px`, PNG.tertiary);
+    if (unit) {
+      font(Math.max(size * unitScale, 10));
+      text(unit, x + 6, y, PNG.tertiary);
+    }
   };
-  const card = (y, height) => {
-    ctx.fillStyle = PNG.card;
+  const readingWidth = (value, unit, size, unitScale) => {
+    font(size, 600, BIG);
+    ctx.letterSpacing = `${-size * 0.01}px`;
+    let w = width(value);
+    ctx.letterSpacing = "0px";
+    font(Math.max(size * unitScale, 10));
+    if (unit) w += 6 + width(unit);
+    return w;
+  };
+  const shape = (x, y, w, h, radius, color) => {
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.roundRect(48, y, 984, height, 44);
+    ctx.roundRect(x, y, w, h, radius);
     ctx.fill();
+  };
+  // Shadows ignore the scale, so they're given in the picture's pixels
+  const card = (x, y, w, h, radius = 28) => {
+    Object.assign(ctx, { shadowColor: "rgba(0, 0, 0, 0.12)", shadowBlur: 10 * SCALE, shadowOffsetY: 2 * SCALE });
+    shape(x, y, w, h, radius, PNG.card);
+    Object.assign(ctx, { shadowColor: "transparent", shadowBlur: 0, shadowOffsetY: 0 });
   };
 
   ctx.fillStyle = PNG.bg;
-  ctx.fillRect(0, 0, 1080, 1350);
-  // Logo: the icon, then the wordmark sitting on the date's baseline
-  ctx.drawImage(icon, left, 56, 60, 60);
-  ctx.drawImage(wordmark, left + 76, 72, 28 * wordmark.width / wordmark.height, 28);
-  text(ride.startedAt.toLocaleDateString("fr", { weekday: "long", day: "numeric", month: "long", year: "numeric" }), right, 100, "500 26px", PNG.secondary, "right");
+  ctx.fillRect(0, 0, 1280, 720);
 
-  text("Puissance moyenne", left, 200, "500 26px", PNG.secondary);
-  reading(number(summary.power), "W", left - 6, 400, 210);
-  if (weight) text(`${number(summary.power / weight, 1)} W/kg`, right, 400, "500 34px", PNG.secondary, "right");
+  // Header: the logo, and the date in the pill on the right
+  ctx.drawImage(icon, 44, 26, 38, 38);
+  ctx.drawImage(wordmark, 92, 36, 112, 18);
+  font(14);
+  const pill = width(view.date) + 28;
+  card(1236 - pill, 26, pill, 38, 19);
+  text(view.date, 1250 - pill, 50, PNG.ink);
 
-  text("Cadence moyenne", left, 480, "500 24px", PNG.secondary);
-  reading(number(summary.cadence), "rpm", left, 566, 84);
-  text("Vitesse moyenne", 560, 480, "500 24px", PNG.secondary);
-  reading(number(summary.speed, 1), "km/h", 560, 566, 84);
-
-  card(620, 190);
-  [["Distance", number(summary.distance, 2), "km"], ["Durée", duration(summary.time), ""],
-    ["Temps total", duration(summary.elapsed), ""], ["Calories", number(summary.calories), "kcal"]].forEach(([label, value, unit], i) => {
-    const x = left + 30 + i * 230;
-    text(label, x, 690, "500 22px", PNG.secondary);
-    reading(value, unit, x, 768, 50);
-  });
-
-  card(840, 420);
-  const records = RECORD_DURATIONS.map((d) => [durationLabel(d), ride.records.get(d) ?? null]);
-  const top = Math.max(200, ...records.map(([, watts]) => watts ?? 0)) * 1.05;
-  records.forEach(([label, watts], i) => {
-    const y = 892 + i * 38;
-    text(label, left + 30, y + 8, "500 22px", PNG.secondary);
-    ctx.fillStyle = PNG.track;
+  // Left column: the averages with the zones under them, then the chart. The cards share 588 px
+  // 30/70, or 40/60 with the zones, once the readings' padding is set aside, as flex does on screen.
+  const zones = view.zones.length > 0;
+  const readings = (588 - 48) * (zones ? 0.4 : 0.3);  // content height
+  card(44, 82, 748, readings + 48);
+  const f = Math.min(0.105 * 692, zones ? (readings - 40) * 0.4 : 0.42 * readings);
+  const line = Math.max(f * 0.3, 15);
+  const legend = Math.max(f * 0.22, 13);
+  const height = f * 1.31 + f * 0.19 + Math.max(f * 0.44, line * 1.2) + (zones ? f * 0.3 + 20 + legend * 1.2 : 0);
+  let y = 106 + (readings - height) / 2 + f * 1.23;
+  [[view.power, "W", f * 1.38, view.zone.color || PNG.ink], [view.cadence, "rpm", f], [view.speed, "km/h", f]]
+    .forEach(([value, unit, size, color = PNG.ink], i) => reading(value, unit, [72, 349.7, 568.8][i], y, size, color, 0.26 * f / size));
+  y += f * 0.02 + f * 0.19 + Math.max(f * 0.44, line * 1.2) / 2 + line * 0.35;
+  // The zone and the W/kg, 22 px apart
+  let x = 72;
+  if (view.zone.name) {
+    font(line, 600);
+    x += text(view.zone.name, x, y, PNG.ink) + 22;
+  }
+  if (view.wkg) runs([[view.wkg, PNG.ink, 600], [" W/kg", PNG.ink, 500]], x, y, line);
+  if (zones) {
+    y += line * 0.5 + f * 0.3;
+    ctx.save();
     ctx.beginPath();
-    ctx.roundRect(230, y - 6, 580, 12, 6);
-    ctx.fill();
-    if (watts !== null) {
-      ctx.fillStyle = colorOf(watts);
-      ctx.beginPath();
-      ctx.roundRect(230, y - 6, Math.max(12, watts / top * 580), 12, 6);
-      ctx.fill();
+    ctx.roundRect(72, y, 692, 10, 5);
+    ctx.clip();
+    let left = 72;
+    const room = 692 - 2 * (view.zones.length - 1);
+    for (const zone of view.zones) {
+      ctx.fillStyle = zone.color;
+      ctx.fillRect(left, y, zone.share * room, 10);
+      left += zone.share * room + 2;
     }
-    text(watts === null ? "–" : `${number(watts)} W`, right - 30, y + 10, "500 28px", PNG.ink, "right");
+    ctx.restore();
+    y += 20 + legend;
+    x = 72;
+    view.zones.forEach((zone, i) => {
+      const pieces = [[`Z${i + 1} `, PNG.secondary, 500], [zone.time, PNG.ink, 600]];
+      shape(x, y - legend * 0.78, 10, 10, 3, zone.color);
+      runs(pieces, x + 16, y, legend);
+      x += 16 + runsWidth(pieces, legend) + 18;
+    });
+  }
+
+  const chart = 82 + readings + 48 + 20;
+  card(44, chart, 748, 690 - chart);
+  ctx.textAlign = "left";
+  drawBars(ctx, { x: 64, y: chart + 22, w: 704, h: 690 - chart - 40 }, view.bars.bars, Math.max(view.bars.slots, 1), colorOf, { grid: PNG.track, label: PNG.tertiary });
+
+  // Right column: distance and duration, with the total time and calories under them, then the records
+  card(816, 82, 420, 119);
+  const total = Math.min((376 - 22) * 0.145, 79 - 32);
+  font(total, 600, BIG);
+  const cap = ctx.measureText("0").actualBoundingBoxAscent;
+  const totals = [[view.distance, "km"], [view.duration, ""]];
+  const widths = totals.map(([value, unit]) => readingWidth(value, unit, total, 0.38));
+  const space = (376 - widths[0] - widths[1]) / 3;
+  x = 838 + space;
+  totals.forEach(([value, unit], i) => {
+    reading(value, unit, x, 102 + (47 + cap) / 2, total, PNG.ink, 0.38);
+    x += widths[i] + space;
+  });
+  const more = [["temps total ", PNG.secondary, 500], [view.elapsed, PNG.ink, 600], [" · ", PNG.secondary, 500], [view.calories, PNG.ink, 600], [" kcal", PNG.secondary, 500]];
+  runs(more, 1026 - runsWidth(more, 15) / 2, 177, 15);
+
+  card(816, 215, 420, 475);
+  const row = Math.min(0.059 * 376, 0.07 * 435);
+  const top = Math.max(200, ...view.records.map((watts) => watts ?? 0)) * 1.05;
+  const bar = 376 - 4.6 * row - 3 * 0.55 * row - Math.max(1.6 * row, 22);
+  view.records.forEach((watts, i) => {
+    const middle = 235 + row * 0.6 + i * (435 - row * 1.2) / (labels.length - 1);
+    font(Math.max(row * 0.6, 10));
+    text(labels[i], 838, middle + row * 0.21, PNG.secondary);
+    const start = 838 + 2.3 * row + 0.55 * row;
+    shape(start, middle - row * 0.225, bar, row * 0.45, row * 0.23, PNG.track);
+    if (watts !== null) shape(start, middle - row * 0.225, Math.max(row * 0.45, watts / top * bar), row * 0.45, row * 0.23, colorOf(watts));
+    font(row);
+    ctx.textAlign = "right";
+    text(watts === null ? "–" : number(watts), start + bar + 0.55 * row + 2.3 * row, middle + row * 0.35, PNG.ink);
+    ctx.textAlign = "left";
   });
 
-  text("wattamax.com", left, 1305, "500 22px", PNG.tertiary);
+  font(13);
+  ctx.textAlign = "right";
+  text("wattamax.com", 1236, 709, PNG.tertiary);
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }

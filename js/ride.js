@@ -1,7 +1,8 @@
 // Seconds without pedalling before the ride pauses itself
 const AUTO_PAUSE_DELAY = 1;
-// Durations of the rolling averages and of the best efforts, the same on every screen
-export const RECORD_DURATIONS = [1, 5, 15, 60, 120, 180, 300, 600, 1200, 2700];
+// Durations of the rolling averages and of the best efforts, the same on every screen. The
+// 1-second average flickers too much to read live, so the max power stands in for it.
+export const RECORD_DURATIONS = [5, 15, 60, 120, 180, 300, 600, 1200, 2700];
 
 // The speed is simulated from the power, as on a flat road with no wind (Martin et al., 1998).
 // The trainer's own speed only follows the gear and the cadence, and comes out far too low.

@@ -58,13 +58,12 @@ function setChartMode(mode) {
   render();
 }
 
-// The 1-second average flickers too much to read live; the max power under the power figure
-// stands in for its record
-const ROLLING_DURATIONS = RECORD_DURATIONS.filter((d) => d > 1);
+// The summary's rows: the max power, then the best effort on each duration
+const RECORD_LABELS = ["Max", ...RECORD_DURATIONS.map(durationLabel)];
 
 // One row per duration: rolling average and session record live, best effort in the summary
-function buildRows(id, durations) {
-  $(id).innerHTML = durations.map((d) => `<li><span class="label">${durationLabel(d)}</span>`
+function buildRows(id, labels) {
+  $(id).innerHTML = labels.map((label) => `<li><span class="label">${label}</span>`
     + '<span class="bar"><span class="ghost"></span><span class="fill"></span></span><span class="watts"></span><span class="record"></span></li>').join("");
 }
 
@@ -115,14 +114,17 @@ function bubble() {
   return ["", ""];
 }
 
-// The power figure takes the colour of its zone
-function renderZone(watts) {
-  $("zone").hidden = !ftp();
-  $("power").style.color = "";
-  if (!ftp()) return;
+// A power figure takes the colour of its zone, named under it
+function zoneOf(watts) {
+  if (!ftp()) return { color: "", name: "" };
   const zone = zoneIndex(watts, ftp());
-  $("power").style.color = ZONE_COLORS[zone];
-  $("zone").textContent = `Z${zone + 1} ${ZONES[zone].name}`;
+  return { color: ZONE_COLORS[zone], name: `Z${zone + 1} ${ZONES[zone].name}` };
+}
+
+function renderZone(figure, label, { color, name }) {
+  $(figure).style.color = color;
+  $(label).textContent = name;
+  $(label).hidden = !name;
 }
 
 function renderLive() {
@@ -136,13 +138,13 @@ function renderLive() {
   $("avg-speed").textContent = number(ride.averageSpeed, 1);
   $("distance").textContent = number(ride.distance, 2);
   $("duration").textContent = duration(ride.time);
-  renderZone(power);
+  renderZone("power", "zone", zoneOf(power));
   $("wkg-box").hidden = !weight();
   if (weight()) {
     $("wkg").textContent = number(power / weight(), 1);
     $("avg-wkg").textContent = number(ride.averagePower / weight(), 1);
   }
-  fillRows("rolling", ROLLING_DURATIONS.map((d) => ({ value: ride.average(d), record: ride.records.get(d) ?? null })));
+  fillRows("rolling", RECORD_DURATIONS.map((d) => ({ value: ride.average(d), record: ride.records.get(d) ?? null })));
 
   if (!trainer?.active) renderStatus("Pas connecté", "");
   else if (reconnecting) renderStatus("Déconnecté", "lost");
@@ -156,29 +158,48 @@ function renderLive() {
   drawChart($("live-chart"), chartMode === "all" ? rideBars() : lastBars());
 }
 
-function renderSummary() {
+// Everything the summary shows, which the PNG recap draws the same way
+function summaryView() {
   const summary = ride.summary();
-  $("ride-date").textContent = ride.startedAt.toLocaleString("fr", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-  $("s-power").textContent = number(summary.power);
-  $("s-wkg-box").hidden = !weight();
-  if (weight()) $("s-wkg").textContent = number(summary.power / weight(), 1);
-  $("s-cadence").textContent = number(summary.cadence);
-  $("s-speed").textContent = number(summary.speed, 1);
-  $("s-distance").textContent = number(summary.distance, 2);
-  $("s-duration").textContent = duration(summary.time);
-  $("s-elapsed").textContent = duration(summary.elapsed);
-  $("s-calories").textContent = number(summary.calories);
-  fillRows("records", RECORD_DURATIONS.map((d) => ({ value: ride.records.get(d) ?? null, record: null })));
-  drawChart($("summary-chart"), rideBars());
+  const times = ftp() ? zoneTimes(ride.samples, ftp()) : [];
+  const total = times.reduce((a, b) => a + b, 0) || 1;
+  return {
+    date: ride.startedAt.toLocaleString("fr", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }),
+    power: number(summary.power),
+    cadence: number(summary.cadence),
+    speed: number(summary.speed, 1),
+    zone: zoneOf(summary.power),
+    wkg: weight() ? number(summary.power / weight(), 1) : "",
+    // Each zone's share of the ride, and its time written without the leading zero hours and minutes
+    zones: times.map((t, i) => ({ share: t / total, color: ZONE_COLORS[i], time: duration(t).replace(/^0:0?/, "") })),
+    distance: number(summary.distance, 2),
+    duration: duration(summary.time),
+    elapsed: duration(summary.elapsed),
+    calories: number(summary.calories),
+    records: [summary.maxPower, ...RECORD_DURATIONS.map((d) => ride.records.get(d) ?? null)],
+    bars: rideBars(),
+  };
+}
 
-  $("zones-box").hidden = !ftp();
-  if (ftp()) {
-    const times = zoneTimes(ride.samples, ftp());
-    const total = times.reduce((a, b) => a + b, 0) || 1;
-    $("zone-bar").innerHTML = times.map((t, i) => `<span style="flex: ${t / total}; background: ${ZONE_COLORS[i]}"></span>`).join("");
-    $("zone-legend").innerHTML = times.map((t, i) => `<li><i style="background: ${ZONE_COLORS[i]}"></i>Z${i + 1} <strong>${duration(t).replace(/^0:0?/, "")}</strong></li>`).join("");
-  }
-  renderStatus("Séance terminée", "");
+function renderSummary() {
+  const view = summaryView();
+  $("s-power").textContent = view.power;
+  renderZone("s-power", "s-zone", view.zone);
+  $("s-wkg-box").hidden = !view.wkg;
+  $("s-wkg").textContent = view.wkg;
+  $("s-cadence").textContent = view.cadence;
+  $("s-speed").textContent = view.speed;
+  $("s-distance").textContent = view.distance;
+  $("s-duration").textContent = view.duration;
+  $("s-elapsed").textContent = view.elapsed;
+  $("s-calories").textContent = view.calories;
+  fillRows("records", view.records.map((value) => ({ value, record: null })));
+  drawChart($("summary-chart"), view.bars);
+
+  $("zones-box").hidden = !view.zones.length;
+  $("zone-bar").innerHTML = view.zones.map((z) => `<span style="flex: ${z.share}; background: ${z.color}"></span>`).join("");
+  $("zone-legend").innerHTML = view.zones.map((z, i) => `<li><i style="background: ${z.color}"></i>Z${i + 1} <strong>${z.time}</strong></li>`).join("");
+  renderStatus(view.date, "");
 }
 
 const render = () => ($("summary").hidden ? renderLive() : renderSummary());
@@ -419,7 +440,7 @@ $("strava").addEventListener("click", async () => {
     button.textContent = OPEN_STRAVA;
   }
 });
-$("png").addEventListener("click", async () => saveFile(await recapImage(ride, weight(), colorOf), fileName("png")));
+$("png").addEventListener("click", async () => saveFile(await recapImage(summaryView(), RECORD_LABELS, colorOf), fileName("png")));
 
 // A chart is drawn again whenever its size changes: the window, or a card resized or moved
 const resizes = new ResizeObserver(render);
@@ -435,8 +456,8 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && trainer?.active && (!wakeLock || wakeLock.released)) keepScreenOn();
 });
 
-buildRows("rolling", ROLLING_DURATIONS);
-buildRows("records", RECORD_DURATIONS);
+buildRows("rolling", RECORD_DURATIONS.map(durationLabel));
+buildRows("records", RECORD_LABELS);
 placeGrips();
 for (const card of $("live").querySelectorAll(".card")) makeMovable(card);
 setAutoPause(autoPause);
