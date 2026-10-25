@@ -28,9 +28,11 @@
 /* Read by screen readers, not shown: the units already say what each number is */
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
+/* The app fills the window, and only scrolls when the window is lower than the cards at their
+   smallest readable size */
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -71,12 +73,22 @@ h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.0
 .switch[aria-checked="true"] { background: var(--green); }
 .switch[aria-checked="true"] span { transform: translateX(18px); }
 
-/* Two columns: readings and chart on the left, totals and durations on the right */
+/* Two columns: readings and chart on the left, totals and durations on the right. Cards share the
+   height of their column, and their contents scale with both sides of the card. */
 main { flex: 1; display: flex; min-height: 0; }
-.screen { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) var(--column, 420px); gap: 24px; min-height: 620px; }
+.screen { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) var(--column, clamp(240px, 36vw, 420px)); gap: 24px; }
 .side, .column { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; }
 .column { gap: 14px; }
 .card { position: relative; background: var(--card); border-radius: 28px; box-shadow: var(--shadow); }
+.readings, .chart, .totals, .durations, .slot { flex: 1 1 0; }
+.readings, .totals, .durations { container-type: size; }
+/* Each card's smallest readable size */
+.readings, .chart { min-height: 100px; }
+.chart.with-switch { min-height: 140px; }
+#summary .readings { min-height: 150px; }
+#live .totals { min-height: 56px; }
+#summary .totals { min-height: 140px; }
+.durations { min-height: 200px; }
 /* Corner grips of the live cards: invisible, the cursor shows where to drag */
 .grip { position: absolute; z-index: 2; width: 28px; height: 28px; touch-action: none; }
 .grip.top { top: -6px; }
@@ -89,26 +101,39 @@ main { flex: 1; display: flex; min-height: 0; }
 
 dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
-.unit { margin-left: 6px; font-size: 0.26em; font-weight: 500; letter-spacing: 0; color: var(--tertiary); }
+.unit { margin-left: 6px; font-size: max(0.26em, 10px); font-weight: 500; letter-spacing: 0; color: var(--tertiary); }
 
 /* Digits of equal width, so numbers don't shift as they change. Only on numbers: in Inter this
    also widens the hyphen. */
 .values, .power-line, .totals, .durations, .zone-legend, .pill input { font-variant-numeric: tabular-nums; }
 
-/* Number sizes follow the width the readings actually get */
-.readings { --f: clamp(44px, 10.5cqw, 96px); container-type: inline-size; padding: 24px 28px; }
+.readings { --f: min(10.5cqw, 42cqh); padding: 24px 28px; }
 .values { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: end; }
 .now { display: flex; align-items: baseline; font-size: var(--f); font-weight: 600; letter-spacing: -0.055em; line-height: 0.95; }
 .now .big { font-size: calc(var(--f) * 1.38); }
 .value .average { margin-top: calc(var(--f) * 0.1); font-size: calc(var(--f) * 0.38); letter-spacing: -0.02em; color: var(--secondary); }
 .date { margin: 0 0 10px; font-size: 15px; color: var(--secondary); }
 
-.power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.28); margin-top: calc(var(--f) * 0.19); font-size: calc(var(--f) * 0.19); }
+/* Live, past a certain shape, figures stacked come out bigger than side by side, so they stack. A
+   card can't restyle its own layout from its shape, only its children's, hence the rules on them. */
+#live .figures { display: flex; flex-direction: column; justify-content: center; height: 100%; }
+/* Stacked figures are centred, with even space above, between and below them: the gap between
+   two figures matches the card's vertical padding, which adds to the space above and below */
+@container (aspect-ratio < 1.62) {
+  #live .figures { --f: min(28cqw, (100cqh - 72px) * 0.18); gap: 24px; justify-content: space-evenly; text-align: center; }
+  #live .values { display: contents; }
+  #live .now, #live .power-line { justify-content: center; }
+  #live .power-line { margin-top: 0; }
+  #live .power-line:not(:has(> :not([hidden]))) { display: none; }
+}
+/* The summary's figures come with their date and labels, which keep their size */
+#summary .readings { --f: min(10.5cqw, (100cqh - 50px) * 0.55); display: flex; flex-direction: column; justify-content: center; }
+
+.power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.28); margin-top: calc(var(--f) * 0.19); font-size: max(calc(var(--f) * 0.19), 11px); }
 .zone { font-weight: 600; }
 .wkg strong { font-weight: 600; }
 .wkg .average { margin-left: 0.5em; font-size: 0.85em; color: var(--secondary); }
 
-.chart { flex: 1; min-height: 180px; }
 /* Out of the flow, so the drawing's size never feeds back into the layout */
 .chart canvas { position: absolute; top: 22px; left: 20px; width: calc(100% - 44px); height: calc(100% - 40px); }
 .chart.with-switch canvas { top: 66px; height: calc(100% - 84px); }
@@ -118,7 +143,7 @@ dt { font-size: 15px; color: var(--secondary); }
    shadow than the cards. Clicks go through it to the cards below, except on its dock button. Its
    colour tells the kind of message: info (blue), start (green), pause (orange) or error (red).
    Centred by its margins rather than a transform, which is left to the docking animation. */
-.bubble { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; gap: 18px; width: max-content; height: max-content; max-width: min(90vw, 960px); margin: auto; padding: 42px 80px 42px 56px; border-radius: 38px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 30px; font-weight: 600; text-align: center; transform-origin: 0 0; pointer-events: none; }
+.bubble { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; gap: 18px; width: max-content; height: max-content; max-width: min(90vw, 960px); margin: auto; padding: 42px 80px 42px 56px; border-radius: 38px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 30px; font-weight: 600; text-align: center; overflow-wrap: anywhere; transform-origin: 0 0; pointer-events: none; }
 .bubble::before { content: ""; flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); }
 .bubble[data-kind="start"] { background: #DDF6E4; }
 .bubble[data-kind="start"]::before { background: var(--green); }
@@ -137,22 +162,30 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble.docked span { min-width: 0; max-width: 380px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bubble.docked .dock { display: none; }
 
-.totals { container-type: inline-size; padding: 20px 22px; }
-.totals dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.totals dd { font-size: clamp(28px, 13.3cqw, 50px); font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
-.totals .unit { font-size: 0.38em; margin-left: 5px; }
-#summary .totals dd { font-size: 36px; }
-#summary .totals .unit { font-size: 15px; }
+.totals { padding: 20px 22px; }
+.totals dd { font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
+.totals .unit { font-size: max(0.38em, 10px); margin-left: 5px; }
+/* Live, even space around the totals: the gap between them matches the card's padding, which adds
+   to the space at the edges, and their lines are trimmed to the digits so the space is the one seen */
+#live .totals dl { display: flex; align-items: center; justify-content: space-evenly; gap: 20px 22px; height: 100%; }
+#live .totals dd { font-size: min((100cqw - 22px) * 0.145, 100cqh); text-box: trim-both cap alphabetic; }
+@container (aspect-ratio < 3.5) {
+  #live .totals dl { flex-direction: column; }
+  #live .totals dd { font-size: min(27cqw, (100cqh - 20px) * 0.6); }
+}
+/* The summary's four totals, two by two under their labels */
+#summary .totals dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: center; gap: 16px; height: 100%; }
+#summary .totals dd { font-size: min((100cqw - 16px) * 0.13, (100cqh - 52px) * 0.47); }
 
 /* Rolling averages (live) and best efforts (summary): one row per duration */
-.durations { flex: 1; display: flex; font-size: 22px; flex-direction: column; justify-content: space-between; min-height: 0; margin: 0; padding: 20px 22px; list-style: none; }
-.durations li { display: grid; grid-template-columns: 2.3em minmax(0, 1fr) 2.3em 1.6em; align-items: center; gap: 0.55em; }
-.durations .label { font-size: 0.6em; color: var(--secondary); }
+.durations { display: flex; flex-direction: column; justify-content: space-between; margin: 0; padding: 20px 22px; list-style: none; }
+.durations li { font-size: min(5.9cqw, 7cqh); display: grid; grid-template-columns: max(2.3em, 38px) minmax(0, 1fr) 2.3em max(1.6em, 22px); align-items: center; gap: 0.55em; }
+.durations .label { font-size: max(0.6em, 10px); color: var(--secondary); }
 .durations .bar { position: relative; height: 0.45em; border-radius: 0.23em; background: var(--track); overflow: hidden; }
 .durations .bar span { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 0.23em; }
 .durations .ghost { background: var(--ghost); }
 .durations .watts { font-weight: 500; letter-spacing: -0.02em; text-align: right; }
-.durations .record { font-size: 0.55em; color: var(--tertiary); text-align: right; }
+.durations .record { font-size: max(0.55em, 10px); color: var(--tertiary); text-align: right; }
 
 .zones { display: flex; flex-direction: column; gap: 10px; padding: 20px 22px; }
 .zone-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; }
@@ -187,52 +220,53 @@ body[data-screen="summary"] .live-only { display: none; }
 #live .figures, #live .totals dl { transition: opacity 0.3s; }
 body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
 
-/* On a large screen the live cards share their column's height, and their contents scale with
-   both sides of the card, since it can be resized */
-@media (min-width: 901px) {
-  #live .card, #live .slot { flex: 1 1 0; min-height: 0; }
+/* Two columns on a large screen or a landscape one, where the live cards can be resized and moved.
+   The same query is in app.js. */
+@media (min-width: 901px), (orientation: landscape) {
   #live .card { user-select: none; transform-origin: 0 0; }
   #live .side > :first-child { flex-grow: 30; }
   #live .side > :nth-child(2) { flex-grow: 70; }
   #live .column > :first-child { flex-grow: 13; }
   #live .column > :nth-child(2) { flex-grow: 87; }
+  #summary .side > :nth-child(2) { flex-grow: 1.2; }
+  #summary .column > :nth-child(2) { flex-grow: 2.4; }
   /* A dragged card floats above the others, at the size it had in its place */
   #live .card.dragged { position: fixed; z-index: 10; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; will-change: translate; }
-  #live .readings, #live .totals, #live .durations { container-type: size; }
-  #live .readings { --f: min(10.5cqw, 42cqh); }
-  /* Even space around the totals: the gap between them matches the card's padding, which adds to
-     the space at the edges, and their lines are trimmed to the digits so the space is the one seen */
-  #live .totals dl { display: flex; align-items: center; justify-content: space-evenly; gap: 20px 22px; height: 100%; }
-  #live .totals dd { font-size: min((100cqw - 22px) * 0.145, 100cqh); text-box: trim-both cap alphabetic; }
-  #live .durations li { font-size: min(5.9cqw, 5.5cqh); }
-  /* Past a certain shape, figures stacked come out bigger than side by side, so they stack. A card
-     can't restyle its own layout from its shape, only its children's, hence the rules on them. */
-  #live .figures { display: flex; flex-direction: column; justify-content: center; height: 100%; }
-  /* Stacked figures are centred, with even space above, between and below them: the gap between
-     two figures matches the card's vertical padding, which adds to the space above and below */
-  @container (aspect-ratio < 1.62) {
-    #live .figures { --f: min(28cqw, (100cqh - 72px) * 0.18); gap: 24px; justify-content: space-evenly; text-align: center; }
-    #live .values { display: contents; }
-    #live .now, #live .power-line { justify-content: center; }
-    #live .power-line { margin-top: 0; }
-    #live .power-line:not(:has(> :not([hidden]))) { display: none; }
-  }
-  @container (aspect-ratio < 3.5) {
-    #live .totals dl { flex-direction: column; }
-    #live .totals dd { font-size: min(27cqw, (100cqh - 20px) * 0.6); }
-  }
 }
 
+/* A phone or a small window: tighter spacing, a smaller header and bubble. The connection pill
+   only shows its dot, its text is still read out. */
 @media (max-width: 900px) {
-  body { padding: 20px 16px; }
-  .screen { grid-template-columns: 1fr; min-height: 0; }
-  .chart { min-height: 220px; }
+  body { gap: 12px; padding: 12px 16px; }
+  .screen, .side, .column { gap: 12px; }
+  .top { gap: 8px; }
+  .pill { min-height: 32px; gap: 6px; padding: 4px 12px; font-size: 13px; }
+  .bubble.docked { min-height: 32px; }
+  .status { width: 32px; padding: 0; justify-content: center; font-size: 0; }
+  .bubble { gap: 12px; padding: 24px 52px 24px 28px; border-radius: 28px; font-size: 20px; }
+  .dock { top: 12px; right: 12px; }
+  .readings { padding: 16px 20px; }
+  .totals { padding: 12px 18px; }
+  .durations { padding: 14px 18px; }
+  .button { height: 48px; }
+  .segmented button { padding: 4px 10px; font-size: 13px; }
+  .chart .segmented { top: 12px; right: 12px; }
+  .chart.with-switch canvas { top: 50px; height: calc(100% - 66px); }
+}
+
+/* Upright, one column: the cards share the height of the window, in their order */
+@media (max-width: 900px) and (orientation: portrait) {
+  .screen { display: flex; flex-direction: column; }
+  .side, .column { display: contents; }
   .grip { display: none; }
-  .durations { gap: 12px; }
-  .values { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  .values .value:first-child { grid-column: 1 / -1; }
-  .readings { --f: 52px; }
-  .now .big { font-size: 96px; }
+  #live .readings { flex-grow: 24; }
+  #live .chart { flex-grow: 26; }
+  #live .totals { flex-grow: 10; }
+  #live .durations { flex-grow: 40; }
+  #summary .readings { flex-grow: 26; }
+  #summary .chart { flex-grow: 22; }
+  #summary .totals { flex-grow: 18; }
+  #summary .durations { flex-grow: 34; }
 }
 @media (prefers-reduced-motion: reduce) {
   .switch, .switch span, .button { transition: none; }

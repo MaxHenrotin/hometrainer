@@ -16,7 +16,7 @@ const SLIDE_TIME = 250;  // ms a card or the bubble takes to slide to its new pl
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
-const wide = matchMedia("(min-width: 901px)");  // the live cards are only resized and moved on a large screen
+const wide = matchMedia("(min-width: 901px), (orientation: landscape)");  // the live cards are only resized and moved in two columns
 const color = (name) => css.getPropertyValue(`--${name}`).trim();
 const ZONE_COLORS = ZONES.map((_, i) => color(`z${i + 1}`));
 
@@ -422,7 +422,7 @@ function noBluetoothMessage() {
   const agent = navigator.userAgent;
   const useChrome = "Ouvre cette page dans Google Chrome ou Microsoft Edge.";
   if (/iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1)) {
-    return "Sur iPhone et iPad, aucun navigateur ne gère le Bluetooth, pas même Chrome. Installe l'app gratuite Bluefy depuis l'App Store et ouvre cette page dedans.";
+    return "Sur iPhone et iPad, Safari et les autres navigateurs ne gèrent pas le Bluetooth. Installe l'app gratuite Bluefy depuis l'App Store et ouvre cette page dedans.";
   }
   if (navigator.brave) {
     return "Brave coupe le Bluetooth par défaut. Copie brave://flags/#brave-web-bluetooth-api dans la barre d'adresse, passe l'option sur « Enabled » et relance Brave. Tu peux aussi ouvrir cette page dans Google Chrome ou Microsoft Edge.";
