@@ -69,6 +69,9 @@ h1 img { display: block; }
 .pill input:placeholder-shown:not(:focus) { background: color-mix(in srgb, #FFC8C4 calc(var(--glow) * 100%), #FFE3E1); box-shadow: 0 0 0 calc(var(--glow) * 4px) rgba(255, 59, 48, calc(0.4 - var(--glow) * 0.25)); }
 .pill input:focus { background: var(--card); }
 .pill input::-webkit-outer-spin-button, .pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* The connection pill is a button that connects the trainer, like the big button, while that one is shown */
+.status { border: 0; font-family: inherit; font-weight: inherit; }
+.status:enabled { cursor: pointer; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--z1); }
 .dot.on { background: var(--green); }
 .dot.lost { background: var(--red); }
@@ -207,11 +210,12 @@ dt { font-size: 15px; color: var(--secondary); }
 .button.primary { background: var(--ink); color: var(--card); }
 .button.primary:hover { background: #333336; }
 .button.accent { background: var(--accent); color: var(--card); }
+#connect { font-size: 20px; }
 .button.strava { background: var(--strava); color: var(--card); }
 .button.strava:hover { background: #E34402; }
 .button.accent:hover { background: #F04A24; }
 .button:disabled { opacity: 0.4; cursor: default; }
-.button:focus-visible, .segmented button:focus-visible, .switch:focus-visible, .dock:focus-visible, .pill input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.button:focus-visible, .segmented button:focus-visible, .switch:focus-visible, .dock:focus-visible, .status:focus-visible, .pill input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
 .downloads { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
 .downloads .button { padding: 0 16px; font-size: 15px; white-space: nowrap; }
 

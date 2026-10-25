@@ -104,6 +104,7 @@ function drawChart(canvas, { bars, slots }) {
 function renderStatus(text, dot) {
   $("status").textContent = text;
   $("status-dot").className = `dot ${dot}`;
+  $("status-pill").disabled = $("connect").hidden || $("connect").disabled;
 }
 
 // What the bubble over the app says, and how it's marked: info, start, pause or error
@@ -365,15 +366,15 @@ async function connect() {
     if (error.name !== "NotFoundError") {
       message = "Connexion impossible. Vérifie que le home-trainer est allumé et tout près, et qu'aucune autre app (Zwift, Elite…) n'y est connectée, puis réessaie.";
     }
-    renderLive();
-    return;
   } finally {
     $("connect").disabled = false;
   }
-  $("connect").hidden = true;
-  $("stop").hidden = false;
+  if (trainer.active) {
+    $("connect").hidden = true;
+    $("stop").hidden = false;
+    keepScreenOn();
+  }
   renderLive();
-  keepScreenOn();
 }
 
 function finish() {
@@ -415,6 +416,7 @@ function fileName(extension) {
 }
 
 $("connect").addEventListener("click", connect);
+$("status-pill").addEventListener("click", () => $("connect").click());
 $("about-open").addEventListener("click", () => $("about").showModal());
 $("about").querySelector(".close").addEventListener("click", () => $("about").close());
 onHold($("stop"), finish);
