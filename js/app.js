@@ -104,15 +104,14 @@ function bubble() {
   return ["", ""];
 }
 
+// The power figure takes the colour of its zone
 function renderZone(watts) {
-  $("zone-box").hidden = !ftp();
+  $("zone").hidden = !ftp();
+  $("power").style.color = "";
   if (!ftp()) return;
   const zone = zoneIndex(watts, ftp());
-  $("zone-scale").querySelectorAll("span").forEach((span, i) => {
-    span.style.background = i <= zone ? ZONE_COLORS[i] : "";
-    span.classList.toggle("current", i === zone);
-  });
-  $("zone-name").textContent = `Z${zone + 1} ${ZONES[zone].name}`;
+  $("power").style.color = ZONE_COLORS[zone];
+  $("zone").textContent = `Z${zone + 1} ${ZONES[zone].name}`;
 }
 
 function renderLive() {
@@ -281,7 +280,6 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && trainer?.active && (!wakeLock || wakeLock.released)) keepScreenOn();
 });
 
-$("zone-scale").innerHTML = "<span></span>".repeat(ZONES.length);
 buildRows("rolling");
 buildRows("records");
 setAutoPause(autoPause);

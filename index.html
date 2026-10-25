@@ -27,7 +27,7 @@
 <main>
   <section id="live" class="screen" aria-label="Séance en cours">
     <div class="side">
-      <div class="readings">
+      <div class="card readings">
         <dl class="values">
           <div class="value">
             <dt class="sr-only">Puissance</dt>
@@ -46,7 +46,7 @@
           </div>
         </dl>
         <div class="power-line">
-          <span id="zone-box" class="zone"><span id="zone-scale" class="zone-scale" aria-hidden="true"></span><span id="zone-name"></span></span>
+          <span id="zone" class="zone"></span>
           <span id="wkg-box" class="wkg"><strong id="wkg"></strong> W/kg <span class="average">moy. <span id="avg-wkg"></span></span></span>
         </div>
       </div>
@@ -61,7 +61,7 @@
     </div>
 
     <aside class="column">
-      <dl class="totals">
+      <dl class="card totals">
         <div><dt class="sr-only">Distance</dt><dd><span id="distance">0,00</span><span class="unit">km</span></dd></div>
         <div><dt class="sr-only">Durée</dt><dd id="duration">0:00:00</dd></div>
       </dl>
@@ -73,7 +73,7 @@
 
   <section id="summary" class="screen" aria-label="Récap de la séance" hidden>
     <div class="side">
-      <div class="readings">
+      <div class="card readings">
         <p id="ride-date" class="date"></p>
         <dl class="values">
           <div class="value">
@@ -94,14 +94,14 @@
       <section class="card chart" aria-label="Puissance sur toute la séance">
         <canvas id="summary-chart"></canvas>
       </section>
-      <div id="zones-box" class="zones">
+      <div id="zones-box" class="card zones">
         <div id="zone-bar" class="zone-bar" aria-hidden="true"></div>
         <ul id="zone-legend" class="zone-legend" aria-label="Temps par zone"></ul>
       </div>
     </div>
 
     <aside class="column">
-      <dl class="totals">
+      <dl class="card totals">
         <div><dt>Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
         <div><dt>Durée</dt><dd id="s-duration"></dd></div>
         <div><dt>Temps total</dt><dd id="s-elapsed"></dd></div>

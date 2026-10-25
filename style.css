@@ -8,6 +8,7 @@
   --track: #F2F2F5;
   --ghost: #E5E5EA;
   --accent: #FF5E3A;    /* bars when no FTP is set */
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   --blue: #007AFF;
   --orange: #FF9500;
   --red: #FF3B30;
@@ -44,7 +45,7 @@ body {
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.pill { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 14px; border-radius: 999px; background: var(--card); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); font-size: 14px; color: var(--ink); }
+.pill { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-size: 14px; color: var(--ink); }
 .pill input { width: 4.2em; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-weight: 600; color: var(--ink); text-align: right; -moz-appearance: textfield; }
 .pill input::placeholder { color: var(--tertiary); }
 .pill input:focus::placeholder { color: transparent; }
@@ -69,7 +70,7 @@ main { flex: 1; display: flex; min-height: 0; }
 .screen { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; min-height: 620px; }
 .side, .column { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; }
 .column { gap: 14px; }
-.card { background: var(--card); border-radius: 28px; }
+.card { background: var(--card); border-radius: 28px; box-shadow: var(--shadow); }
 
 dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
@@ -80,7 +81,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .values, .power-line, .totals, .durations, .zone-legend, .pill input { font-variant-numeric: tabular-nums; }
 
 /* Number sizes follow the width the readings actually get */
-.readings { container-type: inline-size; }
+.readings { container-type: inline-size; padding: 24px 28px; }
 .values { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: end; }
 .now { display: flex; align-items: baseline; font-size: clamp(44px, 10.5cqw, 96px); font-weight: 600; letter-spacing: -0.055em; line-height: 0.95; }
 .now .big { font-size: clamp(60px, 14.5cqw, 124px); }
@@ -88,10 +89,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .date { margin: 0 0 10px; font-size: 15px; color: var(--secondary); }
 
 .power-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: 24px; margin-top: 16px; font-size: 16px; }
-.zone { display: flex; align-items: center; gap: 12px; font-weight: 600; }
-.zone-scale { display: flex; gap: 4px; }
-.zone-scale span { width: 14px; height: 8px; border-radius: 4px; background: var(--ghost); }
-.zone-scale span.current { width: 26px; }
+.zone { font-weight: 600; }
 .wkg strong { font-weight: 600; }
 .wkg .average { margin-left: 8px; font-size: 14px; color: var(--secondary); }
 
@@ -108,8 +106,8 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble.pause::before { background: var(--orange); }
 .bubble.error::before { background: var(--red); }
 
-.totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 4px 6px 0; }
-.totals dd { font-size: 58px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
+.totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 22px; }
+.totals dd { font-size: 50px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
 .totals .unit { font-size: 19px; margin-left: 5px; }
 #summary .totals dd { font-size: 36px; }
 #summary .totals .unit { font-size: 15px; }
@@ -124,14 +122,14 @@ dt { font-size: 15px; color: var(--secondary); }
 .durations .watts { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; text-align: right; }
 .durations .record { font-size: 12px; color: var(--tertiary); text-align: right; }
 
-.zones { display: flex; flex-direction: column; gap: 10px; }
+.zones { display: flex; flex-direction: column; gap: 10px; padding: 20px 22px; }
 .zone-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; }
 .zone-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--secondary); }
 .zone-legend li { display: flex; align-items: center; gap: 6px; }
 .zone-legend i { width: 10px; height: 10px; border-radius: 3px; }
 .zone-legend strong { color: var(--ink); font-weight: 600; }
 
-.button { display: flex; align-items: center; justify-content: center; gap: 12px; height: 56px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--fill); color: var(--ink); font: 600 16px Inter, sans-serif; cursor: pointer; transition: transform 0.15s, background 0.15s; user-select: none; -webkit-user-select: none; touch-action: none; }
+.button { display: flex; align-items: center; justify-content: center; gap: 12px; height: 56px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--fill); color: var(--ink); font: 600 16px Inter, sans-serif; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s, background 0.15s; user-select: none; -webkit-user-select: none; touch-action: none; }
 .button:hover { background: #DEDEE3; }
 .button:active { transform: scale(0.98); }
 .button.primary { background: var(--ink); color: var(--card); }
@@ -155,8 +153,8 @@ body[data-screen="summary"] .live-only { display: none; }
 .hold.holding .progress { stroke-dashoffset: 0; transition: stroke-dashoffset 2s linear; }
 
 /* Readings fade while the ride is paused, so a glance is enough to see it */
-body[data-state="paused"] #live .readings, body[data-state="paused"] #live .totals { opacity: 0.45; }
-#live .readings, #live .totals { transition: opacity 0.3s; }
+body[data-state="paused"] #live .readings > *, body[data-state="paused"] #live .totals > * { opacity: 0.45; }
+#live .readings > *, #live .totals > * { transition: opacity 0.3s; }
 
 @media (max-width: 900px) {
   body { padding: 20px 16px; }
