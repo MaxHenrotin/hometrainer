@@ -49,6 +49,12 @@ h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.0
 .pill input { width: 4.2em; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-weight: 600; color: var(--ink); text-align: right; -moz-appearance: textfield; }
 .pill input::placeholder { color: var(--tertiary); }
 .pill input:focus::placeholder { color: transparent; }
+/* An empty field glows red, softly and over and over, so it's hard to leave empty */
+.pill input:placeholder-shown:not(:focus) { animation: glow 1.6s ease-in-out infinite; }
+@keyframes glow {
+  0%, 100% { background: #FFE3E1; box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
+  50% { background: #FFC8C4; box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.15); }
+}
 .pill input:focus { outline: 2px solid var(--blue); outline-offset: 0; background: var(--card); }
 .pill input::-webkit-outer-spin-button, .pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .status { color: var(--ink); font-weight: 500; }
@@ -112,7 +118,7 @@ dt { font-size: 15px; color: var(--secondary); }
    shadow than the cards. Clicks go through it to the cards below, except on its dock button. Its
    colour tells the kind of message: info (blue), start (green), pause (orange) or error (red).
    Centred by its margins rather than a transform, which is left to the docking animation. */
-.bubble { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; gap: 16px; width: max-content; height: max-content; max-width: min(90vw, 900px); margin: auto; padding: 24px 60px 24px 36px; border-radius: 32px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 30px; font-weight: 600; text-align: center; transform-origin: 0 0; pointer-events: none; }
+.bubble { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; gap: 18px; width: max-content; height: max-content; max-width: min(90vw, 960px); margin: auto; padding: 42px 80px 42px 56px; border-radius: 38px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 30px; font-weight: 600; text-align: center; transform-origin: 0 0; pointer-events: none; }
 .bubble::before { content: ""; flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); }
 .bubble[data-kind="start"] { background: #DDF6E4; }
 .bubble[data-kind="start"]::before { background: var(--green); }
@@ -120,16 +126,17 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble[data-kind="pause"]::before { background: var(--orange); }
 .bubble[data-kind="error"] { background: #FFDCDA; }
 .bubble[data-kind="error"]::before { background: var(--red); }
-.dock { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.07); color: var(--secondary); cursor: pointer; pointer-events: auto; }
+.dock { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.07); color: var(--secondary); cursor: pointer; pointer-events: auto; }
 .dock:hover { background: rgba(0, 0, 0, 0.12); }
-.dock svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.dock svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 /* Docked: a small pill in the header, left of the auto-pause switch */
 .bubble.docked { position: static; width: auto; height: auto; max-width: 420px; min-height: 38px; margin: 0; padding: 6px 14px; gap: 8px; border-radius: 19px; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; pointer-events: auto; }
 .bubble.docked::before { width: 8px; height: 8px; }
 .bubble.docked span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bubble.docked .dock { display: none; }
 
-.totals { container-type: inline-size; display: grid; align-content: center; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 22px; }
+.totals { container-type: inline-size; display: grid; align-content: center; padding: 20px 22px; }
+.totals dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .totals dd { font-size: clamp(28px, 13.3cqw, 50px); font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
 .totals .unit { font-size: 0.38em; margin-left: 5px; }
 #summary .totals dd { font-size: 36px; }
@@ -194,6 +201,16 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
   #live .readings { --f: min(10.5cqw, 42cqh); }
   #live .totals dd { font-size: min(13.3cqw, 90cqh); }
   #live .durations li { font-size: min(5.9cqw, 5.5cqh); }
+  /* Past a certain shape, figures stacked come out bigger than side by side, so they stack. A card
+     can't restyle its own layout from its shape, only its children's, hence the rules on them. */
+  @container (aspect-ratio < 1.62) {
+    #live .readings > * { --f: min(28cqw, 17cqh); }
+    #live .values { grid-template-columns: minmax(0, 1fr); gap: calc(var(--f) * 0.25); }
+  }
+  @container (aspect-ratio < 3.08) {
+    #live .totals dl { grid-template-columns: minmax(0, 1fr); }
+    #live .totals dd { font-size: min(24cqw, 41cqh); }
+  }
 }
 
 @media (max-width: 900px) {
@@ -209,4 +226,5 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
 }
 @media (prefers-reduced-motion: reduce) {
   .switch, .switch span, .button { transition: none; }
+  .pill input:placeholder-shown:not(:focus) { animation: none; background: #FFE3E1; }
 }
