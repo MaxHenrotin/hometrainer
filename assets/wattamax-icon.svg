@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <title>Wattamax</title>
   <rect width="100" height="100" rx="22" fill="#111111"/>
-  <path d="M24.1 64 32.1 64 46.1 80 38.1 80 28.1 68.57 18.1 80 10.1 80ZM18.6 64a9.5 9.5 0 1 1 19 0a9.5 9.5 0 1 1 -19 0ZM42.1 64a18 18 0 1 1 36 0a18 18 0 1 1 -36 0ZM48.6 64a11.5 11.5 0 1 0 23 0a11.5 11.5 0 1 0 -23 0Z" fill="#FAFAF7"/>
+  <path d="M24.1 64 32.1 64 46.1 80 38.1 80 28.1 68.57 18.1 80 10.1 80Z" fill="#FAFAF7"/>
+  <circle cx="28.1" cy="64" r="9.5" fill="#FAFAF7"/>
+  <circle cx="60.1" cy="64" r="14.75" fill="none" stroke="#FAFAF7" stroke-width="6.5"/>
   <path d="M27.17 24 90.15 24 89.16 34 76.62 34 65.7 64 54.5 64 65.42 34 44.62 34 33.7 64 22.5 64 33.42 34 20.88 34Z" fill="#F25C05"/>
-  <path d="M22.5 64a5.6 5.6 0 1 1 11.2 0a5.6 5.6 0 1 1 -11.2 0ZM54.5 64a5.6 5.6 0 1 1 11.2 0a5.6 5.6 0 1 1 -11.2 0Z" fill="#FAFAF7"/>
+  <circle cx="28.1" cy="64" r="5.6" fill="#FAFAF7"/>
+  <circle cx="60.1" cy="64" r="5.6" fill="#FAFAF7"/>
 </svg>

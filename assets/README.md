@@ -9,6 +9,7 @@
 | `wattamax-wordmark.svg` | Wordmark with black letters, for light backgrounds |
 | `wattamax-wordmark-white.svg` | Wordmark with white letters, for dark backgrounds |
 | `wattamax-wordmark-mono.svg` | One colour, all `#111111` |
+| `wattamax-og.png` | Link preview (1200×630) used by the site's `og:image` tag |
 
 ## The idea
 
@@ -49,8 +50,9 @@ The SVGs are generated, so don't edit them by hand. The scripts are in `logo/`:
 - `tt.py` defines the TT and the slant. Everything else reads them from here.
 - `icon.py` draws the icon around the TT.
 - `wordmark.py` builds the wordmark from Barlow's outlines (the font and its licence are in `logo/fonts/`), plus the TT on its own.
+- `build.py` writes all the files into `assets/` and renders the preview PNG from the light icon and the wordmark.
 
-To rebuild all seven files after a change:
+To rebuild all the SVGs and the preview image after a change:
 
 ```sh
 pip install -r assets/logo/requirements.txt
