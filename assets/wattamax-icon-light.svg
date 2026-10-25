@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Wattamax</title>
+  <rect x="0.75" y="0.75" width="98.5" height="98.5" rx="22" fill="#FAFAF7" stroke="#DDDDD6" stroke-width="1.5"/>
+  <g transform="translate(29.729 3.779) scale(0.82538)">
+    <circle cx="28.277" cy="72" r="11.5" fill="none" stroke="#111111" stroke-width="4.5"/>
+    <rect x="-21.48" y="84" width="40" height="4" rx="2" fill="#111111"/>
+    <rect x="-12.48" y="62" width="22" height="20" rx="4" fill="#111111"/>
+    <g transform="skewX(-28)">
+      <g fill="#F25C05">
+        <rect x="20" y="24" width="63.36" height="8.64"/>
+        <rect x="32.48" y="24" width="8.64" height="48"/>
+        <rect x="62.24" y="24" width="8.64" height="48"/>
+      </g>
+    </g>
+  </g>
+</svg>
