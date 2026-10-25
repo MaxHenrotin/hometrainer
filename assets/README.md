@@ -51,8 +51,9 @@ The SVGs are generated, so don't edit them by hand. The scripts are in `logo/`:
 - `icon.py` draws the icon around the TT.
 - `wordmark.py` builds the wordmark from Barlow's outlines (the font and its licence are in `logo/fonts/`), plus the TT on its own.
 - `build.py` writes all the files into `assets/` and renders the preview PNG from the light icon and the wordmark.
+- `outlines.py` turns the outlines of the TT and the wordmark into one continuous line each. `build.py` writes them to `js/outlines.js` for the GPS drawings on Strava.
 
-To rebuild all the SVGs and the preview image after a change:
+To rebuild all the SVGs, the preview image and the outlines after a change:
 
 ```sh
 pip install -r assets/logo/requirements.txt

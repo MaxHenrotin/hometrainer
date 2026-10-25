@@ -1,9 +1,10 @@
-"""Writes every Wattamax logo SVG into assets/, plus the link preview image."""
+"""Writes every Wattamax logo SVG into assets/, the link preview image, and the outlines the GPS drawings follow."""
 from pathlib import Path
 
 import cairosvg
 
 from icon import icon
+from outlines import js, stroke
 from wordmark import wordmark, tt_alone
 
 OUT = Path(__file__).parent.parent
@@ -35,3 +36,7 @@ for name, svg in files.items():
 cairosvg.svg2png(bytestring=preview(files["wattamax-icon-light.svg"], files["wattamax-wordmark.svg"]).encode(),
                  write_to=str(OUT / "wattamax-og.png"))
 print(OUT / "wattamax-og.png")
+
+outlines = Path(__file__).parents[2] / "js" / "outlines.js"
+outlines.write_text(js({"TT": stroke(files["wattamax-tt.svg"]), "WORDMARK": stroke(files["wattamax-wordmark.svg"])}))
+print(outlines)

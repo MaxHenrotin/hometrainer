@@ -1,6 +1,6 @@
 import { duration, durationLabel, number } from "./format.js";
 import { RECORD_DURATIONS } from "./ride.js";
-import { ALTITUDE, routePosition } from "./route.js";
+import { ALTITUDE, route } from "./route.js";
 
 export function download(blob, name) {
   const link = document.createElement("a");
@@ -24,7 +24,7 @@ const semicircles = (degrees) => Math.round(degrees * 2 ** 31 / 180);
 // Strava keeps the local time and the flat elevation written in the file, and never matches the
 // ride against real segments. Pauses become timer stops, and the position stands still during
 // them, which is how Strava tells moving time from elapsed time.
-export async function fit(ride) {
+export async function fit(ride, drawing = "loop") {
   const { Encoder, Profile, Utils } = await import(FIT_SDK);
   const { MesgNum } = Profile;
   const summary = ride.summary();
@@ -32,6 +32,7 @@ export async function fit(ride) {
   const first = new Date(samples[0].timestamp);
   const last = new Date(samples.at(-1).timestamp);
   const encoder = new Encoder();
+  const position = route(drawing, summary.distance);
 
   // Strava may show the product name as the device under the activity
   encoder.onMesg(MesgNum.FILE_ID, { type: "activity", manufacturer: "development", product: 0, productName: "Wattamax", timeCreated: first });
@@ -44,7 +45,7 @@ export async function fit(ride) {
       encoder.onMesg(MesgNum.EVENT, { timestamp: new Date(previous.timestamp), event: "timer", eventType: "stopAll" });
       encoder.onMesg(MesgNum.EVENT, { timestamp: new Date(s.timestamp), event: "timer", eventType: "start" });
     }
-    const { lat, lon } = routePosition(s.distance);
+    const { lat, lon } = position(s.distance);
     encoder.onMesg(MesgNum.RECORD, {
       timestamp: new Date(s.timestamp),
       positionLat: semicircles(lat),

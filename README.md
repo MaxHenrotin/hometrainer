@@ -48,9 +48,9 @@ The summary mirrors the ride screen: average power, cadence and speed, a chart o
 - **Importer sur Strava**: downloads a `.fit` file with power, cadence and speed, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a **Virtual Ride**, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
 
   Getting the ride right on Strava took a few tries, because Strava fills in what an indoor file lacks on its own terms:
-  - It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route: a 100 km organic loop around Isla Incahuasi on the Salar de Uyuni in Bolivia. The position stands still during pauses, which Strava counts as stopped.
+  - It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route on the Salar de Uyuni in Bolivia, centred on Isla Incahuasi. The route is a drawing scaled to the ride's length, so every ride draws it once from start to finish. The default is an organic loop. The others write WATTAMAX.COM or the ride's distance, or trace the TT, the wordmark, a bike or a heart. The position stands still during pauses, which Strava counts as stopped.
   - For a regular ride, it takes the time zone and the elevation from the place on the map, so a ride in Bolivia would show up 6 hours early with made-up climbing. A virtual ride keeps the computer's local time and the flat elevation written in the file, and is never matched against real segments.
-  - The Salar is the flattest place on Earth, and every point of the loop was checked against SRTM elevation data to stay on the salt.
+  - The Salar is the flattest place on Earth. A drawing grows with the ride, so a very long ride can spill past the edge of the salt on the map, but the elevation always comes from the file and stays flat.
 
   Strava uses the distance from the file, not the length of the route, so the made-up route never changes your kilometres. Power, cadence and speed stay as recorded.
 - **CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
@@ -86,6 +86,6 @@ The code is split by job:
 - `js/ride.js` holds the ride logic: auto-pause, simulated speed, totals, 3-second power, rolling averages, best efforts
 - `js/zones.js` defines the seven power zones and adds up the time spent in each
 - `js/charts.js` draws the bar charts on a canvas
-- `js/route.js` holds the virtual loop on the Salar de Uyuni
+- `js/route.js` holds the drawings the virtual route follows on the Salar de Uyuni (`js/outlines.js`, generated with the logos, holds the outlines of the TT and the wordmark)
 - `js/exports.js` builds the CSV, the FIT file (with Garmin's FIT SDK, loaded from a CDN on demand) and the recap image
 - `js/app.js` wires all of it to the page
