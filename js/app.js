@@ -12,7 +12,7 @@ const LIVE_BARS = 120;   // 10 minutes of 5-second bars
 const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than this
 const COLUMN_MIN = 240;  // px, narrowest column when resizing the live cards
 const CARD_MIN = 100;    // px, lowest live card
-const SWAP_TIME = 250;   // ms a card takes to slide to its new place
+const SLIDE_TIME = 250;  // ms a card or the bubble takes to slide to its new place
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
@@ -140,8 +140,9 @@ function renderLive() {
   else if (reconnecting) renderStatus("Déconnecté", "lost");
   else renderStatus(trainer.name, "on");
   const [text, kind] = bubble();
-  $("bubble").textContent = text;
-  $("bubble").className = `bubble ${kind}`;
+  $("bubble-text").textContent = text;
+  $("bubble").hidden = !text;
+  $("bubble").dataset.kind = kind;
   document.body.dataset.state = reconnecting ? "paused" : ride.state;
 
   drawChart($("live-chart"), chartMode === "all" ? rideBars() : lastBars());
@@ -188,9 +189,10 @@ function addGrips(live, card) {
   const column = card.parentElement;
   const inSide = column.classList.contains("side");
   const [top, bottom] = column.querySelectorAll(":scope > .card");
-  for (const v of ["top", "bottom"]) for (const h of ["left", "right"]) {
-    const x = (h === "right") === inSide;
-    const y = (v === "bottom") === (card === top);
+  // Corners, then edges, where "" leaves out a side: an edge only moves the border it lies on
+  for (const v of ["top", "bottom", ""]) for (const h of ["left", "right", ""]) {
+    const x = h !== "" && (h === "right") === inSide;
+    const y = v !== "" && (v === "bottom") === (card === top);
     if (!x && !y) continue;
     const grip = document.createElement("span");
     grip.className = `grip ${v} ${h}`;
@@ -278,11 +280,22 @@ function swap(a, b) {
   [a.style.flex, b.style.flex] = [b.style.flex, a.style.flex];
 }
 
-// The card is drawn at its former box, then eased into its new one
-function slide(card, from) {
-  const to = card.getBoundingClientRect();
+// The element is drawn at its former box, then eased into its new one
+function slide(el, from) {
+  const to = el.getBoundingClientRect();
   const back = `translate(${from.x - to.x}px, ${from.y - to.y}px) scale(${from.width / to.width}, ${from.height / to.height})`;
-  card.animate([{ transform: back }, { transform: "none" }], { duration: SWAP_TIME, easing: "ease-out" });
+  el.animate([{ transform: back }, { transform: "none" }], { duration: SLIDE_TIME, easing: "ease-out" });
+}
+
+// The bubble's button docks it, small, in the header; clicking it there brings it back. It stays
+// docked whatever it says next.
+function toggleDock() {
+  const bubble = $("bubble");
+  const from = bubble.getBoundingClientRect();
+  const docked = bubble.classList.toggle("docked");
+  if (docked) document.querySelector(".controls").prepend(bubble);
+  else document.body.append(bubble);
+  slide(bubble, from);
 }
 
 // Hold-to-confirm: the action runs once the button has been held for HOLD_TIME while its ring fills.
@@ -375,6 +388,8 @@ $("connect").addEventListener("click", connect);
 onHold($("stop"), finish);
 onHold($("restart"), reset);
 $("autopause").addEventListener("click", () => setAutoPause(!autoPause));
+// Only its button takes clicks in the middle of the page, and all of it once docked
+$("bubble").addEventListener("click", toggleDock);
 for (const button of document.querySelectorAll("[data-chart]")) button.addEventListener("click", () => setChartMode(button.dataset.chart));
 $("csv").addEventListener("click", () => download(csv(ride), fileName("csv")));
 $("strava").addEventListener("click", async () => {

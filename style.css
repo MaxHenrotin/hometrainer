@@ -77,6 +77,9 @@ main { flex: 1; display: flex; min-height: 0; }
 .grip.bottom { bottom: -6px; }
 .grip.left { left: -6px; }
 .grip.right { right: -6px; }
+/* Edges, between the corners */
+.grip:not(.left, .right) { left: 22px; right: 22px; width: auto; height: 12px; }
+.grip:not(.top, .bottom) { top: 22px; bottom: 22px; width: 12px; height: auto; }
 
 dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
@@ -106,17 +109,25 @@ dt { font-size: 15px; color: var(--secondary); }
 .chart .segmented { position: absolute; top: 16px; right: 18px; z-index: 1; }
 
 /* The state of the ride, floating over the middle of the app like a notification, with a deeper
-   shadow than the cards. Clicks go through it to the cards below. Its colour tells the kind of
-   message: info (blue), start (green), pause (orange) or error (red). */
-.bubble { position: fixed; top: 50%; left: 50%; z-index: 20; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(90vw, 760px); pointer-events: none; margin: 0; padding: 16px 28px; border-radius: 26px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 23px; font-weight: 600; text-align: center; }
-.bubble:empty { display: none; }
-.bubble::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); }
-.bubble.start { background: #DDF6E4; }
-.bubble.start::before { background: var(--green); }
-.bubble.pause { background: #FFEBD2; }
-.bubble.pause::before { background: var(--orange); }
-.bubble.error { background: #FFDCDA; }
-.bubble.error::before { background: var(--red); }
+   shadow than the cards. Clicks go through it to the cards below, except on its dock button. Its
+   colour tells the kind of message: info (blue), start (green), pause (orange) or error (red).
+   Centred by its margins rather than a transform, which is left to the docking animation. */
+.bubble { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; gap: 16px; width: max-content; height: max-content; max-width: min(90vw, 900px); margin: auto; padding: 24px 60px 24px 36px; border-radius: 32px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 30px; font-weight: 600; text-align: center; transform-origin: 0 0; pointer-events: none; }
+.bubble::before { content: ""; flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); }
+.bubble[data-kind="start"] { background: #DDF6E4; }
+.bubble[data-kind="start"]::before { background: var(--green); }
+.bubble[data-kind="pause"] { background: #FFEBD2; }
+.bubble[data-kind="pause"]::before { background: var(--orange); }
+.bubble[data-kind="error"] { background: #FFDCDA; }
+.bubble[data-kind="error"]::before { background: var(--red); }
+.dock { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.07); color: var(--secondary); cursor: pointer; pointer-events: auto; }
+.dock:hover { background: rgba(0, 0, 0, 0.12); }
+.dock svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+/* Docked: a small pill in the header, left of the auto-pause switch */
+.bubble.docked { position: static; width: auto; height: auto; max-width: 420px; min-height: 38px; margin: 0; padding: 6px 14px; gap: 8px; border-radius: 19px; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; pointer-events: auto; }
+.bubble.docked::before { width: 8px; height: 8px; }
+.bubble.docked span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bubble.docked .dock { display: none; }
 
 .totals { container-type: inline-size; display: grid; align-content: center; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 22px; }
 .totals dd { font-size: clamp(28px, 13.3cqw, 50px); font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
@@ -147,11 +158,11 @@ dt { font-size: 15px; color: var(--secondary); }
 .button.primary { background: var(--ink); color: var(--card); }
 .button.primary:hover { background: #333336; }
 .button:disabled { opacity: 0.4; cursor: default; }
-.button:focus-visible, .segmented button:focus-visible, .switch:focus-visible, .pill input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.button:focus-visible, .segmented button:focus-visible, .switch:focus-visible, .dock:focus-visible, .pill input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
 .downloads { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
 .downloads .button { padding: 0 16px; font-size: 15px; white-space: nowrap; }
 
-/* The chart window and auto-pause only matter during a ride */
+/* The auto-pause switch and the bubble only matter during a ride */
 body[data-screen="summary"] .live-only { display: none; }
 
 .button.accent { background: var(--accent); color: var(--card); }
