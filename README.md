@@ -1,4 +1,10 @@
-# Wattamax
+<h1>
+  <img src="assets/wattamax-icon-light.svg" alt="" height="56">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/wattamax-wordmark-white.svg">
+    <img src="assets/wattamax-wordmark.svg" alt="Wattamax" height="28">
+  </picture>
+</h1>
 
 A web page that connects to a smart bike trainer over Bluetooth and shows your power, speed and cadence while you ride. At the end you get a summary, a recap image, and files for Strava or your own analysis. You don't need an account or a subscription, and there's nothing to install.
 

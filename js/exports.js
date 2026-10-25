@@ -90,6 +90,11 @@ const PNG = { bg: "#F5F5F7", card: "#FFFFFF", ink: "#1D1D1F", secondary: "#6E6E7
 
 export async function recapImage(ride, weight, colorOf) {
   await Promise.all(["600 100px Inter", "500 30px Inter", "400 30px Inter"].map((font) => document.fonts.load(font)));
+  const [icon, wordmark] = await Promise.all(["assets/wattamax-icon-light.svg", "assets/wattamax-wordmark.svg"].map(async (src) => {
+    const image = Object.assign(new Image(), { src });
+    await image.decode();
+    return image;
+  }));
   const summary = ride.summary();
   const canvas = Object.assign(document.createElement("canvas"), { width: 1080, height: 1350 });
   const ctx = canvas.getContext("2d");
@@ -118,7 +123,9 @@ export async function recapImage(ride, weight, colorOf) {
 
   ctx.fillStyle = PNG.bg;
   ctx.fillRect(0, 0, 1080, 1350);
-  text("Wattamax", left, 100, "600 34px", PNG.ink);
+  // Logo: the icon, then the wordmark sitting on the date's baseline
+  ctx.drawImage(icon, left, 56, 60, 60);
+  ctx.drawImage(wordmark, left + 76, 72, 28 * wordmark.width / wordmark.height, 28);
   text(ride.startedAt.toLocaleDateString("fr", { weekday: "long", day: "numeric", month: "long", year: "numeric" }), right, 100, "400 26px", PNG.secondary, "right");
 
   text("Puissance moyenne", left, 200, "400 26px", PNG.secondary);
