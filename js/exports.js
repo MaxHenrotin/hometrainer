@@ -89,7 +89,7 @@ export async function fit(ride) {
 const PNG = { bg: "#F5F5F7", card: "#FFFFFF", ink: "#1D1D1F", secondary: "#6E6E73", tertiary: "#86868B", track: "#F2F2F5" };
 
 export async function recapImage(ride, weight, colorOf) {
-  await Promise.all(["600 100px Inter", "500 30px Inter", "400 30px Inter"].map((font) => document.fonts.load(font)));
+  await Promise.all(['600 100px "Barlow Semi Condensed"', "600 30px Barlow", "500 30px Barlow"].map((font) => document.fonts.load(font)));
   const [icon, wordmark] = await Promise.all(["assets/wattamax-icon-light.svg", "assets/wattamax-wordmark.svg"].map(async (src) => {
     const image = Object.assign(new Image(), { src });
     await image.decode();
@@ -100,8 +100,8 @@ export async function recapImage(ride, weight, colorOf) {
   const ctx = canvas.getContext("2d");
   const left = 80;
   const right = 1000;
-  const text = (value, x, y, font, color, align = "left") => {
-    ctx.font = `${font} Inter, sans-serif`;
+  const text = (value, x, y, font, color, align = "left", family = "Barlow") => {
+    ctx.font = `${font} ${family}, sans-serif`;
     ctx.fillStyle = color;
     ctx.textAlign = align;
     ctx.fillText(value, x, y);
@@ -109,8 +109,8 @@ export async function recapImage(ride, weight, colorOf) {
   };
   // A number followed by its unit in smaller grey type
   const reading = (value, unit, x, y, size) => {
-    ctx.letterSpacing = `${-size * 0.04}px`;
-    const width = text(value, x, y, `600 ${size}px`, PNG.ink);
+    ctx.letterSpacing = `${-size * 0.01}px`;
+    const width = text(value, x, y, `600 ${size}px`, PNG.ink, "left", '"Barlow Semi Condensed"');
     ctx.letterSpacing = "0px";
     if (unit) text(unit, x + width + size * 0.12, y, `500 ${Math.round(size * 0.32)}px`, PNG.tertiary);
   };
@@ -126,22 +126,22 @@ export async function recapImage(ride, weight, colorOf) {
   // Logo: the icon, then the wordmark sitting on the date's baseline
   ctx.drawImage(icon, left, 56, 60, 60);
   ctx.drawImage(wordmark, left + 76, 72, 28 * wordmark.width / wordmark.height, 28);
-  text(ride.startedAt.toLocaleDateString("fr", { weekday: "long", day: "numeric", month: "long", year: "numeric" }), right, 100, "400 26px", PNG.secondary, "right");
+  text(ride.startedAt.toLocaleDateString("fr", { weekday: "long", day: "numeric", month: "long", year: "numeric" }), right, 100, "500 26px", PNG.secondary, "right");
 
-  text("Puissance moyenne", left, 200, "400 26px", PNG.secondary);
+  text("Puissance moyenne", left, 200, "500 26px", PNG.secondary);
   reading(number(summary.power), "W", left - 6, 400, 210);
   if (weight) text(`${number(summary.power / weight, 1)} W/kg`, right, 400, "500 34px", PNG.secondary, "right");
 
-  text("Cadence moyenne", left, 480, "400 24px", PNG.secondary);
+  text("Cadence moyenne", left, 480, "500 24px", PNG.secondary);
   reading(number(summary.cadence), "rpm", left, 566, 84);
-  text("Vitesse moyenne", 560, 480, "400 24px", PNG.secondary);
+  text("Vitesse moyenne", 560, 480, "500 24px", PNG.secondary);
   reading(number(summary.speed, 1), "km/h", 560, 566, 84);
 
   card(620, 190);
   [["Distance", number(summary.distance, 2), "km"], ["Durée", duration(summary.time), ""],
     ["Temps total", duration(summary.elapsed), ""], ["Calories", number(summary.calories), "kcal"]].forEach(([label, value, unit], i) => {
     const x = left + 30 + i * 230;
-    text(label, x, 690, "400 22px", PNG.secondary);
+    text(label, x, 690, "500 22px", PNG.secondary);
     reading(value, unit, x, 768, 50);
   });
 
@@ -150,7 +150,7 @@ export async function recapImage(ride, weight, colorOf) {
   const top = Math.max(200, ...records.map(([, watts]) => watts ?? 0)) * 1.05;
   records.forEach(([label, watts], i) => {
     const y = 892 + i * 38;
-    text(label, left + 30, y + 8, "400 22px", PNG.secondary);
+    text(label, left + 30, y + 8, "500 22px", PNG.secondary);
     ctx.fillStyle = PNG.track;
     ctx.beginPath();
     ctx.roundRect(230, y - 6, 580, 12, 6);
@@ -164,6 +164,6 @@ export async function recapImage(ride, weight, colorOf) {
     text(watts === null ? "–" : `${number(watts)} W`, right - 30, y + 10, "500 28px", PNG.ink, "right");
   });
 
-  text("wattamax.com", left, 1305, "400 22px", PNG.tertiary);
+  text("wattamax.com", left, 1305, "500 22px", PNG.tertiary);
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }

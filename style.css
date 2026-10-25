@@ -40,7 +40,9 @@ body {
   padding: 26px 44px 30px;
   background: var(--bg);
   color: var(--ink);
-  font-family: Inter, -apple-system, sans-serif;
+  font-family: Barlow, sans-serif;
+  font-weight: 500;  /* Barlow's regular is too thin for small grey text */
+  font-variant-numeric: tabular-nums;  /* digits of equal width, so numbers don't shift as they change */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -61,13 +63,12 @@ h1 img { display: block; }
 .pill input:placeholder-shown:not(:focus) { background: color-mix(in srgb, #FFC8C4 calc(var(--glow) * 100%), #FFE3E1); box-shadow: 0 0 0 calc(var(--glow) * 4px) rgba(255, 59, 48, calc(0.4 - var(--glow) * 0.25)); }
 .pill input:focus { background: var(--card); }
 .pill input::-webkit-outer-spin-button, .pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.status { font-weight: 500; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--z1); }
 .dot.on { background: var(--green); }
 .dot.lost { background: var(--red); }
 
 .segmented { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--fill); }
-.segmented button { padding: 6px 13px; border: 0; border-radius: 999px; background: transparent; font: 500 14px Inter, sans-serif; color: var(--secondary); cursor: pointer; }
+.segmented button { padding: 6px 13px; border: 0; border-radius: 999px; background: transparent; font: 500 14px Barlow, sans-serif; color: var(--secondary); cursor: pointer; }
 .segmented button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 
 .switch { width: 44px; height: 26px; padding: 3px; border: 0; border-radius: 13px; background: var(--ghost); cursor: pointer; transition: background 0.2s; }
@@ -105,15 +106,14 @@ dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
 .unit { margin-left: 6px; font-size: max(0.26em, 10px); font-weight: 500; letter-spacing: 0; color: var(--tertiary); }
 
-/* Digits of equal width, so numbers don't shift as they change. Only on numbers: in Inter this
-   also widens the hyphen. */
-.values, .power-line, .totals, .durations, .zone-legend, .pill input { font-variant-numeric: tabular-nums; }
+/* The big figures in Barlow's semi-condensed width, which fits wider numbers */
+.now, .totals dd { font-family: "Barlow Semi Condensed", Barlow, sans-serif; }
 
 .readings { --f: min(10.5cqw, 42cqh); padding: 24px 28px; }
 .values { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: end; }
-.now { display: flex; align-items: baseline; font-size: var(--f); font-weight: 600; letter-spacing: -0.055em; line-height: 0.95; }
+.now { display: flex; align-items: baseline; font-size: var(--f); font-weight: 600; letter-spacing: -0.01em; line-height: 0.95; }
 .now .big { font-size: calc(var(--f) * 1.38); }
-.value .average { margin-top: calc(var(--f) * 0.1); font-size: calc(var(--f) * 0.38); letter-spacing: -0.02em; color: var(--secondary); }
+.value .average { margin-top: calc(var(--f) * 0.1); font-size: calc(var(--f) * 0.38); color: var(--secondary); }
 .date { margin: 0 0 10px; font-size: 15px; color: var(--secondary); }
 
 /* Live, past a certain shape, figures stacked come out bigger than side by side, so they stack. A
@@ -164,7 +164,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble.docked .dock { display: none; }
 
 .totals { padding: 20px 22px; }
-.totals dd { font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
+.totals dd { font-weight: 600; letter-spacing: -0.01em; line-height: 1.05; }
 .totals .unit { font-size: max(0.38em, 10px); margin-left: 5px; }
 /* Live, even space around the totals: the gap between them matches the card's padding, which adds
    to the space at the edges, and their lines are trimmed to the digits so the space is the one seen */
@@ -185,7 +185,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .durations .bar { position: relative; height: 0.45em; border-radius: 0.23em; background: var(--track); overflow: hidden; }
 .durations .bar span { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 0.23em; }
 .durations .ghost { background: var(--ghost); }
-.durations .watts { font-weight: 500; letter-spacing: -0.02em; text-align: right; }
+.durations .watts { text-align: right; }
 .durations .record { font-size: max(0.55em, 10px); color: var(--tertiary); text-align: right; }
 
 .zones { display: flex; flex-direction: column; gap: 10px; padding: 20px 22px; }
@@ -195,7 +195,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .zone-legend i { width: 10px; height: 10px; border-radius: 3px; }
 .zone-legend strong { color: var(--ink); font-weight: 600; }
 
-.button { display: flex; align-items: center; justify-content: center; gap: 12px; height: 56px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--fill); color: var(--ink); font: 600 16px Inter, sans-serif; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s, background 0.15s; user-select: none; -webkit-user-select: none; touch-action: none; }
+.button { display: flex; align-items: center; justify-content: center; gap: 12px; height: 56px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--fill); color: var(--ink); font: 600 16px Barlow, sans-serif; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s, background 0.15s; user-select: none; -webkit-user-select: none; touch-action: none; }
 .button:hover { background: #DEDEE3; }
 .button:active { transform: scale(0.98); }
 .button.primary { background: var(--ink); color: var(--card); }

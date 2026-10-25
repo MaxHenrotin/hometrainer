@@ -22,7 +22,7 @@ export function drawBars(ctx, box, values, slots, colorOf, colors) {
   const inset = 8;  // keeps the top label from being cut in half
   const y = (watts) => box.y + box.h - watts / top * (box.h - inset);
 
-  ctx.font = "500 13px Inter, sans-serif";
+  ctx.font = "500 13px Barlow, sans-serif";
   ctx.textBaseline = "middle";
   const gutter = ctx.measureText(`${top} W`).width + 14;
   const plot = { x: box.x + gutter, w: box.w - gutter };
