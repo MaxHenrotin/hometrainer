@@ -3,6 +3,7 @@ const INDOOR_BIKE_DATA = 0x2ad2;
 const HEART_RATE_SERVICE = 0x180d;
 const HEART_RATE_MEASUREMENT = 0x2a37;
 const RECONNECT_DELAY = 2000;
+const HEART_RATE_TIMEOUT = 5000;  // a strap sends about once a second
 
 // Decode cadence and power from an FTMS Indoor Bike Data packet.
 // Each flag bit says whether a field is present; unused fields still have to be skipped.
@@ -21,9 +22,12 @@ function parseIndoorBikeData(view) {
 }
 
 // Decode the beats per minute from a Heart Rate Measurement packet: the first flag bit says
-// whether they take one byte or two
+// whether they take one byte or two. A strap taken off can keep sending packets, and the next two
+// bits then say it detects skin contact but has none.
 function parseHeartRate(view) {
-  return { heartRate: view.getUint8(0) & 0x01 ? view.getUint16(1, true) : view.getUint8(1) };
+  const flags = view.getUint8(0);
+  if ((flags & 0x06) === 0x04) return { heartRate: null };
+  return { heartRate: flags & 0x01 ? view.getUint16(1, true) : view.getUint8(1) };
 }
 
 // A Bluetooth device sending its readings on one characteristic. If the connection drops, it keeps
@@ -86,9 +90,21 @@ export class Trainer extends Sensor {
   }
 }
 
-// A heart rate strap, through the standard Heart Rate Service
+// A heart rate strap, through the standard Heart Rate Service. Some straps taken off stay connected
+// for a minute or two but stop sending, so the heart rate is lost after a few seconds of silence.
 export class HeartRateMonitor extends Sensor {
+  #silence;
+
   constructor(onData, onConnectionChange) {
-    super(HEART_RATE_SERVICE, HEART_RATE_MEASUREMENT, parseHeartRate, onData, onConnectionChange);
+    super(HEART_RATE_SERVICE, HEART_RATE_MEASUREMENT, parseHeartRate, (values) => {
+      clearTimeout(this.#silence);
+      this.#silence = setTimeout(() => onData({ heartRate: null }), HEART_RATE_TIMEOUT);
+      onData(values);
+    }, onConnectionChange);
+  }
+
+  disconnect() {
+    clearTimeout(this.#silence);
+    super.disconnect();
   }
 }
