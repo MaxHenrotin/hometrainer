@@ -33,7 +33,9 @@ export async function fit(ride) {
   const last = new Date(samples.at(-1).timestamp);
   const encoder = new Encoder();
 
-  encoder.onMesg(MesgNum.FILE_ID, { type: "activity", manufacturer: "development", product: 0, timeCreated: first });
+  // Strava may show the product name as the device under the activity
+  encoder.onMesg(MesgNum.FILE_ID, { type: "activity", manufacturer: "development", product: 0, productName: "Wattamax", timeCreated: first });
+  encoder.onMesg(MesgNum.DEVICE_INFO, { timestamp: first, deviceIndex: "creator", manufacturer: "development", product: 0, productName: "Wattamax" });
   encoder.onMesg(MesgNum.EVENT, { timestamp: first, event: "timer", eventType: "start" });
   samples.forEach((s, i) => {
     const previous = samples[i - 1];
