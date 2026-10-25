@@ -332,7 +332,7 @@ async function connect() {
   } catch (error) {
     // NotFoundError means the person closed the device picker
     if (error.name !== "NotFoundError") {
-      message = `Connexion impossible : ${error.message}. Vérifie que Zwift ou l'app Elite ne sont pas déjà connectés au home-trainer.`;
+      message = "Connexion impossible. Vérifie que le home-trainer est allumé et tout près, et qu'aucune autre app (Zwift, Elite…) n'y est connectée, puis réessaie.";
     }
     renderLive();
     return;
