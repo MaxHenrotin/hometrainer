@@ -41,11 +41,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Header: name, docked bubble, auto-pause, weight, FTP, connection */
-.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* Header: name, docked bubble, auto-pause, weight, FTP, connection, all wrapping as one row of
+   items aligned to the right, the name pushed to the left on its line */
+.top { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; }
 h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
-/* The controls take the rest of the line, so they wrap among themselves rather than below the name */
-.controls { flex: 1 1 0; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; min-width: 0; }
 .pill { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-size: 14px; color: var(--ink); }
 .pill input { width: 4.2em; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-weight: 600; color: var(--ink); text-align: right; -moz-appearance: textfield; }
 .pill input::placeholder { color: var(--tertiary); }

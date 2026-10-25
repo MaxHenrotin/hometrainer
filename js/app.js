@@ -290,7 +290,7 @@ function toggleDock() {
   const bubble = $("bubble");
   const from = bubble.getBoundingClientRect();
   const docked = bubble.classList.toggle("docked");
-  if (docked) document.querySelector(".controls").prepend(bubble);
+  if (docked) document.querySelector(".top h1").after(bubble);
   else document.body.append(bubble);
   slide(bubble, from);
 }
