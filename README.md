@@ -87,5 +87,6 @@ The code is split by job:
 - `js/zones.js` defines the seven power zones and adds up the time spent in each
 - `js/charts.js` draws the bar charts on a canvas
 - `js/route.js` holds the drawings the virtual route follows on the Salar de Uyuni (`js/outlines.js`, generated with the logos, holds the outlines of the TT and the wordmark)
-- `js/exports.js` builds the CSV, the FIT file (with Garmin's FIT SDK, loaded from a CDN on demand) and the recap image
+- `js/exports.js` builds the CSV, the FIT file (with Garmin's FIT SDK, a copy of which sits in `js/vendor/` and only loads when you export) and the recap image
 - `js/app.js` wires all of it to the page
+- `fonts/` holds the Barlow files the page uses, so it never asks Google Fonts for them
