@@ -375,7 +375,7 @@ function reset() {
   document.body.dataset.screen = "live";
   $("connect").hidden = false;
   $("stop").hidden = true;
-  $("strava").textContent = "Importer sur Strava";
+  $("strava").textContent = IMPORT_STRAVA;
   renderLive();
 }
 
@@ -392,6 +392,7 @@ $("autopause").addEventListener("click", () => setAutoPause(!autoPause));
 // Only its button takes clicks in the middle of the page, and all of it once docked
 $("bubble").addEventListener("click", toggleDock);
 for (const button of document.querySelectorAll("[data-chart]")) button.addEventListener("click", () => setChartMode(button.dataset.chart));
+const IMPORT_STRAVA = $("strava").textContent;  // the label from index.html, given back for each new ride
 // Browsers on iPhone and iPad, Bluefy included, ignore download links, so the file goes
 // through the share sheet, where "Enregistrer dans Fichiers" keeps it
 const saveFile = (blob, name) => ios ? navigator.share({ files: [new File([blob], name, { type: blob.type })] }) : download(blob, name);
