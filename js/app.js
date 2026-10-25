@@ -177,7 +177,7 @@ const render = () => ($("summary").hidden ? renderLive() : renderSummary());
 // A live card resizes from its corners that touch another card. Sideways moves the border between
 // the two columns; up and down moves the border between the card and the one above or below it,
 // by sharing the column's height between them. Grips depend on where the cards are, so they're
-// placed again after a swap.
+// placed again once a card is dropped.
 function placeGrips() {
   const live = $("live");
   for (const grip of live.querySelectorAll(".grip")) grip.remove();
@@ -219,55 +219,70 @@ function addGrips(live, card) {
   }
 }
 
-// Pressing a live card lifts it and it follows the pointer. Passing over another card swaps their
-// places at once, the other card sliding to the place the dragged one left. Sizes stay with the
-// places, so each card takes the size of the place it moves to.
+// Pressing a live card lifts it out of its place, which stays empty, and the card follows the
+// pointer at its own size. Passing over another card slides that card into the empty place, and
+// dropping the card moves it into the place left empty. Sizes stay with the places, so a card
+// takes the size of the place it lands in. While dragging, the card only moves by `translate`,
+// and the slides only animate `transform`, so the page isn't laid out again on every frame.
 function makeMovable(card) {
-  let grab = null;  // where the card is held, as a share of its width and height, while it's dragged
+  let start = null;  // where the pointer pressed the card, while it's dragged
+  let slot;          // the empty place the card will land in
   card.addEventListener("pointerdown", (event) => {
     if (!wide.matches || event.button !== 0 || event.target.closest(".grip, button")) return;
-    card.setPointerCapture(event.pointerId);
     const box = card.getBoundingClientRect();
-    grab = { x: (event.clientX - box.x) / box.width, y: (event.clientY - box.y) / box.height };
-    card.classList.add("lifted");
+    slot = document.createElement("div");
+    slot.className = "slot";
+    // The same padding as the card, so its place keeps the same share of the column
+    slot.style.cssText = `flex: ${card.style.flex}; padding: ${getComputedStyle(card).padding}`;
+    card.replaceWith(slot);
+    Object.assign(card.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.width}px`, height: `${box.height}px` });
+    card.classList.add("dragged");
+    // Out of the columns, so it doesn't count among their children; still in #live for its styles
+    $("live").append(card);
+    card.setPointerCapture(event.pointerId);
+    start = { x: event.clientX, y: event.clientY };
   });
   card.addEventListener("pointermove", (event) => {
-    if (!grab) return;
-    // A card still sliding away is skipped, or it would be found under the pointer and swapped back
+    if (!start) return;
+    card.style.translate = `${event.clientX - start.x}px ${event.clientY - start.y}px`;
+    // A card still sliding is skipped, or it would be found under the pointer on its way out and swapped back
     const other = document.elementsFromPoint(event.clientX, event.clientY)
       .find((el) => el !== card && el.matches("#live .card") && !el.getAnimations().length);
-    if (other) swap(card, other);
-    // The card keeps the same spot under the pointer, even when its size changes
-    card.style.translate = "";
-    const box = card.getBoundingClientRect();
-    card.style.translate = `${event.clientX - box.x - grab.x * box.width}px ${event.clientY - box.y - grab.y * box.height}px`;
+    if (!other) return;
+    const from = other.getBoundingClientRect();
+    swap(slot, other);
+    render();
+    slide(other, from);
   });
   const drop = () => {
-    if (!grab) return;
-    grab = null;
-    card.classList.remove("lifted");
-    const from = card.style.translate;
-    card.style.translate = "";
-    if (from) card.animate([{ translate: from }, { translate: "0 0" }], { duration: SWAP_TIME, easing: "ease-out" });
+    if (!start) return;
+    start = null;
+    const from = card.getBoundingClientRect();
+    card.classList.remove("dragged");
+    Object.assign(card.style, { left: "", top: "", width: "", height: "", translate: "", flex: slot.style.flex });
+    slot.replaceWith(card);
+    placeGrips();
+    render();
+    slide(card, from);
   };
   card.addEventListener("pointerup", drop);
   card.addEventListener("pointercancel", drop);
 }
 
-// The other card slides from where it was to the dragged card's place
-function swap(dragged, other) {
-  const before = other.getBoundingClientRect();
+// Swaps two elements of the columns, and their sizes with them
+function swap(a, b) {
   const mark = document.createComment("");
-  dragged.replaceWith(mark);
-  other.replaceWith(dragged);
-  mark.replaceWith(other);
-  [dragged.style.flex, other.style.flex] = [other.style.flex, dragged.style.flex];
-  placeGrips();
-  render();
-  const after = other.getBoundingClientRect();
-  const dx = before.x + before.width / 2 - after.x - after.width / 2;
-  const dy = before.y + before.height / 2 - after.y - after.height / 2;
-  other.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: SWAP_TIME, easing: "ease-out" });
+  a.replaceWith(mark);
+  b.replaceWith(a);
+  mark.replaceWith(b);
+  [a.style.flex, b.style.flex] = [b.style.flex, a.style.flex];
+}
+
+// The card is drawn at its former box, then eased into its new one
+function slide(card, from) {
+  const to = card.getBoundingClientRect();
+  const back = `translate(${from.x - to.x}px, ${from.y - to.y}px) scale(${from.width / to.width}, ${from.height / to.height})`;
+  card.animate([{ transform: back }, { transform: "none" }], { duration: SWAP_TIME, easing: "ease-out" });
 }
 
 // Hold-to-confirm: the action runs once the button has been held for HOLD_TIME while its ring fills.

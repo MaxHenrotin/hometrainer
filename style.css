@@ -99,7 +99,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .wkg strong { font-weight: 600; }
 .wkg .average { margin-left: 0.5em; font-size: 0.85em; color: var(--secondary); }
 
-.chart { position: relative; flex: 1; min-height: 180px; padding: 22px 24px 18px; }
+.chart { flex: 1; min-height: 180px; padding: 22px 24px 18px; }
 /* Out of the flow, so the drawing's size never feeds back into the layout */
 .chart canvas { position: absolute; top: 22px; left: 20px; width: calc(100% - 44px); height: calc(100% - 40px); }
 .chart.with-switch canvas { top: 66px; height: calc(100% - 84px); }
@@ -171,13 +171,14 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
 /* On a large screen the live cards share their column's height, and their contents scale with
    both sides of the card, since it can be resized */
 @media (min-width: 901px) {
-  #live .card { flex: 1 1 0; min-height: 0; user-select: none; transition: scale 0.15s, box-shadow 0.15s; }
+  #live .card, #live .slot { flex: 1 1 0; min-height: 0; }
+  #live .card { user-select: none; transform-origin: 0 0; }
   #live .side > :first-child { flex-grow: 30; }
   #live .side > :nth-child(2) { flex-grow: 70; }
   #live .column > :first-child { flex-grow: 13; }
   #live .column > :nth-child(2) { flex-grow: 87; }
-  /* A held card lifts above the others */
-  #live .card.lifted { z-index: 10; scale: 1.02; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; }
+  /* A dragged card floats above the others, at the size it had in its place */
+  #live .card.dragged { position: fixed; z-index: 10; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; will-change: translate; }
   #live .readings, #live .totals, #live .durations { container-type: size; }
   #live .readings { --f: min(10.5cqw, 42cqh); }
   #live .totals dd { font-size: min(13.3cqw, 90cqh); }
