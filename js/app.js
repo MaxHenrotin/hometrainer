@@ -58,7 +58,7 @@ function setAutoPause(on) {
   save("autoPause", on ? "on" : "off");
 }
 
-let chartMode = load("chart") === "all" ? "all" : "10min";
+let chartMode = load("chart") === "10min" ? "10min" : "all";
 function setChartMode(mode) {
   chartMode = mode;
   for (const button of document.querySelectorAll("[data-chart]")) button.setAttribute("aria-pressed", button.dataset.chart === mode);
