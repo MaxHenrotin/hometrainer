@@ -12,7 +12,7 @@ const BUCKET = 5;        // seconds of riding behind each bar of the live chart
 const LIVE_BARS = 120;   // 10 minutes of 5-second bars
 const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than this
 const COLUMN_MIN = 240;  // px, narrowest column when resizing the live cards
-const CARD_MIN = 100;    // px, lowest live card
+const CARD_MIN = 100;    // px, lowest live card, unless its stylesheet asks for more
 const SLIDE_TIME = 250;  // ms a card or the bubble takes to slide to its new place
 const DEFAULT_FTP = 200; // W, until the rider enters their own
 
@@ -238,6 +238,10 @@ function placeGrips() {
   for (const card of live.querySelectorAll(".card")) addGrips(live, card);
 }
 
+// A card can't go below its own min-height, so a resize stops there rather than push the column
+// out of the window
+const lowest = (card) => Math.max(CARD_MIN, parseFloat(getComputedStyle(card).minHeight));
+
 function addGrips(live, card) {
   const column = card.parentElement;
   const inSide = column.classList.contains("side");
@@ -254,7 +258,7 @@ function addGrips(live, card) {
     grip.addEventListener("pointerdown", (event) => {
       event.preventDefault();
       grip.setPointerCapture(event.pointerId);
-      start = { x: event.clientX, y: event.clientY, column: live.querySelector(".column").offsetWidth, top: top.offsetHeight, bottom: bottom.offsetHeight };
+      start = { x: event.clientX, y: event.clientY, column: live.querySelector(".column").offsetWidth, top: top.offsetHeight, bottom: bottom.offsetHeight, topMin: lowest(top), bottomMin: lowest(bottom) };
     });
     grip.addEventListener("pointermove", (event) => {
       if (!grip.hasPointerCapture(event.pointerId)) return;
@@ -264,7 +268,7 @@ function addGrips(live, card) {
       }
       if (y) {
         const total = start.top + start.bottom;
-        const height = Math.min(Math.max(start.top + event.clientY - start.y, CARD_MIN), total - CARD_MIN);
+        const height = Math.min(Math.max(start.top + event.clientY - start.y, start.topMin), total - start.bottomMin);
         top.style.flex = `${height} 1 ${height}px`;
         bottom.style.flex = `${total - height} 1 ${total - height}px`;
       }
