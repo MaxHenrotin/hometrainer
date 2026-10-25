@@ -1,6 +1,7 @@
-// Size the canvas buffer to its CSS size and the screen density, return a context in CSS pixels
+// Size the canvas buffer to its CSS size and the screen density, return a context in CSS pixels.
+// The layout size ignores transforms, so a card sliding to its place doesn't skew the drawing.
 export function fitCanvas(canvas) {
-  const { width, height } = canvas.getBoundingClientRect();
+  const { clientWidth: width, clientHeight: height } = canvas;
   canvas.width = width * devicePixelRatio;
   canvas.height = height * devicePixelRatio;
   const ctx = canvas.getContext("2d");

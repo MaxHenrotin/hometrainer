@@ -215,7 +215,6 @@ function addGrips(live, card) {
         top.style.flex = `${height} 1 ${height}px`;
         bottom.style.flex = `${total - height} 1 ${total - height}px`;
       }
-      render();
     });
     card.append(grip);
   }
@@ -253,7 +252,6 @@ function makeMovable(card) {
     if (!other) return;
     const from = other.getBoundingClientRect();
     swap(slot, other);
-    render();
     slide(other, from);
   });
   const drop = () => {
@@ -264,7 +262,6 @@ function makeMovable(card) {
     Object.assign(card.style, { left: "", top: "", width: "", height: "", translate: "", flex: slot.style.flex });
     slot.replaceWith(card);
     placeGrips();
-    render();
     slide(card, from);
   };
   card.addEventListener("pointerup", drop);
@@ -398,7 +395,10 @@ $("strava").addEventListener("click", async () => {
   download(await fit(ride), fileName("fit"));
 });
 $("png").addEventListener("click", async () => download(await recapImage(ride, weight(), colorOf), fileName("png")));
-addEventListener("resize", render);
+
+// A chart is drawn again whenever its size changes: the window, or a card resized or moved
+const resizes = new ResizeObserver(render);
+for (const canvas of document.querySelectorAll("canvas")) resizes.observe(canvas);
 
 // Ask before closing the tab during a ride or on its summary, so a ride isn't lost before it's downloaded
 addEventListener("beforeunload", (event) => {

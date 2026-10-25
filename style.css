@@ -41,7 +41,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Header: name, chart window, auto-pause, weight, FTP, connection */
+/* Header: name, docked bubble, auto-pause, weight, FTP, connection */
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -55,9 +55,9 @@ h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.0
 @keyframes glow { to { --glow: 1; } }
 .pill input { animation: glow 0.8s ease-in-out infinite alternate; }
 .pill input:placeholder-shown:not(:focus) { background: color-mix(in srgb, #FFC8C4 calc(var(--glow) * 100%), #FFE3E1); box-shadow: 0 0 0 calc(var(--glow) * 4px) rgba(255, 59, 48, calc(0.4 - var(--glow) * 0.25)); }
-.pill input:focus { outline: 2px solid var(--blue); outline-offset: 0; background: var(--card); }
+.pill input:focus { background: var(--card); }
 .pill input::-webkit-outer-spin-button, .pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.status { color: var(--ink); font-weight: 500; }
+.status { font-weight: 500; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--z1); }
 .dot.on { background: var(--green); }
 .dot.lost { background: var(--red); }
@@ -96,7 +96,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .values, .power-line, .totals, .durations, .zone-legend, .pill input { font-variant-numeric: tabular-nums; }
 
 /* Number sizes follow the width the readings actually get */
-.readings { --f: clamp(44px, 10.5cqw, 96px); container-type: inline-size; align-content: center; padding: 24px 28px; }
+.readings { --f: clamp(44px, 10.5cqw, 96px); container-type: inline-size; padding: 24px 28px; }
 .values { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: end; }
 .now { display: flex; align-items: baseline; font-size: var(--f); font-weight: 600; letter-spacing: -0.055em; line-height: 0.95; }
 .now .big { font-size: calc(var(--f) * 1.38); }
@@ -108,7 +108,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .wkg strong { font-weight: 600; }
 .wkg .average { margin-left: 0.5em; font-size: 0.85em; color: var(--secondary); }
 
-.chart { flex: 1; min-height: 180px; padding: 22px 24px 18px; }
+.chart { flex: 1; min-height: 180px; }
 /* Out of the flow, so the drawing's size never feeds back into the layout */
 .chart canvas { position: absolute; top: 22px; left: 20px; width: calc(100% - 44px); height: calc(100% - 40px); }
 .chart.with-switch canvas { top: 66px; height: calc(100% - 84px); }
@@ -135,7 +135,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble.docked span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bubble.docked .dock { display: none; }
 
-.totals { container-type: inline-size; display: grid; align-content: center; padding: 20px 22px; }
+.totals { container-type: inline-size; padding: 20px 22px; }
 .totals dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .totals dd { font-size: clamp(28px, 13.3cqw, 50px); font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
 .totals .unit { font-size: 0.38em; margin-left: 5px; }
@@ -164,6 +164,8 @@ dt { font-size: 15px; color: var(--secondary); }
 .button:active { transform: scale(0.98); }
 .button.primary { background: var(--ink); color: var(--card); }
 .button.primary:hover { background: #333336; }
+.button.accent { background: var(--accent); color: var(--card); }
+.button.accent:hover { background: #F04A24; }
 .button:disabled { opacity: 0.4; cursor: default; }
 .button:focus-visible, .segmented button:focus-visible, .switch:focus-visible, .dock:focus-visible, .pill input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
 .downloads { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
@@ -171,9 +173,6 @@ dt { font-size: 15px; color: var(--secondary); }
 
 /* The auto-pause switch and the bubble only matter during a ride */
 body[data-screen="summary"] .live-only { display: none; }
-
-.button.accent { background: var(--accent); color: var(--card); }
-.button.accent:hover { background: #F04A24; }
 
 /* Hold-to-confirm: the ring fills over 2 seconds while the button is held */
 .ring { flex: none; width: 20px; height: 20px; transform: rotate(-90deg); }
@@ -183,8 +182,8 @@ body[data-screen="summary"] .live-only { display: none; }
 .hold.holding .progress { stroke-dashoffset: 0; transition: stroke-dashoffset 2s linear; }
 
 /* Readings fade while the ride is paused, so a glance is enough to see it */
-body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused"] #live .totals > :not(.grip) { opacity: 0.45; }
-#live .readings > *, #live .totals > * { transition: opacity 0.3s; }
+#live .figures, #live .totals dl { transition: opacity 0.3s; }
+body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
 
 /* On a large screen the live cards share their column's height, and their contents scale with
    both sides of the card, since it can be resized */
@@ -199,7 +198,10 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
   #live .card.dragged { position: fixed; z-index: 10; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; will-change: translate; }
   #live .readings, #live .totals, #live .durations { container-type: size; }
   #live .readings { --f: min(10.5cqw, 42cqh); }
-  #live .totals dd { font-size: min(13.3cqw, 90cqh); }
+  /* Even space around the totals: the gap between them matches the card's padding, which adds to
+     the space at the edges, and their lines are trimmed to the digits so the space is the one seen */
+  #live .totals dl { display: flex; align-items: center; justify-content: space-evenly; gap: 20px 22px; height: 100%; }
+  #live .totals dd { font-size: min((100cqw - 22px) * 0.145, 100cqh); text-box: trim-both cap alphabetic; }
   #live .durations li { font-size: min(5.9cqw, 5.5cqh); }
   /* Past a certain shape, figures stacked come out bigger than side by side, so they stack. A card
      can't restyle its own layout from its shape, only its children's, hence the rules on them. */
@@ -213,9 +215,9 @@ body[data-state="paused"] #live .readings > :not(.grip), body[data-state="paused
     #live .power-line { margin-top: 0; }
     #live .power-line:not(:has(> :not([hidden]))) { display: none; }
   }
-  @container (aspect-ratio < 3.08) {
-    #live .totals dl { display: flex; flex-direction: column; justify-content: space-evenly; gap: 20px; height: 100%; text-align: center; }
-    #live .totals dd { font-size: min(24cqw, (100cqh - 20px) * 0.46); }
+  @container (aspect-ratio < 3.5) {
+    #live .totals dl { flex-direction: column; }
+    #live .totals dd { font-size: min(27cqw, (100cqh - 20px) * 0.6); }
   }
 }
 
