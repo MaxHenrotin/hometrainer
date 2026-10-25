@@ -142,7 +142,9 @@ dt { font-size: 15px; color: var(--secondary); }
    between two figures matches the card's vertical padding, which adds to the space above and
    below. The power line stays on one line when the card is wide enough for it at 15 px, and
    otherwise puts each item on a line of its own. Either way its height is known, even at its
-   floor, and the figures' size leaves room for it. */
+   floor, and the figures' size leaves room for it: the figures stand 4.88 f high stacked (6.39
+   with a heart rate) and 3.375 f two by two, the line 0.44 f or 18 px on one line, and 1.2 f or
+   60 px on three, plus the gaps. */
 @container (aspect-ratio < 1.26) and (height > 255px) {
   .figures:not(:has(.heart:not([hidden]))) {
     --f: min(28cqw, (100cqh - 90px) * 0.205, (100cqh - 72px) * 0.188);
@@ -152,7 +154,7 @@ dt { font-size: 15px; color: var(--secondary); }
     & > :is(.power-line, .zones) { margin-top: 0; }
     @container (width <= 368px) {
       --f: min(28cqw, (100cqh - 132px) * 0.205, (100cqh - 72px) * 0.164);
-      & .power-line { flex-flow: column nowrap; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
+      & .power-line { flex-direction: column; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
     }
   }
 }
@@ -165,7 +167,7 @@ dt { font-size: 15px; color: var(--secondary); }
     & > :is(.power-line, .zones) { margin-top: 0; }
     @container (width <= 368px) {
       --f: min(15cqw, (100cqh - 108px) * 0.296, (100cqh - 48px) * 0.218);
-      & .power-line { flex-flow: column nowrap; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
+      & .power-line { flex-direction: column; gap: 0.2em; font-size: max(calc(var(--f) * 0.3), 15px); }
     }
   }
 }
@@ -181,7 +183,7 @@ dt { font-size: 15px; color: var(--secondary); }
 
 /* On one line, the line never grows wider than the card, which fits its longest content (about
    21.6 em of text and two 22 px gaps). Its 15 px floor only gives way in a row too narrow for it. */
-.power-line { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px 22px; min-height: calc(var(--f) * 0.44); margin-top: calc(var(--f) * 0.19); font-size: min(max(calc(var(--f) * 0.3), 15px), (100cqw - 44px) / 21.6); }
+.power-line { display: flex; align-items: center; gap: 22px; min-height: calc(var(--f) * 0.44); margin-top: calc(var(--f) * 0.19); font-size: min(max(calc(var(--f) * 0.3), 15px), (100cqw - 44px) / 21.6); }
 .zone { font-weight: 600; }
 .power-line strong { font-weight: 600; }
 .wkg .average { margin-left: 0.5em; font-size: 0.85em; color: var(--secondary); }
