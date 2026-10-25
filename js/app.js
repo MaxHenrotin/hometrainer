@@ -417,8 +417,26 @@ for (const card of $("live").querySelectorAll(".card")) makeMovable(card);
 setAutoPause(autoPause);
 setChartMode(chartMode);
 reset();
+// What to do without Web Bluetooth, told for the browser at hand. iPadOS passes for a Mac, but a Mac has no touch screen
+function noBluetoothMessage() {
+  const agent = navigator.userAgent;
+  const useChrome = "Ouvre cette page dans Google Chrome ou Microsoft Edge.";
+  if (/iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1)) {
+    return "Sur iPhone et iPad, aucun navigateur ne gère le Bluetooth, pas même Chrome. Installe l'app gratuite Bluefy depuis l'App Store et ouvre cette page dedans.";
+  }
+  if (navigator.brave) {
+    return "Brave coupe le Bluetooth par défaut. Copie brave://flags/#brave-web-bluetooth-api dans la barre d'adresse, passe l'option sur « Enabled » et relance Brave. Tu peux aussi ouvrir cette page dans Google Chrome ou Microsoft Edge.";
+  }
+  if (/Firefox\//.test(agent)) return `Firefox ne gère pas le Bluetooth. ${useChrome}`;
+  if (!/Chrome|Chromium/.test(agent) && /Safari/.test(agent)) return `Safari ne gère pas le Bluetooth. ${useChrome}`;
+  if (/Linux/.test(agent) && !/Android/.test(agent)) {
+    return "Sous Linux, Chrome cache le Bluetooth derrière une option. Copie chrome://flags/#enable-experimental-web-platform-features dans la barre d'adresse, passe l'option sur « Enabled » et relance le navigateur.";
+  }
+  return "Ce navigateur ne gère pas le Bluetooth. Ouvre cette page dans Google Chrome ou Microsoft Edge sur un ordinateur, ou dans Chrome sur Android.";
+}
+
 if (!navigator.bluetooth) {
   $("connect").disabled = true;
-  message = "Ce navigateur ne gère pas le Bluetooth. Ouvre cette page dans Google Chrome ou Microsoft Edge sur un ordinateur. Sous Linux, active d'abord l'option « Experimental Web Platform features » dans chrome://flags.";
+  message = noBluetoothMessage();
   renderLive();
 }
