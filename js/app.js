@@ -67,13 +67,15 @@ function buildRows(id, labels) {
     + '<span class="bar"><span class="ghost"></span><span class="fill"></span></span><span class="watts"></span><span class="record"></span></li>').join("");
 }
 
-// `rows` holds, per duration, the watts to draw and the record behind them (null when there's none yet)
+// `rows` holds, per duration, the watts to draw and the record behind them (null when there's none yet).
+// The longest bar fills its track, and the record's paler bar takes the colour of its zone.
 function fillRows(id, rows) {
-  const top = Math.max(200, ...rows.flatMap((r) => [r.value ?? 0, r.record ?? 0])) * 1.05;
+  const top = Math.max(1, ...rows.flatMap((r) => [r.value ?? 0, r.record ?? 0]));
   $(id).querySelectorAll("li").forEach((li, i) => {
     const { value, record } = rows[i];
     const [ghost, fill] = li.querySelectorAll(".bar span");
     ghost.style.width = `${(record ?? 0) / top * 100}%`;
+    ghost.style.background = record === null ? "" : `color-mix(in srgb, ${colorOf(record)} 35%, transparent)`;
     fill.style.width = `${(value ?? 0) / top * 100}%`;
     fill.style.background = value === null ? "" : colorOf(value);
     li.querySelector(".watts").textContent = value === null ? "–" : number(value);
@@ -114,7 +116,7 @@ function bubble() {
   return ["", ""];
 }
 
-// A power figure takes the colour of its zone, named under it
+// A power figure takes the colour of its zone, named under it in the same colour
 function zoneOf(watts) {
   if (!ftp()) return { color: "", name: "" };
   const zone = zoneIndex(watts, ftp());
@@ -122,7 +124,7 @@ function zoneOf(watts) {
 }
 
 function renderZone(figure, label, { color, name }) {
-  $(figure).style.color = color;
+  $(figure).style.color = $(label).style.color = color;
   $(label).textContent = name;
   $(label).hidden = !name;
 }

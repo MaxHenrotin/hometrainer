@@ -169,8 +169,8 @@ export async function recapImage(view, labels, colorOf) {
   const f = Math.min(0.105 * 692, zones ? (readings - 40) * 0.4 : 0.42 * readings);
   const line = Math.max(f * 0.3, 15);
   const legend = Math.max(f * 0.22, 13);
-  const height = f * 1.31 + f * 0.19 + Math.max(f * 0.44, line * 1.2) + (zones ? f * 0.3 + 20 + legend * 1.2 : 0);
-  let y = 106 + (readings - height) / 2 + f * 1.23;
+  const content = f * 1.31 + f * 0.19 + Math.max(f * 0.44, line * 1.2) + (zones ? f * 0.3 + 20 + legend * 1.2 : 0);
+  let y = 106 + (readings - content) / 2 + f * 1.23;
   [[view.power, "W", f * 1.38, view.zone.color || PNG.ink], [view.cadence, "rpm", f], [view.speed, "km/h", f]]
     .forEach(([value, unit, size, color = PNG.ink], i) => reading(value, unit, [72, 349.7, 568.8][i], y, size, color, 0.26 * f / size));
   y += f * 0.02 + f * 0.19 + Math.max(f * 0.44, line * 1.2) / 2 + line * 0.35;
@@ -178,7 +178,7 @@ export async function recapImage(view, labels, colorOf) {
   let x = 72;
   if (view.zone.name) {
     font(line, 600);
-    x += text(view.zone.name, x, y, PNG.ink) + 22;
+    x += text(view.zone.name, x, y, view.zone.color) + 22;
   }
   if (view.wkg) runs([[view.wkg, PNG.ink, 600], [" W/kg", PNG.ink, 500]], x, y, line);
   if (zones) {
@@ -209,29 +209,40 @@ export async function recapImage(view, labels, colorOf) {
   card(44, chart, 748, 690 - chart);
   ctx.textAlign = "left";
   drawBars(ctx, { x: 64, y: chart + 22, w: 704, h: 690 - chart - 40 }, view.bars.bars, Math.max(view.bars.slots, 1), colorOf, { grid: PNG.track, label: PNG.tertiary });
+  ctx.textBaseline = "alphabetic";  // the chart leaves it on "middle"
 
-  // Right column: distance and duration, with the total time and calories under them, then the records
-  card(816, 82, 420, 119);
-  const total = Math.min((376 - 22) * 0.145, 79 - 32);
-  font(total, 600, BIG);
+  // Right column: the four totals, then the records. The cards share 514 px 30/70 once their
+  // padding is set aside.
+  const box = 514 * 0.3;  // the totals' content height
+  card(816, 82, 420, box + 40);
+  const size = Math.min((376 - 22) * 0.145, (box - 60) * 0.7);
+  font(size, 600, BIG);
   const cap = ctx.measureText("0").actualBoundingBoxAscent;
-  const totals = [[view.distance, "km"], [view.duration, ""]];
-  const widths = totals.map(([value, unit]) => readingWidth(value, unit, total, 0.38));
-  const space = (376 - widths[0] - widths[1]) / 3;
-  x = 838 + space;
-  totals.forEach(([value, unit], i) => {
-    reading(value, unit, x, 102 + (47 + cap) / 2, total, PNG.ink, 0.38);
-    x += widths[i] + space;
+  // One in each corner, in two columns as wide as their widest figure, the times with a word under them
+  const cells = [[view.distance, "km"], [view.duration, "", "en mouvement"], [view.calories, "kcal"], [view.elapsed, "", "total"]];
+  const columns = [0, 1].map((c) => Math.max(...[c, c + 2].map((i) => readingWidth(cells[i][0], cells[i][1], size, 0.38))));
+  const spaceX = (376 - columns[0] - columns[1] - 22) / 3;
+  const rowHeight = cap + 6 + 14 * 1.2;
+  const spaceY = (box - 2 * rowHeight - 14) / 3;
+  cells.forEach(([value, unit, word], i) => {
+    const left = 838 + spaceX + (i % 2) * (columns[0] + 22 + spaceX);
+    const rowTop = 102 + spaceY + Math.floor(i / 2) * (rowHeight + 14 + spaceY);
+    reading(value, unit, left, rowTop + cap, size, PNG.ink, 0.38);
+    if (word) {
+      font(14);
+      text(word, left, rowTop + cap + 6 + 13.5, PNG.tertiary);
+    }
   });
-  const more = [["temps total ", PNG.secondary, 500], [view.elapsed, PNG.ink, 600], [" · ", PNG.secondary, 500], [view.calories, PNG.ink, 600], [" kcal", PNG.secondary, 500]];
-  runs(more, 1026 - runsWidth(more, 15) / 2, 177, 15);
 
-  card(816, 215, 420, 475);
-  const row = Math.min(0.059 * 376, 0.07 * 435);
-  const top = Math.max(200, ...view.records.map((watts) => watts ?? 0)) * 1.05;
+  const records = 82 + box + 40 + 14;
+  card(816, records, 420, 690 - records);
+  const list = 690 - records - 40;  // the records' content height
+  const row = Math.min(0.059 * 376, 0.07 * list);
+  // The longest bar fills its track
+  const top = Math.max(1, ...view.records.map((watts) => watts ?? 0));
   const bar = 376 - 4.6 * row - 3 * 0.55 * row - Math.max(1.6 * row, 22);
   view.records.forEach((watts, i) => {
-    const middle = 235 + row * 0.6 + i * (435 - row * 1.2) / (labels.length - 1);
+    const middle = records + 20 + row * 0.6 + i * (list - row * 1.2) / (labels.length - 1);
     font(Math.max(row * 0.6, 10));
     text(labels[i], 838, middle + row * 0.21, PNG.secondary);
     const start = 838 + 2.3 * row + 0.55 * row;

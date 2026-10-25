@@ -89,7 +89,7 @@ main { flex: 1; display: flex; min-height: 0; }
 .readings, .chart { min-height: 100px; }
 .chart.with-switch { min-height: 140px; }
 #live .totals { min-height: 56px; }
-#summary .totals { min-height: 88px; }
+#summary .totals { min-height: 130px; }
 .durations { min-height: 200px; }
 /* Corner grips of the live cards: invisible, the cursor shows where to drag */
 .grip { position: absolute; z-index: 2; width: 28px; height: 28px; touch-action: none; }
@@ -159,21 +159,23 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble.docked span { min-width: 0; max-width: 380px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bubble.docked .dock { display: none; }
 
-/* The summary adds a line under the totals, and --more is the height it takes from them */
-.totals { --more: 0px; display: flex; flex-direction: column; gap: 14px; padding: 20px 22px; }
+.totals { padding: 20px 22px; }
 .totals dd { font-weight: 600; letter-spacing: -0.01em; line-height: 1.05; }
 .totals .unit { font-size: max(0.38em, 10px); margin-left: 5px; }
 /* Even space around the totals: the gap between them matches the card's padding, which adds to
    the space at the edges, and their lines are trimmed to the digits so the space is the one seen */
-.totals dl { flex: 1; display: flex; align-items: center; justify-content: space-evenly; gap: 20px 22px; }
-.totals dd { font-size: min((100cqw - 22px) * 0.145, 100cqh - var(--more)); text-box: trim-both cap alphabetic; }
+#live .totals dl { display: flex; align-items: center; justify-content: space-evenly; gap: 20px 22px; height: 100%; }
+.totals dd { font-size: min((100cqw - 22px) * 0.145, 100cqh); text-box: trim-both cap alphabetic; }
 @container (aspect-ratio < 3.5) {
-  .totals dl { flex-direction: column; }
-  .totals dd { font-size: min(27cqw, (100cqh - 20px - var(--more)) * 0.6); }
+  #live .totals dl { flex-direction: column; }
+  #live .totals dd { font-size: min(27cqw, (100cqh - 20px) * 0.6); }
 }
-#summary .totals { --more: 32px; }
-.more { margin: 0; font-size: 15px; color: var(--secondary); text-align: center; }
-.more strong { font-weight: 600; color: var(--ink); }
+/* The summary's four totals, one in each corner and all the same size. The two times are told
+   apart by a word under them. */
+#summary .totals dl { display: grid; grid-template-columns: repeat(2, auto); align-items: start; justify-content: space-evenly; align-content: space-evenly; gap: 14px 22px; height: 100%; }
+#summary .totals dl > div { display: flex; flex-direction: column-reverse; gap: 6px; }
+#summary .totals dt { font-size: 14px; line-height: 1.2; color: var(--tertiary); }
+#summary .totals dd { font-size: min((100cqw - 22px) * 0.145, (100cqh - 60px) * 0.7); }
 
 /* Rolling averages (live) and best efforts (summary): one row per duration */
 .durations { display: flex; flex-direction: column; justify-content: space-between; margin: 0; padding: 20px 22px; list-style: none; }
@@ -181,7 +183,6 @@ dt { font-size: 15px; color: var(--secondary); }
 .durations .label { font-size: max(0.6em, 10px); color: var(--secondary); }
 .durations .bar { position: relative; height: 0.45em; border-radius: 0.23em; background: var(--track); overflow: hidden; }
 .durations .bar span { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 0.23em; }
-.durations .ghost { background: var(--ghost); }
 .durations .watts { text-align: right; }
 .durations .record { font-size: max(0.55em, 10px); color: var(--tertiary); text-align: right; }
 
@@ -235,8 +236,8 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
   /* The time in zones takes room in the summary's readings */
   #summary .side:has(.zones:not([hidden])) > :first-child { flex-grow: 40; }
   #summary .side:has(.zones:not([hidden])) > :nth-child(2) { flex-grow: 60; }
-  #summary .column > :first-child { flex-grow: 20; }
-  #summary .column > :nth-child(2) { flex-grow: 80; }
+  #summary .column > :first-child { flex-grow: 30; }
+  #summary .column > :nth-child(2) { flex-grow: 70; }
   /* A dragged card floats above the others, at the size it had in its place */
   #live .card.dragged { position: fixed; z-index: 10; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); cursor: grabbing; will-change: translate; }
 }
@@ -272,7 +273,7 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
   #live .durations { flex-grow: 40; }
   #summary .readings { flex-grow: 28; }
   #summary .chart { flex-grow: 24; }
-  #summary .totals { flex-grow: 14; }
+  #summary .totals { flex-grow: 18; }
   #summary .durations { flex-grow: 34; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -111,13 +111,12 @@
     </div>
 
     <aside class="column">
-      <div class="card totals">
-        <dl>
-          <div><dt class="sr-only">Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
-          <div><dt class="sr-only">Durée</dt><dd id="s-duration"></dd></div>
-        </dl>
-        <p class="more">temps total <strong id="s-elapsed"></strong> · <strong id="s-calories"></strong> kcal</p>
-      </div>
+      <div class="card totals"><dl>
+        <div><dt class="sr-only">Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
+        <div><dt>en mouvement</dt><dd id="s-duration"></dd></div>
+        <div><dt class="sr-only">Calories</dt><dd><span id="s-calories"></span><span class="unit">kcal</span></dd></div>
+        <div><dt>total</dt><dd id="s-elapsed"></dd></div>
+      </dl></div>
       <ol id="records" class="card durations" aria-label="Records de la séance"></ol>
       <div class="downloads">
         <button type="button" id="strava" class="button strava">Importer sur Strava</button>
