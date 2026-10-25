@@ -10,6 +10,9 @@ const HOLD_TIME = 2000;  // ms, the same as the ring animation in style.css
 const BUCKET = 5;        // seconds of riding behind each bar of the live chart
 const LIVE_BARS = 120;   // 10 minutes of 5-second bars
 const MAX_BARS = 120;    // whole-ride charts merge bars to never draw more than this
+const COLUMN_MIN = 320;  // px, narrowest right column when resizing the live cards
+const SIDE_MIN = 480;    // px, narrowest left column
+const NEIGHBOUR_MIN = 300;  // px, the least height the chart or the durations give up to the card above
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
@@ -170,6 +173,40 @@ function renderSummary() {
 
 const render = () => ($("summary").hidden ? renderLive() : renderSummary());
 
+// A live card resizes from its corners that touch another card. Sideways moves the border between
+// the two columns; up and down moves the border between the card and the one above or below it,
+// and only the top card gets a height, the bottom one taking what's left.
+function makeResizable(card) {
+  const live = $("live");
+  const column = card.parentElement;
+  const inSide = column.classList.contains("side");
+  const [top, bottom] = column.querySelectorAll(":scope > .card");
+  for (const v of ["top", "bottom"]) for (const h of ["left", "right"]) {
+    const x = (h === "right") === inSide;
+    const y = (v === "bottom") === (card === top);
+    if (!x && !y) continue;
+    const grip = document.createElement("span");
+    grip.className = `grip ${v} ${h}`;
+    grip.style.cursor = x && y ? ((v === "top") === (h === "left") ? "nwse-resize" : "nesw-resize") : x ? "ew-resize" : "ns-resize";
+    let start;
+    grip.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      grip.setPointerCapture(event.pointerId);
+      start = { x: event.clientX, y: event.clientY, column: live.querySelector(".column").offsetWidth, top: top.offsetHeight, bottom: bottom.offsetHeight };
+    });
+    grip.addEventListener("pointermove", (event) => {
+      if (!grip.hasPointerCapture(event.pointerId)) return;
+      if (x) {
+        const widest = live.clientWidth - parseFloat(getComputedStyle(live).columnGap) - SIDE_MIN;
+        live.style.setProperty("--column", `${Math.min(Math.max(start.column - (event.clientX - start.x), COLUMN_MIN), widest)}px`);
+      }
+      if (y) top.style.flex = `0 0 ${Math.min(start.top + event.clientY - start.y, start.top + start.bottom - NEIGHBOUR_MIN)}px`;
+      render();
+    });
+    card.append(grip);
+  }
+}
+
 // Hold-to-confirm: the action runs once the button has been held for HOLD_TIME while its ring fills.
 // It replaces confirmation dialogs for actions that can't be undone.
 function onHold(button, action) {
@@ -280,6 +317,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && trainer?.active && (!wakeLock || wakeLock.released)) keepScreenOn();
 });
 
+for (const card of $("live").querySelectorAll(".card")) makeResizable(card);
 buildRows("rolling");
 buildRows("records");
 setAutoPause(autoPause);

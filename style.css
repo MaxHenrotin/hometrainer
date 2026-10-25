@@ -67,10 +67,16 @@ h1 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.0
 
 /* Two columns: readings and chart on the left, totals and durations on the right */
 main { flex: 1; display: flex; min-height: 0; }
-.screen { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; min-height: 620px; }
+.screen { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) var(--column, 420px); gap: 24px; min-height: 620px; }
 .side, .column { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; }
 .column { gap: 14px; }
-.card { background: var(--card); border-radius: 28px; box-shadow: var(--shadow); }
+.card { position: relative; background: var(--card); border-radius: 28px; box-shadow: var(--shadow); }
+/* Corner grips of the live cards: invisible, the cursor shows where to drag */
+.grip { position: absolute; z-index: 2; width: 28px; height: 28px; touch-action: none; }
+.grip.top { top: -6px; }
+.grip.bottom { bottom: -6px; }
+.grip.left { left: -6px; }
+.grip.right { right: -6px; }
 
 dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
@@ -81,7 +87,7 @@ dt { font-size: 15px; color: var(--secondary); }
 .values, .power-line, .totals, .durations, .zone-legend, .pill input { font-variant-numeric: tabular-nums; }
 
 /* Number sizes follow the width the readings actually get */
-.readings { container-type: inline-size; padding: 24px 28px; }
+.readings { container-type: inline-size; align-content: center; padding: 24px 28px; }
 .values { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: end; }
 .now { display: flex; align-items: baseline; font-size: clamp(44px, 10.5cqw, 96px); font-weight: 600; letter-spacing: -0.055em; line-height: 0.95; }
 .now .big { font-size: clamp(60px, 14.5cqw, 124px); }
@@ -106,8 +112,8 @@ dt { font-size: 15px; color: var(--secondary); }
 .bubble.pause::before { background: var(--orange); }
 .bubble.error::before { background: var(--red); }
 
-.totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 22px; }
-.totals dd { font-size: 50px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
+.totals { container-type: inline-size; display: grid; align-content: center; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 22px; }
+.totals dd { font-size: clamp(28px, 13.3cqw, 50px); font-weight: 600; letter-spacing: -0.045em; line-height: 1.05; }
 .totals .unit { font-size: 19px; margin-left: 5px; }
 #summary .totals dd { font-size: 36px; }
 #summary .totals .unit { font-size: 15px; }
@@ -160,6 +166,7 @@ body[data-state="paused"] #live .readings > *, body[data-state="paused"] #live .
   body { padding: 20px 16px; }
   .screen { grid-template-columns: 1fr; min-height: 0; }
   .chart { min-height: 220px; }
+  .grip { display: none; }
   .durations { gap: 12px; }
   .values { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .values .value:first-child { grid-column: 1 / -1; }
