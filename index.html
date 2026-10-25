@@ -15,7 +15,7 @@
 </head>
 <body>
 <header class="top">
-  <h1><img src="assets/wattamax-icon-light.svg" alt="" width="38" height="38"><img src="assets/wattamax-wordmark.svg" alt="Wattamax" width="112" height="18"></h1>
+  <h1><button type="button" id="about-open" class="brand" aria-haspopup="dialog"><img src="assets/wattamax-icon-light.svg" alt="" width="38" height="38"><img src="assets/wattamax-wordmark.svg" alt="Wattamax" width="112" height="18"></button></h1>
   <div class="pill live-only">
     <span id="autopause-label">Pause auto</span>
     <button type="button" id="autopause" class="switch" role="switch" aria-checked="true" aria-labelledby="autopause-label"><span></span></button>
@@ -128,5 +128,16 @@
   <span id="bubble-text" role="status"></span>
   <button type="button" class="dock" aria-label="Réduire la notification"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 6h6"></path></svg></button>
 </div>
+<dialog id="about" class="about" aria-labelledby="about-title" closedby="any">
+  <button type="button" class="close" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button>
+  <h2 id="about-title">À propos</h2>
+  <p>Wattamax affiche la puissance, la cadence et la vitesse de ton home-trainer pendant que tu roules. C'est gratuit, sans compte et sans pub. Je l'ai fait pour mon Elite Suito. Les autres home-trainers compatibles FTMS devraient marcher aussi, mais je n'ai pas pu les tester.</p>
+  <h3>Tes données</h3>
+  <p>Rien ne quitte ton appareil. Ton poids, ton FTP et tes réglages restent dans ton navigateur, et tes séances n'existent que dans les fichiers que tu télécharges. Il n'y a ni cookies ni statistiques de visite, et la page ne contacte aucun autre site : les polices et le code viennent de wattamax.com. Comme pour tout site, l'hébergeur (Vercel) garde des journaux techniques des visites, avec l'adresse IP et la page demandée.</p>
+  <h3>Sans garantie</h3>
+  <p>Wattamax est fourni tel quel, sans garantie d'aucune sorte. Les chiffres viennent de ton home-trainer, la vitesse et les calories sont des estimations, et tu roules sous ta propre responsabilité. Strava est une marque de Strava, Inc., qui n'a aucun lien avec Wattamax.</p>
+  <h3>Contact</h3>
+  <p>Un bug, une question ? Écris-moi sur <a href="https://github.com/MaxHenrotin/wattamax/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+</dialog>
 </body>
 </html>

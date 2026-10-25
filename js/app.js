@@ -415,6 +415,8 @@ function fileName(extension) {
 }
 
 $("connect").addEventListener("click", connect);
+$("about-open").addEventListener("click", () => $("about").showModal());
+$("about").querySelector(".close").addEventListener("click", () => $("about").close());
 onHold($("stop"), finish);
 onHold($("restart"), reset);
 $("autopause").addEventListener("click", () => setAutoPause(!autoPause));
