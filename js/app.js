@@ -90,8 +90,10 @@ function fillRows(id, rows) {
   });
 }
 
-// The whole ride, merged into at most MAX_BARS bars of a whole number of 5-second slices
+// The whole ride, merged into at most MAX_BARS bars of a whole number of 5-second slices.
+// Under 10 minutes it is drawn like the 10-minute chart, so the first bars don't fill the width.
 function rideBars() {
+  if (ride.time < LIVE_BARS * BUCKET) return lastBars();
   const size = Math.max(BUCKET, Math.ceil(ride.time / MAX_BARS / BUCKET) * BUCKET);
   const bars = ride.powerBuckets(size);
   return { bars, slots: bars.length };
