@@ -38,8 +38,22 @@ export async function fit(ride, drawing = "wordmark") {
   encoder.onMesg(MesgNum.FILE_ID, { type: "activity", manufacturer: "development", product: 0, productName: "Wattamax", timeCreated: first });
   encoder.onMesg(MesgNum.DEVICE_INFO, { timestamp: first, deviceIndex: "creator", manufacturer: "development", product: 0, productName: "Wattamax" });
   encoder.onMesg(MesgNum.EVENT, { timestamp: first, event: "timer", eventType: "start" });
-  samples.forEach((s, i) => {
-    const previous = samples[i - 1];
+  // FIT times are whole seconds, cut down from each sample's real time, and the trainer sends a bit
+  // more than one value per second. So each record takes the distance ridden at its whole second,
+  // and two samples in the same second become one record with their average power and cadence.
+  // Otherwise Strava divides distances by the wrong times and draws speed spikes.
+  const records = [];
+  for (const s of samples) {
+    const record = { ...s, distance: Math.max(0, s.distance - s.speed * (s.timestamp % 1000) / 3_600_000) };
+    const previous = records.at(-1);
+    if (previous && Math.floor(previous.timestamp / 1000) === Math.floor(s.timestamp / 1000)) {
+      records[records.length - 1] = { ...record, power: (previous.power + s.power) / 2, cadence: (previous.cadence + s.cadence) / 2 };
+    } else {
+      records.push(record);
+    }
+  }
+  records.forEach((s, i) => {
+    const previous = records[i - 1];
     // A pause shows up as more clock time than riding time between two samples
     if (previous && (s.timestamp - previous.timestamp) / 1000 - (s.time - previous.time) > 1) {
       encoder.onMesg(MesgNum.EVENT, { timestamp: new Date(previous.timestamp), event: "timer", eventType: "stopAll" });
@@ -53,7 +67,7 @@ export async function fit(ride, drawing = "wordmark") {
       enhancedAltitude: ALTITUDE,
       distance: s.distance * 1000,
       enhancedSpeed: s.speed / 3.6,
-      power: Math.max(0, s.power),
+      power: Math.max(0, Math.round(s.power)),
       cadence: Math.min(254, Math.round(s.cadence)),
       ...(s.heartRate !== null && { heartRate: s.heartRate }),
     });
