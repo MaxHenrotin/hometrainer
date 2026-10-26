@@ -108,15 +108,16 @@ main { flex: 1; display: flex; min-height: 0; }
 #live .totals { min-height: 56px; }
 #summary .totals { min-height: 130px; }
 .durations { min-height: 200px; }
-/* Corner grips of the live cards: invisible, the cursor shows where to drag */
-.grip { position: absolute; z-index: 2; width: 28px; height: 28px; touch-action: none; }
-.grip.top { top: -6px; }
-.grip.bottom { bottom: -6px; }
-.grip.left { left: -6px; }
-.grip.right { right: -6px; }
+/* Corner grips of the live cards: invisible, the cursor shows where to drag. 44 px corners are
+   big enough for a finger. */
+.grip { position: absolute; z-index: 2; width: 44px; height: 44px; touch-action: none; }
+.grip.top { top: -12px; }
+.grip.bottom { bottom: -12px; }
+.grip.left { left: -12px; }
+.grip.right { right: -12px; }
 /* Edges, between the corners */
-.grip:not(.left, .right) { left: 22px; right: 22px; width: auto; height: 12px; }
-.grip:not(.top, .bottom) { top: 22px; bottom: 22px; width: 12px; height: auto; }
+.grip:not(.left, .right) { left: 32px; right: 32px; width: auto; height: 24px; }
+.grip:not(.top, .bottom) { top: 32px; bottom: 32px; width: 24px; height: auto; }
 
 dl, dd { margin: 0; }
 dt { font-size: 15px; color: var(--secondary); }
@@ -289,7 +290,9 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
 /* Two columns on a large screen or a landscape one, where the live cards can be resized and moved.
    The same query is in app.js. */
 @media (min-width: 901px), (orientation: landscape) {
-  #live .card { user-select: none; transform-origin: 0 0; }
+  /* A finger on a card moves it: the browser neither scrolls the page nor selects text. Safari
+     only reads the prefixed user-select. */
+  #live .card { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; transform-origin: 0 0; }
   .side > :first-child { flex-grow: 30; }
   .side > :nth-child(2) { flex-grow: 70; }
   #live .column > :first-child { flex-grow: 13; }
