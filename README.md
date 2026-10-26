@@ -27,7 +27,7 @@ I only wanted to see my watts on my Elite Suito, and paying for Zwift or Rouvy j
 - Pauses by itself when you stop pedalling and starts again when you pedal.
 - Lets you rearrange the screen on a computer: resize the cards, drag them around, and the numbers grow to fill the space.
 - Gives a realistic speed. Trainers report how fast their flywheel spins, which says little about your power, so the page simulates the speed you'd ride at on a flat road.
-- Exports the ride as a recap image, a CSV, and a FIT file that Strava files as a Virtual Ride. On the Strava map the ride writes WATTAMAX.COM across the Salar de Uyuni.
+- Exports the ride as a recap image, a CSV, and a FIT file that Strava files as a Virtual Ride. On the Strava map the ride draws the Wattamax wordmark across the Salar de Uyuni.
 - Keeps your data in your browser. There are no cookies and no third-party requests; the host only counts visits, anonymously.
 
 It has only been tested with a Suito, but it should work with any trainer that supports Bluetooth FTMS, which covers most smart trainers sold in the last few years (Wahoo Kickr, Tacx Neo and Flux, Elite Direto and Justo, Saris H3...). The interface is in French.
@@ -84,7 +84,7 @@ time_s,speed_kmh,cadence_rpm,power_w,heart_rate_bpm,distance_km
 
 Getting the ride right on Strava took a few tries, because Strava fills in what an indoor file lacks on its own terms.
 
-It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route on the Salar de Uyuni, on the open salt east of Isla Incahuasi. The route is a drawing scaled to the ride's length, so every ride draws it once from start to finish. For now it always writes WATTAMAX.COM. The other drawings in `js/route.js` trace an organic loop, the TT, the full icon, the wordmark, a bike or a heart. The position stands still during pauses, which Strava counts as stopped.
+It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route on the Salar de Uyuni, on the open salt east of Isla Incahuasi. The route is a drawing scaled to the ride's length, so every ride draws it once from start to finish. For now it always draws the Wattamax wordmark. The other drawings in `js/route.js` write WATTAMAX.COM or trace an organic loop, the TT, the full icon, a bike or a heart. The position stands still during pauses, which Strava counts as stopped.
 
 For a regular ride, Strava takes the time zone and the elevation from the place on the map, so a ride in Bolivia would show up 6 hours early with made-up climbing. A virtual ride keeps the computer's local time and the flat elevation written in the file, and is never matched against real segments. The Salar is also the flattest place on Earth, which helps if a very long ride spills past the edge of the salt on the map.
 
