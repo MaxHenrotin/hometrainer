@@ -24,7 +24,7 @@ const semicircles = (degrees) => Math.round(degrees * 2 ** 31 / 180);
 // Strava keeps the local time and the flat elevation written in the file, and never matches the
 // ride against real segments. Pauses become timer stops, and the position stands still during
 // them, which is how Strava tells moving time from elapsed time.
-export async function fit(ride, drawing = "name") {
+export async function fit(ride, drawing = "url") {
   const { Encoder, Profile, Utils } = await import(FIT_SDK);
   const { MesgNum } = Profile;
   const summary = ride.summary();
