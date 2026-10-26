@@ -30,9 +30,6 @@ const GLYPHS = {
     [19, 10], [19, 0], [19, 10], [27, 10], [24, 0], [25, 10 / 3], [29, 10 / 3], [27, 10], [30, 0]],
   M: [[0, 0], [0, 10], [3, 4], [6, 10], [6, 0]],
   X: [[0, 0], [6, 10], [3, 5], [0, 10], [6, 0]],
-  C: [...arc(3, 5, 3, 5, 270, 315), ...arc(3, 5, 3, 5, 315, 45), ...arc(3, 5, 3, 5, 45, 270)],
-  O: arc(3, 5, 3, 5, 270, -90),
-  ".": [[0, 0], [0, 1.2], [1.2, 1.2], [1.2, 0], [0, 0], [1.2, 0]],
 };
 
 // Upper-case text in one line, slanted like the logo
@@ -78,7 +75,7 @@ function heart() {
 // The drawings the route can follow, each one line of [x, y] points in any unit, with y going up.
 // Adding one is adding a line here.
 const DRAWINGS = {
-  url: text("WATTAMAX.COM"),
+  name: text("WATTAMAX"),
   loop: loop(),
   tt: TT,
   icon: ICON,
