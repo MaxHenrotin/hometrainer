@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wattamax</title>
 <link rel="icon" href="assets/wattamax-icon-light.svg" type="image/svg+xml">
-<meta name="description" content="Connecte ton home-trainer en Bluetooth et vois tes watts, ta cadence et ta vitesse pendant que tu roules. Gratuit, sans compte, rien à installer.">
+<meta name="description" content="L'appli la plus simple pour ton home-trainer : tes watts, ta cadence et ta vitesse directement dans ton navigateur. Gratuit, sans compte, rien à installer.">
 <meta property="og:title" content="Wattamax">
-<meta property="og:description" content="Connecte ton home-trainer en Bluetooth et vois tes watts, ta cadence et ta vitesse pendant que tu roules. Gratuit, sans compte, rien à installer.">
+<meta property="og:description" content="L'appli la plus simple pour ton home-trainer : tes watts, ta cadence et ta vitesse directement dans ton navigateur. Gratuit, sans compte, rien à installer.">
 <meta property="og:image" content="https://wattamax.com/assets/wattamax-og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="style.css">
@@ -17,7 +17,7 @@
 <body>
 <!-- The heart drawn by the header button and next to the heart rate, and read by the recap image -->
 <svg hidden><symbol id="heart-shape" viewBox="0 0 24 24"><path d="M12 21C5 16 2 12.5 2 8.5 2 5.5 4.3 3.5 7 3.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 2.7 0 5 2 5 5 0 4-3 7.5-10 12.5z"></path></symbol></svg>
-<header class="top">
+<header class="top"><div data-nosnippet>
   <h1><button type="button" id="about-open" class="brand" aria-haspopup="dialog"><img src="assets/wattamax-icon-light.svg" alt="" width="38" height="38"><img src="assets/wattamax-wordmark.svg" alt="Wattamax" width="112" height="18"></button></h1>
   <div class="pill live-only">
     <span id="autopause-label">Pause auto</span>
@@ -27,10 +27,10 @@
   <label class="pill">FTP <input id="ftp" type="number" min="50" max="600" step="1" inputmode="numeric" placeholder="—"> W</label>
   <button type="button" id="heart-connect" class="pill heart-button live-only"><svg class="heart-icon" aria-hidden="true"><use href="#heart-shape"></use></svg></button>
   <button type="button" id="status-pill" class="pill status"><span id="status-dot" class="dot"></span><span id="status">Pas connecté</span></button>
-</header>
+</div></header>
 
 <main>
-  <section id="live" class="screen" aria-label="Séance en cours">
+  <section id="live" class="screen" data-nosnippet aria-label="Séance en cours">
     <div class="side">
       <div class="card readings">
         <div class="figures">
@@ -83,7 +83,7 @@
     </aside>
   </section>
 
-  <section id="summary" class="screen" aria-label="Récap de la séance" hidden>
+  <section id="summary" class="screen" data-nosnippet aria-label="Récap de la séance" hidden>
     <div class="side">
       <div class="card readings">
         <div class="figures">
@@ -138,11 +138,11 @@
     </aside>
   </section>
 </main>
-<div id="bubble" class="bubble live-only">
+<div id="bubble" class="bubble live-only" data-nosnippet>
   <span id="bubble-text" role="status"></span>
   <button type="button" class="dock" aria-label="Réduire la notification"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 6h6"></path></svg></button>
 </div>
-<dialog id="about" class="about" aria-labelledby="about-title" closedby="any">
+<dialog id="about" class="about" aria-labelledby="about-title" closedby="any"><div data-nosnippet>
   <button type="button" class="close" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button>
   <h2 id="about-title">À propos</h2>
   <p>Wattamax affiche la puissance, la cadence et la vitesse de ton home-trainer pendant que tu roules, et ta fréquence cardiaque si tu portes une ceinture Bluetooth. C'est gratuit, sans compte et sans pub. Je l'ai fait pour mon Elite Suito. Les autres home-trainers compatibles FTMS devraient marcher aussi, mais je n'ai pas pu les tester.</p>
@@ -152,6 +152,6 @@
   <p>Wattamax est fourni tel quel, sans garantie d'aucune sorte. Les chiffres viennent de ton home-trainer, la vitesse et les calories sont des estimations, et tu roules sous ta propre responsabilité. Strava est une marque de Strava, Inc., qui n'a aucun lien avec Wattamax.</p>
   <h3>Contact</h3>
   <p>Un bug, une question ? Écris-moi à <a href="mailto:max.henrotin@gmail.com">max.henrotin@gmail.com</a> ou sur <a href="https://github.com/MaxHenrotin/wattamax/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-</dialog>
+</div></dialog>
 </body>
 </html>
