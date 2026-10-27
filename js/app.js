@@ -526,7 +526,7 @@ reset();
 // What to do without Web Bluetooth, told for the browser at hand
 function noBluetoothMessage() {
   if (navigator.bluetooth) {
-    return "Le Bluetooth n'est pas disponible ici. Soit cet appareil n'a pas d'adaptateur Bluetooth, soit Chrome le bloque. Sur un ordinateur de travail, c'est souvent ton entreprise qui l'a coupé. Sinon, clique sur l'icône à gauche de l'adresse, ouvre les paramètres du site et autorise les appareils Bluetooth.";
+    return "Bluetooth indisponible : cet appareil n'a pas d'adaptateur, ou le navigateur le bloque (paramètres du site, ou ordinateur d'entreprise).";
   }
   const agent = navigator.userAgent;
   const useChrome = "Ouvre cette page dans Google Chrome ou Microsoft Edge.";
