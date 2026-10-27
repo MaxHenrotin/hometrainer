@@ -31,6 +31,7 @@ let reconnecting = false;
 let heartLost = false;  // the strap dropped and is reconnecting on its own, or can be picked again
 let wakeLock = null;
 let message = "";  // an error to show in the bubble until the next connection attempt
+let bluetooth = Boolean(navigator.bluetooth);  // false too once Chrome says there is no adapter or Bluetooth is blocked
 
 // Settings are remembered by this browser only, and nothing is remembered if storage is blocked
 const load = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -164,7 +165,7 @@ function renderLive() {
 
   const beating = ride.heartRate !== null;
   $("heart-connect").classList.toggle("on", beating);
-  $("heart-connect").disabled = !navigator.bluetooth || (heart !== null && !heartLost);
+  $("heart-connect").disabled = !bluetooth || (heart !== null && !heartLost);
   $("heart-connect").title = $("heart-connect").ariaLabel = beating ? "Ceinture cardio connectée" : "Connecter la ceinture cardio";
   if (!trainer?.active) renderStatus("Pas connecté", "");
   else if (reconnecting) renderStatus("Déconnecté", "lost");
@@ -524,6 +525,9 @@ setChartMode(chartMode);
 reset();
 // What to do without Web Bluetooth, told for the browser at hand
 function noBluetoothMessage() {
+  if (navigator.bluetooth) {
+    return "Le Bluetooth n'est pas disponible ici. Soit cet appareil n'a pas d'adaptateur Bluetooth, soit Chrome le bloque. Sur un ordinateur de travail, c'est souvent ton entreprise qui l'a coupé. Sinon, clique sur l'icône à gauche de l'adresse, ouvre les paramètres du site et autorise les appareils Bluetooth.";
+  }
   const agent = navigator.userAgent;
   const useChrome = "Ouvre cette page dans Google Chrome ou Microsoft Edge.";
   if (ios) {
@@ -540,8 +544,14 @@ function noBluetoothMessage() {
   return "Ce navigateur ne gère pas le Bluetooth. Ouvre cette page dans Google Chrome ou Microsoft Edge sur un ordinateur, ou dans Chrome sur Android.";
 }
 
-if (!navigator.bluetooth) {
+function noBluetooth() {
+  bluetooth = false;
   $("connect").disabled = true;
   message = noBluetoothMessage();
   renderLive();
 }
+
+// Without an adapter, or when Bluetooth is blocked, requestDevice fails at once with the same NotFoundError
+// as a closed picker, so connecting would silently do nothing. Bluefy may not have getAvailability.
+if (!bluetooth) noBluetooth();
+else navigator.bluetooth.getAvailability?.().then((available) => { if (!available) noBluetooth(); });
