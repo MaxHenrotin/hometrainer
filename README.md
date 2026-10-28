@@ -30,7 +30,7 @@ I only wanted to see my watts on my Elite Suito, and paying for Zwift or Rouvy j
 - Exports the ride as a recap image, a CSV, and a FIT file that Strava files as a Virtual Ride. On the Strava map the ride draws the Wattamax wordmark across the Salar de Uyuni.
 - Keeps your data in your browser. There are no cookies and no third-party requests; the host only counts visits, anonymously.
 
-It has only been tested with a Suito, but it should work with any trainer that supports Bluetooth FTMS, which covers most smart trainers sold in the last few years (Wahoo Kickr, Tacx Neo and Flux, Elite Direto and Justo, Saris H3...). The interface is in French.
+It has only been tested with a Suito, but it should work with any trainer that supports Bluetooth FTMS, which covers most smart trainers sold in the last few years (Wahoo Kickr, Tacx Neo and Flux, Elite Direto and Justo, Saris H3...). The page is in English, French, German, Italian or Spanish. It picks your browser's language, and the flag at the top right switches to the next one on each click.
 
 ## Which browser?
 
@@ -48,13 +48,13 @@ The page relies on Web Bluetooth, and only Chromium-based browsers implement it.
 
 1. Close Zwift, the Elite app or anything else connected to the trainer. It only accepts one Bluetooth connection at a time.
 2. Pedal for a few seconds to wake the trainer up.
-3. Open [wattamax.com](https://wattamax.com), click **Connecter le home-trainer** and pick your trainer in the list.
+3. Open [wattamax.com](https://wattamax.com), click **Connect your trainer** and pick your trainer in the list.
 4. Start pedalling. The clock starts with your first pedal stroke.
-5. Hold **Maintenir pour terminer** for 2 seconds when you're done. Holding the button replaces a confirmation dialog, so a stray click can't end your ride.
+5. Hold **Hold to finish** for 2 seconds when you're done. Holding the button replaces a confirmation dialog, so a stray click can't end your ride.
 
 The two fields at the top hold your weight and FTP (the power you can hold for about an hour), set to 75 kg and 200 W until you enter your own. Your weight gives watts per kilo and feeds the speed simulation. Your FTP sets the zones, from Z1 (recovery) to Z7 (sprint). Both fields pulse red until you fill them, and if you empty one, whatever depends on it disappears. Your browser remembers both, along with the two switches.
 
-The ride pauses once the trainer has reported a cadence of 0 for a second. Some trainers take a while to notice you've stopped: the Suito keeps showing your last cadence for about 5 seconds, so its rides pause about 6 seconds after you stop. Turn **Pause auto** off at the top if you'd rather keep the clock running.
+The ride pauses once the trainer has reported a cadence of 0 for a second. Some trainers take a while to notice you've stopped: the Suito keeps showing your last cadence for about 5 seconds, so its rides pause about 6 seconds after you stop. Turn **Auto-pause** off at the top if you'd rather keep the clock running.
 
 On the right of the ride screen are the distance, the moving time, and one row per duration with your rolling average power and, in a paler bar behind it, your best so far. There's no 1 s row while riding because it flickered too much; your max power shows under the power figure instead, next to the zone and W/kg. The chart shows the last 10 minutes in 5-second bars, or the whole ride if you pick **Total** in its corner.
 
@@ -66,10 +66,10 @@ If the Bluetooth connection drops, the ride pauses and the page keeps trying to 
 
 ## After the ride
 
-The summary is the ride screen without the live values: average power, cadence and speed (plus average and max heart rate with a strap), zone, W/kg and time in each zone, a chart of the whole ride, distance, moving time, total time and calories, and your max power and best effort over each duration. Holding **Maintenir pour recommencer** starts a new ride. You can download three files:
+The summary is the ride screen without the live values: average power, cadence and speed (plus average and max heart rate with a strap), zone, W/kg and time in each zone, a chart of the whole ride, distance, moving time, total time and calories, and your max power and best effort over each duration. Holding **Hold to start over** starts a new ride. You can download three files:
 
 - **Image**: the summary screen as a 1920×1080 PNG, like the one at the top of this page.
-- **Importer sur Strava**: downloads a `.fit` file with power, cadence, speed and heart rate, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a Virtual Ride, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
+- **Upload to Strava**: downloads a `.fit` file with power, cadence, speed and heart rate, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a Virtual Ride, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
 - **CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
 
 ```

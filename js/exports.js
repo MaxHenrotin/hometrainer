@@ -1,5 +1,6 @@
 import { drawBars } from "./charts.js";
 import { number } from "./format.js";
+import { t } from "./i18n.js";
 import { ALTITUDE, route } from "./route.js";
 
 export function download(blob, name) {
@@ -206,7 +207,7 @@ export async function recapImage(view, labels, colorOf) {
     ctx.fill(new Path2D(document.querySelector("#heart-shape path").getAttribute("d")));
     ctx.restore();
     font(f * 0.38);
-    text(`max ${view.heartRate.max}`, left(3), y + f * 0.555, PNG.secondary);
+    text(`${t("max")} ${view.heartRate.max}`, left(3), y + f * 0.555, PNG.secondary);
   }
   y += f * 0.02 + below + f * 0.19 + Math.max(f * 0.44, line * 1.2) / 2 + line * 0.35;
   // The zone and the W/kg, 22 px apart
@@ -254,7 +255,7 @@ export async function recapImage(view, labels, colorOf) {
   font(size, 600, BIG);
   const cap = ctx.measureText("0").actualBoundingBoxAscent;
   // One in each corner, in two columns as wide as their widest figure, the times with a word under them
-  const cells = [[view.distance, "km"], [view.duration, "", "en mouvement"], [view.calories, "kcal"], [view.elapsed, "", "total"]];
+  const cells = [[view.distance, "km"], [view.duration, "", t("moving")], [view.calories, "kcal"], [view.elapsed, "", t("elapsed")]];
   const columns = [0, 1].map((c) => Math.max(...[c, c + 2].map((i) => readingWidth(cells[i][0], cells[i][1], size, 0.38))));
   const spaceX = (376 - columns[0] - columns[1] - 22) / 3;
   const rowHeight = cap + 6 + 14 * 1.2;

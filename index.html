@@ -27,53 +27,54 @@
 <header class="top"><div data-nosnippet>
   <h1><button type="button" id="about-open" class="brand" aria-haspopup="dialog"><img src="assets/wattamax-icon-light.svg" alt="" width="38" height="38"><img src="assets/wattamax-wordmark.svg" alt="Wattamax" width="112" height="18"></button></h1>
   <div class="pill live-only">
-    <span id="autopause-label">Pause auto</span>
+    <span id="autopause-label" data-i18n="autoPause">Pause auto</span>
     <button type="button" id="autopause" class="switch" role="switch" aria-checked="true" aria-labelledby="autopause-label"><span></span></button>
   </div>
-  <label class="pill">Poids <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal" placeholder="—"> kg</label>
+  <label class="pill"><span data-i18n="weight">Poids</span> <input id="weight" type="number" min="20" max="200" step="0.1" inputmode="decimal" placeholder="—"> kg</label>
   <label class="pill">FTP <input id="ftp" type="number" min="50" max="600" step="1" inputmode="numeric" placeholder="—"> W</label>
   <button type="button" id="heart-connect" class="pill heart-button live-only"><svg class="heart-icon" aria-hidden="true"><use href="#heart-shape"></use></svg></button>
   <button type="button" id="status-pill" class="pill status"><span id="status-dot" class="dot"></span><span id="status">Pas connecté</span></button>
+  <button type="button" id="language" class="pill flag" data-i18n-label="language"><img id="flag" src="assets/flags/fr.svg" alt="" width="22" height="22"></button>
 </div></header>
 
 <main>
-  <section id="live" class="screen" data-nosnippet aria-label="Séance en cours">
+  <section id="live" class="screen" data-nosnippet data-i18n-label="liveScreen" aria-label="Séance en cours">
     <div class="side">
       <div class="card readings">
         <div class="figures">
           <dl class="values">
             <div class="value">
-              <dt class="sr-only">Puissance</dt>
+              <dt class="sr-only" data-i18n="power">Puissance</dt>
               <dd class="now"><span id="power" class="big">0</span><span class="unit">W</span></dd>
-              <dd class="average">moy. <span id="avg-power">0</span></dd>
+              <dd class="average"><span data-i18n="avg">moy.</span> <span id="avg-power">0</span></dd>
             </div>
             <div class="value">
-              <dt class="sr-only">Cadence</dt>
+              <dt class="sr-only" data-i18n="cadence">Cadence</dt>
               <dd class="now"><span id="cadence">0</span><span class="unit">rpm</span></dd>
-              <dd class="average">moy. <span id="avg-cadence">0</span></dd>
+              <dd class="average"><span data-i18n="avg">moy.</span> <span id="avg-cadence">0</span></dd>
             </div>
             <div class="value">
-              <dt class="sr-only">Vitesse</dt>
-              <dd class="now"><span id="speed">0,0</span><span class="unit">km/h</span></dd>
-              <dd class="average">moy. <span id="avg-speed">0,0</span></dd>
+              <dt class="sr-only" data-i18n="speed">Vitesse</dt>
+              <dd class="now"><span id="speed">0.0</span><span class="unit">km/h</span></dd>
+              <dd class="average"><span data-i18n="avg">moy.</span> <span id="avg-speed">0.0</span></dd>
             </div>
             <div id="heart-box" class="value heart" hidden>
-              <dt class="sr-only">Fréquence cardiaque</dt>
+              <dt class="sr-only" data-i18n="heartRate">Fréquence cardiaque</dt>
               <dd class="now"><span id="heart-rate"></span><span class="unit"><svg class="heart-icon" aria-hidden="true"><use href="#heart-shape"></use></svg></span></dd>
-              <dd class="average">moy. <span id="avg-heart-rate"></span></dd>
+              <dd class="average"><span data-i18n="avg">moy.</span> <span id="avg-heart-rate"></span></dd>
             </div>
           </dl>
           <div class="power-line">
             <span id="zone" class="zone"></span>
-            <span class="max">max <strong id="max-power">0</strong> W</span>
-            <span id="wkg-box" class="wkg"><strong id="wkg"></strong> W/kg <span class="average">moy. <span id="avg-wkg"></span></span></span>
+            <span class="max"><span data-i18n="max">max</span> <strong id="max-power">0</strong> W</span>
+            <span id="wkg-box" class="wkg"><strong id="wkg"></strong> W/kg <span class="average"><span data-i18n="avg">moy.</span> <span id="avg-wkg"></span></span></span>
           </div>
         </div>
       </div>
-      <section class="card chart with-switch" aria-label="Graphique de la puissance">
-        <div class="segmented" role="group" aria-label="Durée affichée par le graphique">
+      <section class="card chart with-switch" data-i18n-label="chart" aria-label="Graphique de la puissance">
+        <div class="segmented" role="group" data-i18n-label="chartRange" aria-label="Durée affichée par le graphique">
           <button type="button" data-chart="10min" aria-pressed="false">10 min</button>
-          <button type="button" data-chart="all" aria-pressed="true">Total</button>
+          <button type="button" data-chart="all" aria-pressed="true" data-i18n="all">Total</button>
         </div>
         <canvas id="live-chart"></canvas>
       </section>
@@ -81,36 +82,36 @@
 
     <aside class="column">
       <div class="card totals"><dl>
-        <div><dt class="sr-only">Distance</dt><dd><span id="distance">0,00</span><span class="unit">km</span></dd></div>
-        <div><dt class="sr-only">Durée</dt><dd id="duration">0:00:00</dd></div>
+        <div><dt class="sr-only" data-i18n="distance">Distance</dt><dd><span id="distance">0.00</span><span class="unit">km</span></dd></div>
+        <div><dt class="sr-only" data-i18n="duration">Durée</dt><dd id="duration">0:00:00</dd></div>
       </dl></div>
-      <ol id="rolling" class="card durations" aria-label="Moyennes glissantes et records de la séance"></ol>
-      <button type="button" id="connect" class="button accent">Connecter le home-trainer</button>
-      <button type="button" id="stop" class="button primary hold" hidden><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg>Maintenir pour terminer</button>
+      <ol id="rolling" class="card durations" data-i18n-label="rolling" aria-label="Moyennes glissantes et records de la séance"></ol>
+      <button type="button" id="connect" class="button accent" data-i18n="connect">Connecter le home-trainer</button>
+      <button type="button" id="stop" class="button primary hold" hidden><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg><span data-i18n="holdToFinish">Maintenir pour terminer</span></button>
     </aside>
   </section>
 
-  <section id="summary" class="screen" data-nosnippet aria-label="Récap de la séance" hidden>
+  <section id="summary" class="screen" data-nosnippet data-i18n-label="summaryScreen" aria-label="Récap de la séance" hidden>
     <div class="side">
       <div class="card readings">
         <div class="figures">
           <dl class="values">
             <div class="value">
-              <dt class="sr-only">Puissance moyenne</dt>
+              <dt class="sr-only" data-i18n="averagePower">Puissance moyenne</dt>
               <dd class="now"><span id="s-power" class="big"></span><span class="unit">W</span></dd>
             </div>
             <div class="value">
-              <dt class="sr-only">Cadence moyenne</dt>
+              <dt class="sr-only" data-i18n="averageCadence">Cadence moyenne</dt>
               <dd class="now"><span id="s-cadence"></span><span class="unit">rpm</span></dd>
             </div>
             <div class="value">
-              <dt class="sr-only">Vitesse moyenne</dt>
+              <dt class="sr-only" data-i18n="averageSpeed">Vitesse moyenne</dt>
               <dd class="now"><span id="s-speed"></span><span class="unit">km/h</span></dd>
             </div>
             <div id="s-heart-box" class="value heart" hidden>
-              <dt class="sr-only">Fréquence cardiaque moyenne</dt>
+              <dt class="sr-only" data-i18n="averageHeartRate">Fréquence cardiaque moyenne</dt>
               <dd class="now"><span id="s-heart-rate"></span><span class="unit"><svg class="heart-icon" aria-hidden="true"><use href="#heart-shape"></use></svg></span></dd>
-              <dd class="average">max <span id="s-max-heart-rate"></span></dd>
+              <dd class="average"><span data-i18n="max">max</span> <span id="s-max-heart-rate"></span></dd>
             </div>
           </dl>
           <div class="power-line">
@@ -119,47 +120,47 @@
           </div>
           <div id="zones-box" class="zones">
             <div id="zone-bar" class="zone-bar" aria-hidden="true"></div>
-            <ul id="zone-legend" class="zone-legend" aria-label="Temps par zone"></ul>
+            <ul id="zone-legend" class="zone-legend" data-i18n-label="zoneTimes" aria-label="Temps par zone"></ul>
           </div>
         </div>
       </div>
-      <section class="card chart" aria-label="Puissance sur toute la séance">
+      <section class="card chart" data-i18n-label="rideChart" aria-label="Puissance sur toute la séance">
         <canvas id="summary-chart"></canvas>
       </section>
     </div>
 
     <aside class="column">
       <div class="card totals"><dl>
-        <div><dt class="sr-only">Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
-        <div><dt>en mouvement</dt><dd id="s-duration"></dd></div>
-        <div><dt class="sr-only">Calories</dt><dd><span id="s-calories"></span><span class="unit">kcal</span></dd></div>
-        <div><dt>total</dt><dd id="s-elapsed"></dd></div>
+        <div><dt class="sr-only" data-i18n="distance">Distance</dt><dd><span id="s-distance"></span><span class="unit">km</span></dd></div>
+        <div><dt data-i18n="moving">en mouvement</dt><dd id="s-duration"></dd></div>
+        <div><dt class="sr-only" data-i18n="calories">Calories</dt><dd><span id="s-calories"></span><span class="unit">kcal</span></dd></div>
+        <div><dt data-i18n="elapsed">total</dt><dd id="s-elapsed"></dd></div>
       </dl></div>
-      <ol id="records" class="card durations" aria-label="Records de la séance"></ol>
+      <ol id="records" class="card durations" data-i18n-label="records" aria-label="Records de la séance"></ol>
       <div class="downloads">
-        <button type="button" id="strava" class="button strava">Importer sur Strava</button>
-        <button type="button" id="png" class="button">Image</button>
+        <button type="button" id="strava" class="button strava" data-i18n="importStrava">Importer sur Strava</button>
+        <button type="button" id="png" class="button" data-i18n="image">Image</button>
         <button type="button" id="csv" class="button">CSV</button>
       </div>
-      <button type="button" id="restart" class="button hold"><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg>Maintenir pour recommencer</button>
+      <button type="button" id="restart" class="button hold"><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg><span data-i18n="holdToRestart">Maintenir pour recommencer</span></button>
     </aside>
   </section>
 </main>
 <div id="bubble" class="bubble live-only" data-nosnippet>
   <svg class="mark" aria-hidden="true"><use id="bubble-mark"></use></svg>
   <span id="bubble-text" role="status"></span>
-  <button type="button" class="dock" aria-label="Réduire la notification"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 6h6"></path></svg></button>
+  <button type="button" class="dock" data-i18n-label="dock" aria-label="Réduire la notification"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 6h6"></path></svg></button>
 </div>
 <dialog id="about" class="about" aria-labelledby="about-title" closedby="any"><div data-nosnippet>
-  <button type="button" class="close" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button>
-  <h2 id="about-title">À propos</h2>
-  <p>Wattamax affiche la puissance, la cadence et la vitesse de ton home-trainer pendant que tu roules, et ta fréquence cardiaque si tu portes une ceinture Bluetooth. C'est gratuit, sans compte et sans pub. Je l'ai fait pour mon Elite Suito. Les autres home-trainers compatibles FTMS devraient marcher aussi, mais je n'ai pas pu les tester.</p>
-  <h3>Tes données</h3>
-  <p>Tes données ne quittent pas ton appareil. Ton poids, ton FTP et tes réglages restent dans ton navigateur, et tes séances n'existent que dans les fichiers que tu télécharges. Il n'y a pas de cookies, et la page ne contacte aucun autre site : les polices et le code viennent de wattamax.com. Pour que je sache combien de gens utilisent Wattamax, l'hébergeur (Vercel) compte uniquement les visites, de façon anonyme. Comme pour tout site, il garde aussi des journaux techniques avec l'adresse IP et la page demandée.</p>
-  <h3>Sans garantie</h3>
-  <p>Wattamax est fourni tel quel, sans garantie d'aucune sorte. Les chiffres viennent de ton home-trainer, la vitesse et les calories sont des estimations, et tu roules sous ta propre responsabilité. Strava est une marque de Strava, Inc., qui n'a aucun lien avec Wattamax.</p>
-  <h3>Contact</h3>
-  <p>Un bug, une question ? Écris-moi à <a href="mailto:max.henrotin@gmail.com">max.henrotin@gmail.com</a> ou sur <a href="https://github.com/MaxHenrotin/wattamax/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+  <button type="button" class="close" data-i18n-label="close" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button>
+  <h2 id="about-title" data-i18n="about">À propos</h2>
+  <p data-i18n="aboutText">Wattamax affiche la puissance, la cadence et la vitesse de ton home-trainer pendant que tu roules, et ta fréquence cardiaque si tu portes une ceinture Bluetooth. C'est gratuit, sans compte et sans pub. Je l'ai fait pour mon Elite Suito. Les autres home-trainers compatibles FTMS devraient marcher aussi, mais je n'ai pas pu les tester.</p>
+  <h3 data-i18n="data">Tes données</h3>
+  <p data-i18n="dataText">Tes données ne quittent pas ton appareil. Ton poids, ton FTP et tes réglages restent dans ton navigateur, et tes séances n'existent que dans les fichiers que tu télécharges. Il n'y a pas de cookies, et la page ne contacte aucun autre site : les polices et le code viennent de wattamax.com. Pour que je sache combien de gens utilisent Wattamax, l'hébergeur (Vercel) compte uniquement les visites, de façon anonyme. Comme pour tout site, il garde aussi des journaux techniques avec l'adresse IP et la page demandée.</p>
+  <h3 data-i18n="warranty">Sans garantie</h3>
+  <p data-i18n="warrantyText">Wattamax est fourni tel quel, sans garantie d'aucune sorte. Les chiffres viennent de ton home-trainer, la vitesse et les calories sont des estimations, et tu roules sous ta propre responsabilité. Strava est une marque de Strava, Inc., qui n'a aucun lien avec Wattamax.</p>
+  <h3 data-i18n="contact">Contact</h3>
+  <p data-i18n="contactText">Un bug, une question ? Écris-moi à <a href="mailto:max.henrotin@gmail.com">max.henrotin@gmail.com</a> ou sur <a href="https://github.com/MaxHenrotin/wattamax/issues" target="_blank" rel="noopener">GitHub</a>.</p>
 </div></dialog>
 </body>
 </html>

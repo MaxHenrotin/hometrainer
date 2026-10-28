@@ -1,12 +1,12 @@
 import { drawBars, fitCanvas } from "./charts.js";
 import { csv, download, fit, recapImage } from "./exports.js";
 import { duration, durationLabel, number } from "./format.js";
+import { LANGUAGES, browserLanguage, language, setLanguage, t } from "./i18n.js";
 import { DEFAULT_WEIGHT, RECORD_DURATIONS, Ride } from "./ride.js";
 import { HeartRateMonitor, Trainer } from "./sensors.js";
 import { ZONES, zoneIndex, zoneTimes } from "./zones.js";
 
 const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
-const OPEN_STRAVA = "Ouvrir Strava";  // the Strava button on iPhone and iPad, once the file is saved
 const HOLD_TIME = 2000;  // ms, the same as the ring animation in style.css
 const BUCKET = 5;        // seconds of riding behind each bar of the live chart
 const LIVE_BARS = 120;   // 10 minutes of 5-second bars
@@ -30,7 +30,7 @@ let ride = new Ride();
 let reconnecting = false;
 let heartLost = false;  // the strap dropped and is reconnecting on its own, or can be picked again
 let wakeLock = null;
-let message = "";  // an error to show in the bubble until the next connection attempt
+let message = "";  // the key of an error to show in the bubble until the next connection attempt
 let bluetooth = Boolean(navigator.bluetooth);  // false too once Chrome says there is no adapter or Bluetooth is blocked
 
 // Settings are remembered by this browser only, and nothing is remembered if storage is blocked
@@ -68,7 +68,7 @@ function setChartMode(mode) {
 }
 
 // The summary's rows: the max power, then the best effort on each duration
-const RECORD_LABELS = ["Max", ...RECORD_DURATIONS.map(durationLabel)];
+const recordLabels = () => [t("maxRow"), ...RECORD_DURATIONS.map(durationLabel)];
 
 // One row per duration: rolling average and session record live, best effort in the summary
 function buildRows(id, labels) {
@@ -119,11 +119,11 @@ function renderStatus(text, dot) {
 
 // What the bubble over the app says, and how it's marked: info, start, pause or error
 function bubble() {
-  if (message) return [message, "error"];
-  if (!trainer?.active) return ["Pédale pour réveiller le home-trainer, puis connecte-le", "info"];
-  if (reconnecting) return ["Bluetooth déconnecté. Reconnexion…", "error"];
-  if (ride.state === "waiting") return ["Pédale pour démarrer", "start"];
-  if (ride.state === "paused") return ["En pause. Pédale pour reprendre", "pause"];
+  if (message) return [t(message), "error"];
+  if (!trainer?.active) return [t("wakeTrainer"), "info"];
+  if (reconnecting) return [t("reconnecting"), "error"];
+  if (ride.state === "waiting") return [t("pedalToStart"), "start"];
+  if (ride.state === "paused") return [t("paused"), "pause"];
   return ["", ""];
 }
 
@@ -131,7 +131,7 @@ function bubble() {
 function zoneOf(watts) {
   if (!ftp()) return { color: "", name: "" };
   const zone = zoneIndex(watts, ftp());
-  return { color: ZONE_COLORS[zone], name: `Z${zone + 1} ${ZONES[zone].name}` };
+  return { color: ZONE_COLORS[zone], name: `Z${zone + 1} ${t(`zone${zone + 1}`)}` };
 }
 
 function renderZone(figure, label, { color, name }) {
@@ -166,9 +166,9 @@ function renderLive() {
   const beating = ride.heartRate !== null;
   $("heart-connect").classList.toggle("on", beating);
   $("heart-connect").disabled = !bluetooth || (heart !== null && !heartLost);
-  $("heart-connect").title = $("heart-connect").ariaLabel = beating ? "Ceinture cardio connectée" : "Connecter la ceinture cardio";
-  if (!trainer?.active) renderStatus("Pas connecté", "");
-  else if (reconnecting) renderStatus("Déconnecté", "lost");
+  $("heart-connect").title = $("heart-connect").ariaLabel = t(beating ? "heartConnected" : "connectHeart");
+  if (!trainer?.active) renderStatus(t("notConnected"), "");
+  else if (reconnecting) renderStatus(t("disconnected"), "lost");
   else renderStatus(trainer.name, "on");
   const [text, kind] = bubble();
   $("bubble-text").textContent = text;
@@ -186,7 +186,7 @@ function summaryView() {
   const times = ftp() ? zoneTimes(ride.samples, ftp()) : [];
   const total = times.reduce((a, b) => a + b, 0) || 1;
   return {
-    date: ride.startedAt.toLocaleString("fr", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }),
+    date: ride.startedAt.toLocaleString(language, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
     power: number(summary.power),
     cadence: number(summary.cadence),
     speed: number(summary.speed, 1),
@@ -356,6 +356,22 @@ function toggleDock() {
   slide(bubble, from);
 }
 
+// On iPhone and iPad the Strava button opens Strava once the file is saved. Its key says which
+// label it shows, in any language.
+function setStravaLabel(key) {
+  $("strava").dataset.i18n = key;
+  $("strava").textContent = t(key);
+}
+
+// The page in another language, with its flag. The record rows' first label is a word.
+function showLanguage(code) {
+  setLanguage(code);
+  $("flag").src = `assets/flags/${code}.svg`;
+  $("language").title = t("language");
+  buildRows("records", recordLabels());
+  render();
+}
+
 // Hold-to-confirm: the action runs once the button has been held for HOLD_TIME while its ring fills.
 // It replaces confirmation dialogs for actions that can't be undone.
 function onHold(button, action) {
@@ -393,7 +409,7 @@ async function connect() {
   } catch (error) {
     // NotFoundError means the person closed the device picker
     if (error.name !== "NotFoundError") {
-      message = "Connexion impossible. Vérifie que le home-trainer est allumé et tout près, et qu'aucune autre app (Zwift, Elite…) n'y est connectée, puis réessaie.";
+      message = "connectFailed";
     }
   } finally {
     $("connect").disabled = false;
@@ -421,7 +437,7 @@ async function connectHeart() {
     await heart.connect();
   } catch (error) {
     if (error.name !== "NotFoundError") {
-      message = "Connexion à la ceinture cardio impossible. Vérifie que tu la portes, électrodes humides, puis réessaie.";
+      message = "heartFailed";
     }
     heart = null;
   }
@@ -436,7 +452,7 @@ function finish() {
   wakeLock?.release();
   if (ride.time < 1) {
     reset();
-    message = "Aucune donnée enregistrée : la séance démarre au premier coup de pédale.";
+    message = "noData";
     renderLive();
     return;
   }
@@ -459,7 +475,7 @@ function reset() {
   document.body.dataset.screen = "live";
   $("connect").hidden = false;
   $("stop").hidden = true;
-  $("strava").textContent = IMPORT_STRAVA;
+  setStravaLabel("importStrava");
   renderLive();
 }
 
@@ -477,10 +493,14 @@ $("about").querySelector(".close").addEventListener("click", () => $("about").cl
 onHold($("stop"), finish);
 onHold($("restart"), reset);
 $("autopause").addEventListener("click", () => setAutoPause(!autoPause));
+// Each click goes to the next language, which this browser then keeps
+$("language").addEventListener("click", () => {
+  showLanguage(LANGUAGES[(LANGUAGES.indexOf(language) + 1) % LANGUAGES.length]);
+  save("language", language);
+});
 // Only its button takes clicks in the middle of the page, and all of it once docked
 $("bubble").addEventListener("click", toggleDock);
 for (const button of document.querySelectorAll("[data-chart]")) button.addEventListener("click", () => setChartMode(button.dataset.chart));
-const IMPORT_STRAVA = $("strava").textContent;  // the label from index.html, given back for each new ride
 // Browsers on iPhone and iPad, Bluefy included, ignore download links, so the file goes
 // through the share sheet, where "Enregistrer dans Fichiers" keeps it
 const saveFile = (blob, name) => ios ? navigator.share({ files: [new File([blob], name, { type: blob.type })] }) : download(blob, name);
@@ -492,16 +512,16 @@ $("strava").addEventListener("click", async () => {
     // The tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it
     open(STRAVA_UPLOAD, "_blank", "noopener");
     download(await fit(ride), fileName("fit"));
-  } else if (button.textContent === OPEN_STRAVA) {
+  } else if (button.dataset.i18n === "openStrava") {
     open(STRAVA_UPLOAD, "_blank", "noopener");
   } else {
     // A tab opened before would hide the share sheet, and one opened after is blocked, as the press is long past.
     // So Strava opens on a second press. Closing the sheet without saving leaves the button as it was
     await saveFile(await fit(ride), fileName("fit"));
-    button.textContent = OPEN_STRAVA;
+    setStravaLabel("openStrava");
   }
 });
-$("png").addEventListener("click", async () => saveFile(await recapImage(summaryView(), RECORD_LABELS, colorOf), fileName("png")));
+$("png").addEventListener("click", async () => saveFile(await recapImage(summaryView(), recordLabels(), colorOf), fileName("png")));
 
 // A chart is drawn again whenever its size changes: the window, or a card resized or moved
 const resizes = new ResizeObserver(render);
@@ -518,31 +538,22 @@ document.addEventListener("visibilitychange", () => {
 });
 
 buildRows("rolling", RECORD_DURATIONS.map(durationLabel));
-buildRows("records", RECORD_LABELS);
 placeGrips();
 for (const card of $("live").querySelectorAll(".card")) makeMovable(card);
 setAutoPause(autoPause);
 setChartMode(chartMode);
+showLanguage(LANGUAGES.includes(load("language")) ? load("language") : browserLanguage());
 reset();
 // What to do without Web Bluetooth, told for the browser at hand
 function noBluetoothMessage() {
-  if (navigator.bluetooth) {
-    return "Bluetooth indisponible : cet appareil n'a pas d'adaptateur, ou le navigateur le bloque (paramètres du site, ou ordinateur d'entreprise).";
-  }
+  if (navigator.bluetooth) return "bluetoothBlocked";
   const agent = navigator.userAgent;
-  const useChrome = "Ouvre cette page dans Google Chrome ou Microsoft Edge.";
-  if (ios) {
-    return "Sur iPhone et iPad, Safari et les autres navigateurs ne gèrent pas le Bluetooth. Installe l'app gratuite Bluefy depuis l'App Store et ouvre cette page dedans.";
-  }
-  if (navigator.brave) {
-    return "Brave coupe le Bluetooth par défaut. Copie brave://flags/#brave-web-bluetooth-api dans la barre d'adresse, passe l'option sur « Enabled » et relance Brave. Tu peux aussi ouvrir cette page dans Google Chrome ou Microsoft Edge.";
-  }
-  if (/Firefox\//.test(agent)) return `Firefox ne gère pas le Bluetooth. ${useChrome}`;
-  if (!/Chrome|Chromium/.test(agent) && /Safari/.test(agent)) return `Safari ne gère pas le Bluetooth. ${useChrome}`;
-  if (/Linux/.test(agent) && !/Android/.test(agent)) {
-    return "Sous Linux, Chrome cache le Bluetooth derrière une option. Copie chrome://flags/#enable-experimental-web-platform-features dans la barre d'adresse, passe l'option sur « Enabled » et relance le navigateur.";
-  }
-  return "Ce navigateur ne gère pas le Bluetooth. Ouvre cette page dans Google Chrome ou Microsoft Edge sur un ordinateur, ou dans Chrome sur Android.";
+  if (ios) return "bluetoothIos";
+  if (navigator.brave) return "bluetoothBrave";
+  if (/Firefox\//.test(agent)) return "bluetoothFirefox";
+  if (!/Chrome|Chromium/.test(agent) && /Safari/.test(agent)) return "bluetoothSafari";
+  if (/Linux/.test(agent) && !/Android/.test(agent)) return "bluetoothLinux";
+  return "bluetoothOther";
 }
 
 function noBluetooth() {

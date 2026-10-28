@@ -53,8 +53,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Header: name, docked bubble, auto-pause, weight, FTP, connection, all wrapping as one row of
-   items aligned to the right, the name pushed to the left on its line */
+/* Header: name, docked bubble, auto-pause, weight, FTP, heart, connection, language, all wrapping
+   as one row of items aligned to the right, the name pushed to the left on its line. The bubble
+   and the connection pill shrink before the row wraps. */
 .top { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; }
 /* Only there to keep its text out of Google's snippets, so its items stay the header's own */
 .top > [data-nosnippet] { display: contents; }
@@ -79,12 +80,19 @@ h1 img { display: block; }
 button.pill { border: 0; font-family: inherit; font-weight: inherit; }
 button.pill:enabled { cursor: pointer; }
 .heart-icon { width: 0.8em; height: 0.8em; fill: var(--red); }
-.heart-button { justify-content: center; width: 38px; padding: 0; }
+.heart-button, .flag { justify-content: center; width: 38px; padding: 0; }
 .heart-button .heart-icon { width: 18px; height: 18px; fill: var(--z1); }
 .heart-button.on .heart-icon { fill: var(--red); }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--z1); }
+.dot { flex: none; width: 8px; height: 8px; margin: 5px 0; border-radius: 50%; background: var(--z1); }
 .dot.on { background: var(--green); }
 .dot.lost { background: var(--red); }
+/* During a ride, the connection pill shrinks like the docked bubble: it counts as a round around
+   its dot when the header decides to wrap, and grows into the room left, up to its text. Its text
+   goes to a second line, out of sight, once less than 48 px of it would fit. */
+body:not([data-screen="summary"]) .status { flex: 1 1 38px; flex-wrap: wrap; justify-content: center; align-content: flex-start; height: 38px; min-width: 38px; max-width: max-content; padding: 10px 14px; row-gap: 20px; overflow: hidden; line-height: 18px; }
+body:not([data-screen="summary"]) #status { flex: 1 1 48px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* The flag of the page's language, round; each click goes to the next language */
+.flag img { display: block; width: 22px; height: 22px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08); }
 
 .segmented { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--fill); }
 .segmented button { padding: 6px 13px; border: 0; border-radius: 999px; background: transparent; font: 500 14px Barlow, sans-serif; color: var(--secondary); cursor: pointer; }
@@ -318,8 +326,7 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
 .about p { margin: 0; color: var(--secondary); }
 .about a { color: var(--blue); }
 
-/* A phone or a small window: tighter spacing, a smaller header and bubble. During a ride, the
-   connection pill only shows its dot, its text is still read out. */
+/* A phone or a small window: tighter spacing, a smaller header and bubble */
 @media (max-width: 900px) {
   body { gap: 12px; padding: 12px 16px; }
   .screen, .side, .column { gap: 12px; }
@@ -327,8 +334,9 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
   .pill { min-height: 32px; gap: 6px; padding: 4px 12px; font-size: 13px; }
   .bubble.docked { flex-basis: 32px; height: 32px; min-width: 32px; padding: 6px; border-radius: 16px; }
   .bubble.docked .mark { width: 20px; height: 20px; }
-  .heart-button { width: 32px; padding: 0; }
-  body:not([data-screen="summary"]) .status { width: 32px; padding: 0; justify-content: center; font-size: 0; }
+  .heart-button, .flag { width: 32px; }
+  .flag img { width: 20px; height: 20px; }
+  body:not([data-screen="summary"]) .status { flex-basis: 32px; height: 32px; min-width: 32px; padding: 7px 12px; }
   .bubble { gap: 12px; padding: 24px 52px 24px 24px; border-radius: 28px; font-size: 20px; }
   .mark { width: 28px; height: 28px; }
   .dock { top: 12px; right: 12px; }

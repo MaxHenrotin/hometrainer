@@ -1,5 +1,5 @@
-export const number = (value, digits = 0) =>
-  value.toLocaleString("fr", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+// A point before the decimals and no thousands separator, in every language
+export const number = (value, digits = 0) => value.toFixed(digits);
 
 export function duration(seconds) {
   const s = Math.floor(seconds);
