@@ -137,10 +137,13 @@ dt { font-size: 15px; color: var(--secondary); }
 .now, .totals dd { font-family: "Barlow Semi Condensed", Barlow, sans-serif; }
 
 .readings { --w: 10.5cqw; --f: min(var(--w), 42cqh); padding: 24px 28px; }
-/* A heart rate strap adds a fourth figure, so the figures shrink to fit the width */
-.readings:has(.heart:not([hidden])) { --w: 8cqw; }
-/* The power gets a wider column for its bigger figure, then one column per other figure */
-.values { display: grid; grid-template-columns: minmax(0, 1.3fr); grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 24px; align-items: end; }
+/* A heart rate strap adds a fourth figure, so the figures shrink to fit the width. On a narrow
+   card they shrink further, since the units stop shrinking at 10 px: side by side, the four
+   figures with 3-digit power take 6.77 f, plus 77 px of units and margins and 72 px of gaps. */
+.readings:has(.heart:not([hidden])) { --w: min(8cqw, (100cqw - 149px) / 6.77); }
+/* The power gets a wider column for its bigger figure, then one column per other figure. A column
+   only grows past its share when its figure wouldn't fit in it, as the speed and its unit can. */
+.values { display: grid; grid-template-columns: 1.3fr; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 24px; align-items: end; }
 /* In the summary, only the heart rate has a line under it (its max): the figures line up on their digits */
 #summary .values { align-items: baseline; }
 .now { display: flex; align-items: baseline; font-size: var(--f); font-weight: 600; letter-spacing: -0.01em; line-height: 0.95; }
