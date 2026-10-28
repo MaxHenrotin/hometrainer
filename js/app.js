@@ -363,12 +363,16 @@ function setStravaLabel(key) {
   $("strava").textContent = t(key);
 }
 
+// Every flag loads with the page and stays loaded: the host makes the browser check a file again
+// each time it's shown, which held the next flag back after a click
+const FLAGS = Object.fromEntries(LANGUAGES.map((code) => [code, Object.assign(new Image(), { src: `assets/flags/${code}.svg` })]));
+
 // The page in another language, with its flag and its own address. The record rows' first label
 // is a word.
 function showLanguage(code) {
   setLanguage(code);
   history.replaceState(null, "", `/${code}`);
-  $("flag").src = `assets/flags/${code}.svg`;
+  $("flag").src = FLAGS[code].src;
   $("language").title = t("language");
   buildRows("records", recordLabels());
   render();
