@@ -200,25 +200,27 @@ dt { font-size: 15px; color: var(--secondary); }
 
 /* The state of the ride, floating over the middle of the app like a notification, with a deeper
    shadow than the cards. Clicks go through it to the cards below, except on its dock button. Its
-   colour tells the kind of message: info (blue), start (green), pause (orange) or error (red).
+   mark and colour tell the kind of message: info (? on blue), start (play on green), pause (pause
+   on orange) or error (! on red).
    Centred by its margins rather than a transform, which is left to the docking animation. */
-.bubble { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; gap: 18px; width: max-content; height: max-content; max-width: min(90vw, 960px); margin: auto; padding: 42px 80px 42px 56px; border-radius: 38px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 30px; font-weight: 600; text-align: center; overflow-wrap: anywhere; transform-origin: 0 0; pointer-events: none; }
-.bubble::before { content: ""; flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); }
+.bubble { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; gap: 18px; width: max-content; height: max-content; max-width: min(90vw, 960px); margin: auto; padding: 42px 80px 42px 42px; border-radius: 38px; background: #E1EEFF; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.1); font-size: 30px; font-weight: 600; text-align: center; overflow-wrap: anywhere; transform-origin: 0 0; pointer-events: none; }
+.mark { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--blue); color: #FFFFFF; }
 .bubble[data-kind="start"] { background: #DDF6E4; }
-.bubble[data-kind="start"]::before { background: var(--green); }
+.bubble[data-kind="start"] .mark { background: var(--green); }
 .bubble[data-kind="pause"] { background: #FFEBD2; }
-.bubble[data-kind="pause"]::before { background: var(--orange); }
+.bubble[data-kind="pause"] .mark { background: var(--orange); }
 .bubble[data-kind="error"] { background: #FFDCDA; }
-.bubble[data-kind="error"]::before { background: var(--red); }
+.bubble[data-kind="error"] .mark { background: var(--red); }
 .dock, .about .close { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.07); color: var(--secondary); cursor: pointer; pointer-events: auto; }
 .dock:hover, .about .close:hover { background: rgba(0, 0, 0, 0.12); }
 .dock svg, .about .close svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-/* Docked: a small pill in the header, left of the auto-pause switch. It counts as 120 px wide when
-   the header decides to wrap, and grows into the room left, up to its text: so it shrinks first,
-   cutting its text short, and the header only wraps once it's down to 120 px. */
-.bubble.docked { position: static; flex: 1 1 120px; width: auto; height: auto; min-width: 120px; max-width: max-content; min-height: 38px; margin: 0; padding: 6px 14px; gap: 8px; border-radius: 19px; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; pointer-events: auto; }
-.bubble.docked::before { width: 8px; height: 8px; }
-.bubble.docked span { min-width: 0; max-width: 380px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* Docked: a small pill in the header, left of the auto-pause switch. It counts as a round around
+   its mark when the header decides to wrap, and grows into the room left, up to its text: so it
+   shrinks first, cutting its text short, then down to the bare mark, and the header only wraps once
+   it's a round. Its text goes to a second line, out of sight, once less than 48 px of it would fit. */
+.bubble.docked { position: static; flex: 1 1 38px; flex-wrap: wrap; justify-content: center; align-content: flex-start; width: auto; height: 38px; min-width: 38px; max-width: max-content; margin: 0; padding: 8px; gap: 20px 8px; border-radius: 19px; overflow: hidden; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; pointer-events: auto; }
+.bubble.docked .mark { width: 22px; height: 22px; }
+.bubble.docked span { flex: 1 1 48px; min-width: 0; max-width: 380px; padding-right: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bubble.docked .dock { display: none; }
 
 .totals { padding: 20px 22px; }
@@ -323,10 +325,12 @@ body[data-state="paused"] #live :is(.figures, .totals dl) { opacity: 0.45; }
   .screen, .side, .column { gap: 12px; }
   .top { gap: 8px; }
   .pill { min-height: 32px; gap: 6px; padding: 4px 12px; font-size: 13px; }
-  .bubble.docked { min-height: 32px; }
+  .bubble.docked { flex-basis: 32px; height: 32px; min-width: 32px; padding: 6px; border-radius: 16px; }
+  .bubble.docked .mark { width: 20px; height: 20px; }
   .heart-button { width: 32px; padding: 0; }
   body:not([data-screen="summary"]) .status { width: 32px; padding: 0; justify-content: center; font-size: 0; }
-  .bubble { gap: 12px; padding: 24px 52px 24px 28px; border-radius: 28px; font-size: 20px; }
+  .bubble { gap: 12px; padding: 24px 52px 24px 24px; border-radius: 28px; font-size: 20px; }
+  .mark { width: 28px; height: 28px; }
   .dock { top: 12px; right: 12px; }
   .about { padding: 24px 22px; }
   .readings { padding: 16px 20px; }

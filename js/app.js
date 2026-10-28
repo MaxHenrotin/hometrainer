@@ -174,6 +174,7 @@ function renderLive() {
   $("bubble-text").textContent = text;
   $("bubble").hidden = !text;
   $("bubble").dataset.kind = kind;
+  $("bubble-mark").setAttribute("href", `#mark-${kind}`);
   document.body.dataset.state = reconnecting ? "paused" : ride.state;
 
   drawChart($("live-chart"), chartMode === "all" ? rideBars() : lastBars());
