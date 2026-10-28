@@ -5,7 +5,7 @@ import fr from "./lang/fr.js";
 import it from "./lang/it.js";
 
 // The flag goes through the languages in this order
-const STRINGS = { en, fr, it, es, de };
+const STRINGS = { en, fr, es, it, de };
 export const LANGUAGES = Object.keys(STRINGS);
 
 // The first language of the browser that the page speaks, or English
