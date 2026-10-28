@@ -65,16 +65,17 @@ function wheel(cx, cy, r, spokes) {
   return [...Array.from({ length: spokes }, (_, k) => [hub, spoke(k)]).flat(), hub, ...arc(cx, cy, r, r, 0, 360), hub];
 }
 
-// A road bike from the side, in decimetres: rear wheel, crank and chainring, saddle, frame, handlebar,
-// fork, then the front wheel. The seat stay lies on a spoke and the fork halfway between two, so
-// the wheels look evenly spoked.
+// A road bike from the side, in decimetres: rear wheel, crank, pedal and chainring, saddle, frame,
+// handlebar, fork, then the front wheel. The tubes meeting at a hub stay clear of its spokes.
 function bike() {
   const [rear, bracket, seat, post, head, down, crown, front] =
     [[0, 3.4], [4, 2.7], [2.51, 7.75], [2.02, 9.4], [8.55, 8.35], [8.87, 7.24], [8.95, 6.95], [9.9, 3.4]];
+  const pedal = [5.1, 1.4];
   const handlebar = [[8.45, 8.65], [9.35, 8.85], [9.85, 8.85], ...arc(9.85, 8.2, 0.65, 0.65, 90, -90), [9.45, 7.55]];
   return [
-    ...wheel(...rear, 3.4, 12), bracket, [5.1, 1.4], ...arc(...bracket, 1.1, 1.1, -50, 310), bracket, seat, post, [1, 9.4], [3.5, 9.4], post,
-    seat, rear, seat, head, ...handlebar, ...handlebar.slice(0, -1).reverse(), head, down, bracket, down, crown, ...wheel(...front, 3.4, 12),
+    ...wheel(...rear, 3.4, 8), bracket, pedal, [4.75, 1.4], [5.45, 1.4], pedal, ...arc(...bracket, 1.1, 1.1, -50, 310), bracket,
+    seat, post, [1, 9.4], [3.5, 9.4], post, seat, rear, seat, head, ...handlebar, ...handlebar.slice(0, -1).reverse(), head,
+    down, bracket, down, crown, ...wheel(...front, 3.4, 8),
   ];
 }
 
