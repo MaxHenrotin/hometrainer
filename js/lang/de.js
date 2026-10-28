@@ -22,7 +22,7 @@ export default {
   duration: "Dauer",
   rolling: "Gleitende Mittelwerte und Bestwerte der Einheit",
   connect: "Rollentrainer verbinden",
-  holdToFinish: "Halten zum Beenden",
+  holdToFinish: "Zum Beenden gedrückt halten",
 
   summaryScreen: "Zusammenfassung der Einheit",
   averagePower: "Durchschnittliche Leistung",
@@ -39,7 +39,7 @@ export default {
   importStrava: "Zu Strava hochladen",
   openStrava: "Strava öffnen",
   image: "Bild",
-  holdToRestart: "Halten für Neustart",
+  holdToRestart: "Zum Neustart gedrückt halten",
 
   zone1: "Regeneration",
   zone2: "Ausdauer",

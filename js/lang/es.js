@@ -22,7 +22,7 @@ export default {
   duration: "Duración",
   rolling: "Medias móviles y récords de la sesión",
   connect: "Conectar el rodillo",
-  holdToFinish: "Mantén para terminar",
+  holdToFinish: "Mantén pulsado para terminar",
 
   summaryScreen: "Resumen de la sesión",
   averagePower: "Potencia media",
@@ -39,7 +39,7 @@ export default {
   importStrava: "Subir a Strava",
   openStrava: "Abrir Strava",
   image: "Imagen",
-  holdToRestart: "Mantén para volver a empezar",
+  holdToRestart: "Mantén pulsado para reiniciar",
 
   zone1: "Recuperación",
   zone2: "Resistencia",
