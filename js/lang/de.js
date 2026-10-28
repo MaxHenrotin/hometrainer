@@ -1,5 +1,7 @@
 // German
 export default {
+  // What Google shows under the page's name in its results
+  description: "Die einfachste App für deinen Rollentrainer: deine Watt, deine Trittfrequenz und deine Geschwindigkeit direkt im Browser. Kostenlos, ohne Konto, nichts zu installieren.",
   language: "Sprache: Deutsch",
   autoPause: "Auto-Pause",
   weight: "Gewicht",

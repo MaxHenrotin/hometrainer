@@ -1,4 +1,8 @@
 {
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/:language(fr|en|de|it|es)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

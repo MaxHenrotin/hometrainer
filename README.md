@@ -30,7 +30,7 @@ I only wanted to see my watts on my Elite Suito, and paying for Zwift or Rouvy j
 - Exports the ride as a recap image, a CSV, and a FIT file that Strava files as a Virtual Ride. On the Strava map the ride draws the Wattamax wordmark across the Salar de Uyuni.
 - Keeps your data in your browser. There are no cookies and no third-party requests; the host only counts visits, anonymously.
 
-It has only been tested with a Suito, but it should work with any trainer that supports Bluetooth FTMS, which covers most smart trainers sold in the last few years (Wahoo Kickr, Tacx Neo and Flux, Elite Direto and Justo, Saris H3...). The page is in English, French, German, Italian or Spanish. It picks your browser's language, and the flag at the top right switches to the next one on each click.
+It has only been tested with a Suito, but it should work with any trainer that supports Bluetooth FTMS, which covers most smart trainers sold in the last few years (Wahoo Kickr, Tacx Neo and Flux, Elite Direto and Justo, Saris H3...). The page is in English, French, German, Italian or Spanish. It picks your browser's language, and the flag at the top right switches to the next one on each click. Each language also has its own address, like [wattamax.com/de](https://wattamax.com/de).
 
 ## Which browser?
 

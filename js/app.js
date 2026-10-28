@@ -363,9 +363,11 @@ function setStravaLabel(key) {
   $("strava").textContent = t(key);
 }
 
-// The page in another language, with its flag. The record rows' first label is a word.
+// The page in another language, with its flag and its own address. The record rows' first label
+// is a word.
 function showLanguage(code) {
   setLanguage(code);
+  history.replaceState(null, "", `/${code}`);
   $("flag").src = `assets/flags/${code}.svg`;
   $("language").title = t("language");
   buildRows("records", recordLabels());
@@ -542,7 +544,9 @@ placeGrips();
 for (const card of $("live").querySelectorAll(".card")) makeMovable(card);
 setAutoPause(autoPause);
 setChartMode(chartMode);
-showLanguage(LANGUAGES.includes(load("language")) ? load("language") : browserLanguage());
+// The language in the address first, as a link or a search result picked it, then the one this
+// browser kept, then the browser's own
+showLanguage([location.pathname.slice(1), load("language")].find((code) => LANGUAGES.includes(code)) ?? browserLanguage());
 reset();
 // What to do without Web Bluetooth, told for the browser at hand
 function noBluetoothMessage() {

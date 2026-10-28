@@ -1,5 +1,7 @@
 // French, the language index.html is written in
 export default {
+  // What Google shows under the page's name in its results
+  description: "L'appli la plus simple pour ton home-trainer : tes watts, ta cadence et ta vitesse directement dans ton navigateur. Gratuit, sans compte, rien à installer.",
   language: "Langue : Français",
   autoPause: "Pause auto",
   weight: "Poids",

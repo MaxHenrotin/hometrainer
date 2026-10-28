@@ -1,5 +1,7 @@
 // Italian
 export default {
+  // What Google shows under the page's name in its results
+  description: "L'app più semplice per il tuo rullo: i tuoi watt, la tua cadenza e la tua velocità direttamente nel browser. Gratis, senza account, niente da installare.",
   language: "Lingua: Italiano",
   autoPause: "Pausa auto",
   weight: "Peso",

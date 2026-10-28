@@ -15,10 +15,12 @@ export let language = "fr";
 export const t = (key) => STRINGS[language][key];
 
 // Texts written in index.html carry their key in data-i18n, labels read out in data-i18n-label.
-// Some texts hold links, so they're set as HTML: all of them are the page's own.
+// Some texts hold links, so they're set as HTML: all of them are the page's own. Google runs the
+// page before it reads the description, so each language's address gets its own.
 export function setLanguage(code) {
   language = code;
   document.documentElement.lang = code;
+  document.querySelector('meta[name="description"]').content = t("description");
   for (const el of document.querySelectorAll("[data-i18n]")) el.innerHTML = t(el.dataset.i18n);
   for (const el of document.querySelectorAll("[data-i18n-label]")) el.ariaLabel = t(el.dataset.i18nLabel);
 }

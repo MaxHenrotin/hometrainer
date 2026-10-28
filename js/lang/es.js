@@ -1,5 +1,7 @@
 // Spanish
 export default {
+  // What Google shows under the page's name in its results
+  description: "La app más sencilla para tu rodillo: tus vatios, tu cadencia y tu velocidad directamente en tu navegador. Gratis, sin cuenta, nada que instalar.",
   language: "Idioma: Español",
   autoPause: "Pausa auto",
   weight: "Peso",

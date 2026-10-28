@@ -1,5 +1,7 @@
 // English, also the language of browsers the page doesn't speak
 export default {
+  // What Google shows under the page's name in its results
+  description: "The simplest app for your smart trainer: your watts, cadence and speed right in your browser. Free, no account, nothing to install.",
   language: "Language: English",
   autoPause: "Auto-pause",
   weight: "Weight",
