@@ -1,12 +1,12 @@
 import { drawBars, fitCanvas } from "./charts.js";
-import { csv, download, fit, recapImage } from "./exports.js";
+import { download, fit, recapImage } from "./exports.js";
 import { duration, durationLabel, number } from "./format.js";
 import { LANGUAGES, browserLanguage, language, setLanguage, t } from "./i18n.js";
 import { DEFAULT_WEIGHT, RECORD_DURATIONS, Ride } from "./ride.js";
+import { DRAWINGS, SUPPORT } from "./route.js";
 import { HeartRateMonitor, Trainer } from "./sensors.js";
 import { ZONES, zoneIndex, zoneTimes } from "./zones.js";
 
-const STRAVA_UPLOAD = "https://www.strava.com/upload/select";
 const HOLD_TIME = 2000;  // ms, the same as the ring animation in style.css
 const BUCKET = 5;        // seconds of riding behind each bar of the live chart
 const LIVE_BARS = 120;   // 10 minutes of 5-second bars
@@ -356,11 +356,15 @@ function toggleDock() {
   slide(bubble, from);
 }
 
-// On iPhone and iPad the Strava button opens Strava once the file is saved. Its key says which
-// label it shows, in any language.
-function setStravaLabel(key) {
-  $("strava").dataset.i18n = key;
-  $("strava").textContent = t(key);
+// A drawing of the route as an SVG line, in a box fitted to it, with y going down
+function drawingSvg(points) {
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  const [left, top] = [Math.min(...xs), Math.max(...ys)];
+  const [width, height] = [Math.max(...xs) - left, top - Math.min(...ys)];
+  const scale = 100 / Math.max(width, height);
+  const d = points.map(([x, y], i) => `${i ? "L" : "M"}${((x - left) * scale).toFixed(1)} ${((top - y) * scale).toFixed(1)}`).join("");
+  return `<svg viewBox="-3 -3 ${width * scale + 6} ${height * scale + 6}" aria-hidden="true"><path d="${d}"></path></svg>`;
 }
 
 // Every flag loads with the page and stays loaded: the host makes the browser check a file again
@@ -481,7 +485,7 @@ function reset() {
   document.body.dataset.screen = "live";
   $("connect").hidden = false;
   $("stop").hidden = true;
-  setStravaLabel("importStrava");
+  $("drawings").querySelector(".saved")?.classList.remove("saved");
   renderLive();
 }
 
@@ -495,7 +499,8 @@ $("connect").addEventListener("click", connect);
 $("status-pill").addEventListener("click", () => $("connect").click());
 $("heart-connect").addEventListener("click", connectHeart);
 $("about-open").addEventListener("click", () => $("about").showModal());
-$("about").querySelector(".close").addEventListener("click", () => $("about").close());
+$("export-open").addEventListener("click", () => $("export").showModal());
+for (const dialog of document.querySelectorAll("dialog")) dialog.querySelector(".close").addEventListener("click", () => dialog.close());
 onHold($("stop"), finish);
 onHold($("restart"), reset);
 $("autopause").addEventListener("click", () => setAutoPause(!autoPause));
@@ -511,22 +516,21 @@ for (const button of document.querySelectorAll("[data-chart]")) button.addEventL
 // through the share sheet, where "Enregistrer dans Fichiers" keeps it
 const saveFile = (blob, name) => ios ? navigator.share({ files: [new File([blob], name, { type: blob.type })] }) : download(blob, name);
 
-$("csv").addEventListener("click", () => saveFile(csv(ride), fileName("csv")));
-$("strava").addEventListener("click", async () => {
-  const button = $("strava");
-  if (!ios) {
-    // The tab opens first: after the wait for the SDK, the browser would no longer count it as a click and block it
-    open(STRAVA_UPLOAD, "_blank", "noopener");
-    download(await fit(ride), fileName("fit"));
-  } else if (button.dataset.i18n === "openStrava") {
-    open(STRAVA_UPLOAD, "_blank", "noopener");
-  } else {
-    // A tab opened before would hide the share sheet, and one opened after is blocked, as the press is long past.
-    // So Strava opens on a second press. Closing the sheet without saving leaves the button as it was
-    await saveFile(await fit(ride), fileName("fit"));
-    setStravaLabel("openStrava");
-  }
-});
+// The export window's drawings: the one that supports Wattamax first, across the whole width, then
+// the others. A click saves the ride's file following that drawing, and marks it as the one saved.
+for (const name of [SUPPORT, ...Object.keys(DRAWINGS).filter((name) => name !== SUPPORT)]) {
+  const tile = document.createElement("button");
+  tile.type = "button";
+  tile.dataset.i18nLabel = "downloadDrawing";
+  tile.innerHTML = drawingSvg(DRAWINGS[name]) + (name === SUPPORT ? '<span data-i18n="supportDrawing"></span>' : "");
+  tile.classList.toggle("support", name === SUPPORT);
+  tile.addEventListener("click", async () => {
+    await saveFile(await fit(ride, name), fileName("fit"));
+    $("drawings").querySelector(".saved")?.classList.remove("saved");
+    tile.classList.add("saved");
+  });
+  $("drawings").append(tile);
+}
 $("png").addEventListener("click", async () => saveFile(await recapImage(summaryView(), recordLabels(), colorOf), fileName("png")));
 
 // A chart is drawn again whenever its size changes: the window, or a card resized or moved

@@ -76,8 +76,8 @@ function heart() {
 }
 
 // The drawings the route can follow, each one line of [x, y] points in any unit, with y going up.
-// Adding one is adding a line here.
-const DRAWINGS = {
+// Adding one is adding a line here: the export window shows them all.
+export const DRAWINGS = {
   url: text("WATTAMAX.COM"),
   loop: loop(),
   tt: TT,
@@ -86,6 +86,8 @@ const DRAWINGS = {
   bike: bike(),
   heart: heart(),
 };
+// The one the export window puts first, as it makes Wattamax known to whoever sees the ride
+export const SUPPORT = "wordmark";
 
 // For a ride of `km` kilometres, the function giving the latitude and longitude after `distance` kilometres
 export function route(drawing, km) {

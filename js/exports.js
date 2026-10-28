@@ -11,12 +11,6 @@ export function download(blob, name) {
   URL.revokeObjectURL(link.href);
 }
 
-export function csv(ride) {
-  const rows = ride.samples.map((s) => [s.time.toFixed(1), s.speed, s.cadence, s.power, s.heartRate ?? "", s.distance.toFixed(3)]);
-  const lines = [["time_s", "speed_kmh", "cadence_rpm", "power_w", "heart_rate_bpm", "distance_km"], ...rows].map((row) => row.join(","));
-  return new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
-}
-
 // Loaded only when someone exports to Strava, since the SDK weighs about 440 KB
 const FIT_SDK = "./vendor/fitsdk.js";
 const semicircles = (degrees) => Math.round(degrees * 2 ** 31 / 180);
@@ -25,7 +19,7 @@ const semicircles = (degrees) => Math.round(degrees * 2 ** 31 / 180);
 // Strava keeps the local time and the flat elevation written in the file, and never matches the
 // ride against real segments. Pauses become timer stops, and the position stands still during
 // them, which is how Strava tells moving time from elapsed time.
-export async function fit(ride, drawing = "wordmark") {
+export async function fit(ride, drawing) {
   const { Encoder, Profile, Utils } = await import(FIT_SDK);
   const { MesgNum } = Profile;
   const summary = ride.summary();

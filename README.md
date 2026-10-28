@@ -17,7 +17,7 @@
   <img src="assets/screenshots/summary.png" alt="Wattamax ride summary: 210 W average in zone 2, cadence, speed, heart rate, time in each power zone, a bar chart of the whole ride and best efforts from 1 second to 45 minutes" width="100%">
 </p>
 
-I only wanted to see my watts on my Elite Suito, and paying for Zwift or Rouvy just for that felt silly. So I wrote a web page that connects to the trainer over Bluetooth and shows what matters while you ride. At the end you get the summary above as an image, plus files for Strava or your own analysis.
+I only wanted to see my watts on my Elite Suito, and paying for Zwift or Rouvy just for that felt silly. So I wrote a web page that connects to the trainer over Bluetooth and shows what matters while you ride. At the end you get the summary above as an image, plus a file for Strava.
 
 ## What it does
 
@@ -27,7 +27,7 @@ I only wanted to see my watts on my Elite Suito, and paying for Zwift or Rouvy j
 - Pauses by itself when you stop pedalling and starts again when you pedal.
 - Lets you rearrange the screen on a computer: resize the cards, drag them around, and the numbers grow to fill the space.
 - Gives a realistic speed. Trainers report how fast their flywheel spins, which says little about your power, so the page simulates the speed you'd ride at on a flat road.
-- Exports the ride as a recap image, a CSV, and a FIT file that Strava files as a Virtual Ride. On the Strava map the ride draws the Wattamax wordmark across the Salar de Uyuni.
+- Exports the ride as a recap image and a FIT file that Strava files as a Virtual Ride. On the Strava map the ride traces a drawing of your choice across the Salar de Uyuni.
 - Keeps your data in your browser. There are no cookies and no third-party requests; the host only counts visits, anonymously.
 
 It has only been tested with a Suito, but it should work with any trainer that supports Bluetooth FTMS, which covers most smart trainers sold in the last few years (Wahoo Kickr, Tacx Neo and Flux, Elite Direto and Justo, Saris H3...). The page is in English, French, German, Italian or Spanish. It picks your browser's language, and the flag at the top right switches to the next one on each click. Each language also has its own address, like [wattamax.com/de](https://wattamax.com/de).
@@ -66,25 +66,22 @@ If the Bluetooth connection drops, the ride pauses and the page keeps trying to 
 
 ## After the ride
 
-The summary is the ride screen without the live values: average power, cadence and speed (plus average and max heart rate with a strap), zone, W/kg and time in each zone, a chart of the whole ride, distance, moving time, total time and calories, and your max power and best effort over each duration. Holding **Hold to start over** starts a new ride. You can download three files:
+The summary is the ride screen without the live values: average power, cadence and speed (plus average and max heart rate with a strap), zone, W/kg and time in each zone, a chart of the whole ride, distance, moving time, total time and calories, and your max power and best effort over each duration. Holding **Hold to start over** starts a new ride.
 
-- **Image**: the summary screen as a 1920×1080 PNG, like the one at the top of this page.
-- **Upload to Strava**: downloads a `.fit` file with power, cadence, speed and heart rate, and opens Strava's upload page in a new tab, where you pick the file. Strava files it as a Virtual Ride, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
-- **CSV**: every reading, one row per update from the trainer (about one per second), without the paused parts:
+**Export** opens a small window that walks you through getting the ride onto Strava:
 
-```
-time_s,speed_kmh,cadence_rpm,power_w,heart_rate_bpm,distance_km
-1.0,30.12,90,205,128,0.008
-```
+1. Click a drawing, and a `.fit` file with power, cadence, speed and heart rate downloads. The ride will trace that drawing on the Strava map. The Wattamax wordmark comes first: picking it shows the app to everyone who sees your ride.
+2. **Open Strava** opens its upload page in a new tab, where you pick the file. If Strava asks you to log in first, it lands you on your dashboard instead: the **+** at the top right gets you to the upload. Strava files the ride as a Virtual Ride, which counts in your profile totals (pick "all rides" on the weekly widget to see it there).
+3. If you like, download the summary as a 1920×1080 PNG, like the one at the top of this page, and add it to the activity.
 
-`time_s` is moving time. `heart_rate_bpm` stays empty while no strap is sending. Power and cadence come straight from the trainer, speed is simulated from power, and distance comes from that speed, so it starts at zero for each ride. The trainer's own odometer doesn't reset between rides, which is why the page doesn't use it.
+Power and cadence come straight from the trainer, speed is simulated from power, and distance comes from that speed, so it starts at zero for each ride. The trainer's own odometer doesn't reset between rides, which is why the page doesn't use it.
 
 <details>
 <summary>Why does the ride show up in Bolivia on Strava?</summary>
 
 Getting the ride right on Strava took a few tries, because Strava fills in what an indoor file lacks on its own terms.
 
-It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route on the Salar de Uyuni, on the open salt east of Isla Incahuasi. The route is a drawing scaled to the ride's length, so every ride draws it once from start to finish. For now it always draws the Wattamax wordmark. The other drawings in `js/route.js` write WATTAMAX.COM or trace an organic loop, the TT, the full icon, a bike or a heart. The position stands still during pauses, which Strava counts as stopped.
+It only works out moving time from GPS data. Without a route, every pause counts as riding time, even with the pauses written in the file. So, like Zwift with its virtual worlds, the file gives the ride a made-up route on the Salar de Uyuni, on the open salt east of Isla Incahuasi. The route is a drawing scaled to the ride's length, so every ride draws it once from start to finish. You pick the drawing when you export: the Wattamax wordmark, WATTAMAX.COM, an organic loop, the TT, the full icon, a bike or a heart. They all live in `js/route.js`, and a drawing added there shows up in the export window. The position stands still during pauses, which Strava counts as stopped.
 
 For a regular ride, Strava takes the time zone and the elevation from the place on the map, so a ride in Bolivia would show up 6 hours early with made-up climbing. A virtual ride keeps the computer's local time and the flat elevation written in the file, and is never matched against real segments. The Salar is also the flattest place on Earth, which helps if a very long ride spills past the edge of the salt on the map.
 
@@ -117,6 +114,6 @@ The code is split by job:
 - `js/zones.js` defines the seven power zones and adds up the time spent in each
 - `js/charts.js` draws the bar charts on a canvas
 - `js/route.js` holds the drawings the virtual route follows on the Salar de Uyuni (`js/outlines.js`, generated with the logos, holds the outlines of the TT and the wordmark)
-- `js/exports.js` builds the CSV, the FIT file (with Garmin's FIT SDK, a copy of which sits in `js/vendor/` and only loads when you export) and the recap image
+- `js/exports.js` builds the FIT file (with Garmin's FIT SDK, a copy of which sits in `js/vendor/` and only loads when you export) and the recap image
 - `js/app.js` wires all of it to the page
 - `fonts/` holds the Barlow files the page uses, so it never asks Google Fonts for them

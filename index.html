@@ -143,11 +143,7 @@
         <div><dt data-i18n="elapsed">total</dt><dd id="s-elapsed"></dd></div>
       </dl></div>
       <ol id="records" class="card durations" data-i18n-label="records" aria-label="Records de la séance"></ol>
-      <div class="downloads">
-        <button type="button" id="strava" class="button strava" data-i18n="importStrava">Importer sur Strava</button>
-        <button type="button" id="png" class="button" data-i18n="image">Image</button>
-        <button type="button" id="csv" class="button">CSV</button>
-      </div>
+      <button type="button" id="export-open" class="button strava" aria-haspopup="dialog" data-i18n="export">Exporter</button>
       <button type="button" id="restart" class="button hold"><svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"></circle><circle class="progress" cx="10" cy="10" r="8"></circle></svg><span data-i18n="holdToRestart">Maintenir pour recommencer</span></button>
     </aside>
   </section>
@@ -167,6 +163,24 @@
   <p data-i18n="warrantyText">Wattamax est fourni tel quel, sans garantie d'aucune sorte. Les chiffres viennent de ton home-trainer, la vitesse et les calories sont des estimations, et tu roules sous ta propre responsabilité. Strava est une marque de Strava, Inc., qui n'a aucun lien avec Wattamax.</p>
   <h3 data-i18n="contact">Contact</h3>
   <p data-i18n="contactText">Un bug, une question ? Écris-moi à <a href="mailto:max.henrotin@gmail.com">max.henrotin@gmail.com</a> ou sur <a href="https://github.com/MaxHenrotin/wattamax/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+</div></dialog>
+<dialog id="export" class="export" aria-labelledby="export-title" closedby="any"><div data-nosnippet>
+  <button type="button" class="close" data-i18n-label="close" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button>
+  <h2 id="export-title" data-i18n="exportTitle">Exporter vers Strava</h2>
+  <ol class="steps">
+    <li>
+      <h3 data-i18n="pickDrawing">Clique sur un dessin pour télécharger ta séance</h3>
+      <div id="drawings" class="drawings"></div>
+    </li>
+    <li>
+      <h3 data-i18n="uploadFile">Importe le fichier téléchargé sur Strava</h3>
+      <a class="button strava" href="https://www.strava.com/upload/select" target="_blank" rel="noopener" data-i18n="openStrava">Ouvrir Strava</a>
+    </li>
+    <li class="optional">
+      <h3 data-i18n="addImage">Si tu veux, ajoute l'image du récap à ton activité</h3>
+      <button type="button" id="png" class="button" data-i18n="downloadImage">Télécharger l'image</button>
+    </li>
+  </ol>
 </div></dialog>
 </body>
 </html>
