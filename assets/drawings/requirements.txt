@@ -1,0 +1,9 @@
+contourpy
+fonttools
+networkx
+numpy
+pillow
+scipy
+shapely
+tifffile
+imagecodecs
