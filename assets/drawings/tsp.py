@@ -71,7 +71,7 @@ def drawing(img, n):
 
 def heart(size=400):
     """Taubin's heart surface lit from the upper left, as seen from the front (1 white, 0 black)."""
-    x, z = np.meshgrid(np.linspace(-1.35, 1.35, size), np.linspace(1.25, -1.45, size))
+    x, z = np.meshgrid(np.linspace(-1.45, 1.45, size), np.linspace(1.45, -1.45, size))
     surface = lambda y: (x**2 + 2.25 * y**2 + z**2 - 1) ** 3 - x**2 * z**3 - 0.1125 * y**2 * z**3
     ys = np.linspace(-1, 1, 300)
     inside = np.stack([surface(y) < 0 for y in ys], -1)

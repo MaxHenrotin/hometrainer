@@ -2,7 +2,7 @@
 // so like Zwift's worlds, the ride follows a drawing on the Salar de Uyuni (Bolivia), the flattest
 // place on Earth. The drawing is scaled so that the whole ride draws it once, whatever its length.
 import { ICON, TT, WORDMARK } from "./outlines.js";
-import { ALPE_D_HUEZ, ECG, HEARTBEAT, LLAMA, MATTERHORN, MATTERHORN_CONTOURS, STELVIO, STELVIO_BENDS, TREMOLA, ZAP } from "./drawings.js";
+import { LEVEL_KM, LEVELS, LINES } from "./drawings.js";
 
 // East of Isla Incahuasi, about 30 km from any shore or island, so even a long ride stays on flat salt
 const CENTER = { lat: -20.36, lon: -67.35 };
@@ -87,13 +87,9 @@ function heart() {
   });
 }
 
-// Drawings in three levels of detail, simplest first. A ride follows the richest one its length draws
-// cleanly at one GPS point a second (the simplest already does from 5 km), the export window shows the simplest.
-const LEVELS = { heartbeat: HEARTBEAT, llama: LLAMA, matterhorn: MATTERHORN };
-const LEVEL_KM = [0, 12, 25];  // the shortest ride for each level
-
 // The drawings the route can follow, each one line of [x, y] points in any unit, with y going up.
-// Adding one is adding a line here: the export window shows them all.
+// Adding one is adding a line here, or in assets/drawings/build.py for those made from pictures and real
+// data: the export window shows them all, a drawing with levels of detail by its simplest one.
 export const DRAWINGS = {
   url: text("WATTAMAX.COM"),
   loop: loop(),
@@ -102,19 +98,14 @@ export const DRAWINGS = {
   wordmark: WORDMARK,
   bike: bike(),
   heart: heart(),
-  zap: ZAP,
-  ecg: ECG,
-  alpeDHuez: ALPE_D_HUEZ,
-  stelvio: STELVIO,
-  stelvioBends: STELVIO_BENDS,
-  tremola: TREMOLA,
-  matterhornContours: MATTERHORN_CONTOURS,
+  ...LINES,
   ...Object.fromEntries(Object.entries(LEVELS).map(([name, levels]) => [name, levels[0]])),
 };
 // The one the export window puts first, as it makes Wattamax known to whoever sees the ride
 export const SUPPORT = "wordmark";
 
-// For a ride of `km` kilometres, the function giving the latitude and longitude after `distance` kilometres
+// For a ride of `km` kilometres, the function giving the latitude and longitude after `distance` kilometres.
+// A drawing with levels of detail follows the richest one the ride is long enough for.
 export function route(drawing, km) {
   const points = LEVELS[drawing]?.[LEVEL_KM.findLastIndex((min) => km >= min)] ?? DRAWINGS[drawing];
   const along = [0];
