@@ -79,8 +79,7 @@ export default {
   data: "Deine Daten",
   dataText: "Deine Daten verlassen dein Gerät nicht. Dein Gewicht, deine FTP und deine Einstellungen bleiben in deinem Browser, und deine Einheiten gibt es nur in den Dateien, die du herunterlädst. Es gibt keine Cookies, und die Seite kontaktiert keine andere Website: Die Schriften und der Code kommen von wattamax.com. Damit ich weiß, wie viele Leute Wattamax nutzen, zählt der Hoster (Vercel) nur die Besuche, anonym. Wie bei jeder Website speichert er außerdem technische Protokolle mit der IP-Adresse und der aufgerufenen Seite.",
   warranty: "Ohne Gewähr",
-  warrantyText: "Wattamax wird so bereitgestellt, wie es ist, ohne jegliche Gewährleistung. Die Werte kommen von deinem Rollentrainer, Geschwindigkeit und Kalorien sind Schätzungen, und du fährst auf eigene Verantwortung. Strava ist eine Marke von Strava, Inc., die in keiner Verbindung zu Wattamax steht.",
-  credit: "Strava-Zeichnungen: Copernicus DEM © DLR e.V., Airbus",
+  warrantyText: "Wattamax wird so bereitgestellt, wie es ist, ohne jegliche Gewährleistung. Die Werte kommen von deinem Rollentrainer, Geschwindigkeit und Kalorien sind Schätzungen, und du fährst auf eigene Verantwortung. Strava ist eine Marke von Strava, Inc., die in keiner Verbindung zu Wattamax steht. Strava-Zeichnungen: Copernicus DEM © DLR e.V., Airbus.",
   contact: "Kontakt",
   contactText: 'Ein Fehler, eine Frage? Schreib mir an <a href="mailto:max.henrotin@gmail.com">max.henrotin@gmail.com</a> oder auf <a href="https://github.com/MaxHenrotin/wattamax/issues" target="_blank" rel="noopener">GitHub</a>.',
 };
