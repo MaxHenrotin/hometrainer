@@ -352,7 +352,7 @@ dialog h2 { margin: 0 0 12px; font-size: 24px; font-weight: 600; }
 .drawings .support:hover { border-color: var(--strava); background: #FFF6F2; }
 .drawings .support svg { height: 96px; }
 .drawings .support path { stroke: var(--strava); stroke-width: 2.4px; }
-.drawings span { font: 500 14px Barlow, sans-serif; color: var(--secondary); }
+.drawings span { font: 500 16px Barlow, sans-serif; color: var(--secondary); }
 .drawings span::before { content: "♥ "; color: var(--red); }
 /* The drawing last saved gets a green tick */
 .drawings .saved, .drawings .saved:hover { border-color: var(--green); }
