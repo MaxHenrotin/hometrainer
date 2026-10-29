@@ -531,6 +531,16 @@ for (const name of [SUPPORT, ...Object.keys(DRAWINGS).filter((name) => name !== 
   });
   $("drawings").append(tile);
 }
+// As many drawings per row as fit, then the rows evened out, so the drawings grow to fill them:
+// ten that fit six to a row go five and five
+new ResizeObserver(() => {
+  const grid = $("drawings");
+  const style = getComputedStyle(grid);
+  const gap = parseFloat(style.columnGap);
+  const fit = Math.max(1, Math.floor((grid.clientWidth + gap) / (parseFloat(style.getPropertyValue("--tile")) + gap)));
+  const drawings = grid.children.length - 1;
+  grid.style.setProperty("--columns", Math.ceil(drawings / Math.ceil(drawings / fit)));
+}).observe($("drawings"));
 $("png").addEventListener("click", async () => saveFile(await recapImage(summaryView(), recordLabels(), colorOf), fileName("png")));
 
 // A chart is drawn again whenever its size changes: the window, or a card resized or moved
