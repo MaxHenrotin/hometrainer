@@ -15,6 +15,7 @@ const COLUMN_MIN = 240;  // px, narrowest column when resizing the live cards
 const CARD_MIN = 100;    // px, lowest live card, unless its stylesheet asks for more
 const SLIDE_TIME = 250;  // ms a card or the bubble takes to slide to its new place
 const DEFAULT_FTP = 200; // W, until the rider enters their own
+const DRAWINGS_SHOWN = 8; // drawings offered for the route, besides the one supporting Wattamax
 
 const $ = (id) => document.getElementById(id);
 const css = getComputedStyle(document.documentElement);
@@ -367,6 +368,20 @@ function drawingSvg(points) {
   return `<svg viewBox="-3 -3 ${width * scale + 6} ${height * scale + 6}" aria-hidden="true"><path d="${d}"></path></svg>`;
 }
 
+// Up to DRAWINGS_SHOWN of the other drawings, picked anew for each ride and in a random order, so
+// the choice stays short and changes from one ride to the next
+function pickDrawings() {
+  const others = [...$("drawings").children].slice(1);
+  for (let i = others.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [others[i], others[j]] = [others[j], others[i]];
+  }
+  others.forEach((tile, i) => {
+    tile.hidden = i >= DRAWINGS_SHOWN;
+    $("drawings").append(tile);
+  });
+}
+
 // Every flag loads with the page and stays loaded: the host makes the browser check a file again
 // each time it's shown, which held the next flag back after a click
 const FLAGS = Object.fromEntries(LANGUAGES.map((code) => [code, Object.assign(new Image(), { src: `assets/flags/${code}.svg` })]));
@@ -486,6 +501,7 @@ function reset() {
   $("connect").hidden = false;
   $("stop").hidden = true;
   $("drawings").querySelector(".saved")?.classList.remove("saved");
+  pickDrawings();
   renderLive();
 }
 
@@ -531,15 +547,14 @@ for (const name of [SUPPORT, ...Object.keys(DRAWINGS).filter((name) => name !== 
   });
   $("drawings").append(tile);
 }
-// As many drawings per row as fit, then the rows evened out, so the drawings grow to fill them:
-// ten that fit six to a row go five and five
+// The drawings on one row if they fit at --tile each, else on two even rows: eight go four and four
 new ResizeObserver(() => {
   const grid = $("drawings");
   const style = getComputedStyle(grid);
   const gap = parseFloat(style.columnGap);
   const fit = Math.max(1, Math.floor((grid.clientWidth + gap) / (parseFloat(style.getPropertyValue("--tile")) + gap)));
-  const drawings = grid.children.length - 1;
-  grid.style.setProperty("--columns", Math.ceil(drawings / Math.ceil(drawings / fit)));
+  const drawings = Math.min(DRAWINGS_SHOWN, grid.children.length - 1);
+  grid.style.setProperty("--columns", fit >= drawings ? drawings : Math.ceil(drawings / 2));
 }).observe($("drawings"));
 $("png").addEventListener("click", async () => saveFile(await recapImage(summaryView(), recordLabels(), colorOf), fileName("png")));
 
