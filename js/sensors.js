@@ -64,8 +64,11 @@ class Sensor {
     await characteristic.startNotifications();
   }
 
-  // One shared function, so subscribing again after a reconnection doesn't add a second listener
-  #onValue = (event) => this.onData(this.parse(event.target.value));
+  // One shared function, so subscribing again after a reconnection doesn't add a second listener.
+  // Once the ride is over, a packet still passed on by the browser counts for nothing.
+  #onValue = (event) => {
+    if (this.active) this.onData(this.parse(event.target.value));
+  };
 
   async #reconnect() {
     if (!this.active) return;
