@@ -80,6 +80,7 @@ export default {
   dataText: "Your data never leaves your device. Your weight, FTP and settings stay in your browser, and your rides only exist in the files you download. There are no cookies, and the page doesn't contact any other site: the fonts and the code come from wattamax.com. So that I know how many people use Wattamax, the host (Vercel) only counts visits, anonymously. Like any website, it also keeps technical logs with the IP address and the page requested.",
   warranty: "No warranty",
   warrantyText: "Wattamax is provided as is, without warranty of any kind. The figures come from your trainer, the speed and calories are estimates, and you ride at your own risk. Strava is a trademark of Strava, Inc., which has no connection with Wattamax.",
+  credit: "Strava drawings: Copernicus DEM © DLR e.V., Airbus",
   contact: "Contact",
   contactText: 'Found a bug, or have a question? Write to me at <a href="mailto:max.henrotin@gmail.com">max.henrotin@gmail.com</a> or on <a href="https://github.com/MaxHenrotin/wattamax/issues" target="_blank" rel="noopener">GitHub</a>.',
 };
