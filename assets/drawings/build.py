@@ -59,15 +59,6 @@ def beat(x, width, height):
     return np.stack([x + t * width, height * sum(h * np.exp(-((t - c) / w) ** 2 / 2) for c, h, w in waves)], 1)
 
 
-def heartbeat(dots):
-    """A heartbeat comes in, draws the lit heart, and goes on."""
-    heart = tsp.drawing(tsp.heart(), dots)
-    start, end = heart[0], heart[-1]
-    into = beat(start[0] - 220, 200, 130) + [0, start[1]]
-    out = beat(end[0] + 20, 200, 130) + [0, end[1]]
-    return np.vstack([into, heart, out])
-
-
 def llama(dots):
     """The 'Llama del Perú' engraving (Museo Nacional de Ciencias Naturales, Madrid, public domain), without
     its stand and caption."""
@@ -128,7 +119,7 @@ write(lines={
     "tremola": terrain.oblique(road["tremola"], 0, 50),
     "matterhornContours": terrain.contours(*MATTERHORN, 2500, range(3000, 4400, 100)),
 }, levels={
-    "heartbeat": [heartbeat(n) for n in DOTS],
+    "litHeart": [tsp.drawing(tsp.heart(), n) for n in DOTS],
     "llama": [llama(n) for n in DOTS],
     "matterhorn": [terrain.ridgelines(*MATTERHORN, 240, 3000, -3000, 2500, lines, samples) for lines, samples in RIDGES],
 })
