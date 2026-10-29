@@ -46,9 +46,9 @@ class Line(BasePen):
 
 
 def zap():
-    """Lucide's zap icon (ISC, see lucide-LICENSE)."""
+    """Lucide's zap icon (ISC, see sources/lucide-LICENSE)."""
     pen = Line()
-    parse_path(open(HERE / "zap.svg").read().split(' d="')[1].split('"')[0], pen)
+    parse_path(open(HERE / "sources" / "zap.svg").read().split(' d="')[1].split('"')[0], pen)
     return np.array(pen.points) * [1, -1]
 
 
@@ -62,7 +62,7 @@ def beat(x, width, height):
 def llama(dots):
     """The 'Llama del Perú' engraving (Museo Nacional de Ciencias Naturales, Madrid, public domain), without
     its stand and caption."""
-    img = Image.open(HERE / "llama.jpg").convert("L").crop((0, 0, 606, 578))
+    img = Image.open(HERE / "sources" / "llama.jpg").convert("L").crop((0, 0, 606, 578))
     img = np.pad(np.clip((np.asarray(img, float) / 255 - 0.12) / 0.78, 0, 1), 30, constant_values=1)
     img = Image.fromarray((img * 255).astype(np.uint8)).resize((400, 400 * img.shape[0] // img.shape[1]), Image.LANCZOS)
     return tsp.drawing(np.asarray(img, float) / 255, dots)
@@ -77,8 +77,8 @@ ROADS = {
 
 
 def roads():
-    """Each climb's road as [lat, lon], fetched once and kept in roads.json."""
-    path = HERE / "roads.json"
+    """Each climb's road as [lat, lon], fetched once and kept in sources/roads.json."""
+    path = HERE / "sources" / "roads.json"
     kept = json.loads(path.read_text()) if path.exists() else {}
     for name, (query, bbox) in ROADS.items():
         if name not in kept:

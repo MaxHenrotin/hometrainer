@@ -1,5 +1,5 @@
 """Mountains and climbs drawn from real data: Copernicus GLO-30 elevation (1 arc-second tiles, downloaded once
-into cache/) and roads from OpenStreetMap (kept in roads.json)."""
+into cache/) and roads from OpenStreetMap (kept in sources/roads.json)."""
 import json
 import math
 import urllib.parse
