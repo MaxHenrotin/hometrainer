@@ -18,3 +18,5 @@ python3 build.py
 ```
 
 Drawings listed under `levels` come in three versions, simplest first. A ride follows the richest one its length can draw cleanly (`LEVEL_KM`), and the export window shows the simplest.
+
+`gallery.png` shows every drawing the export window can offer, the hand-drawn ones included, styled like its tiles and named as in `js/route.js`. Refresh it with `node gallery.mjs` (needs Google Chrome) after changing the drawings.
